@@ -8,9 +8,25 @@
  * @module @zcd/workflow-ui-host
  */
 
+import type { IncomingMessage } from 'node:http'
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-host-webserver'
 import type {} from '@zcd/durable-workflow'
+
+/** Read a bounded JSON body. */
+async function readJson(req: IncomingMessage): Promise<Record<string, unknown>> {
+  const chunks: Buffer[] = []
+  let size = 0
+  for await (const chunk of req) {
+    const buffer = Buffer.from(chunk)
+    size += buffer.length
+    if (size > 512 * 1024) throw new Error('body too large')
+    chunks.push(buffer)
+  }
+  const value = JSON.parse(Buffer.concat(chunks).toString('utf8')) as unknown
+  if (typeof value !== 'object' || value === null) throw new Error('body must be an object')
+  return value as Record<string, unknown>
+}
 
 export const name = 'zcd-workflow-ui-host'
 export const inject = ['webServer', 'durableWorkflow']
@@ -46,11 +62,12 @@ export function apply(ctx: Context): void {
         res.end(JSON.stringify({ runs }))
         return
       }
-      const match = /^\/zcd\/workflow\/runs\/([A-Za-z0-9_-]+)(\/cancel|\/resume|\/nodes|\/events)?$/.exec(url.pathname)
+      const match = /^\/zcd\/workflow\/runs\/([A-Za-z0-9_-]+)(\/cancel|\/resume|\/amend|\/nodes|\/events)?$/.exec(url.pathname)
       const id = match?.[1]
       const sub = match?.[2]
       const cancel = sub === '/cancel'
       const resume = sub === '/resume'
+      const amend = sub === '/amend'
       if (id === undefined) {
         res.writeHead(404)
         res.end()
@@ -109,10 +126,36 @@ export function apply(ctx: Context): void {
           return
         }
       }
-      if (cancel || resume) {
+      if (cancel || resume || amend) {
         if (req.method !== 'POST') {
           res.writeHead(405, { allow: 'POST' })
           res.end()
+          return
+        }
+        if (amend) {
+          void readJson(req).then(body => {
+            const script = typeof body.script === 'string' && body.script.trim().length > 0 ? body.script : undefined
+            const name = typeof body.name === 'string' ? body.name : undefined
+            if (script === undefined && name === undefined) {
+              res.writeHead(400, { 'content-type': 'application/json' })
+              res.end(JSON.stringify({ error: 'amend requires a script or a name' }))
+              return
+            }
+            try {
+              const view = ctx.durableWorkflow.amendFromStore(id, {
+                ...(script === undefined ? {} : { script }),
+                ...(name === undefined ? {} : { name }),
+              })
+              res.writeHead(200, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' })
+              res.end(JSON.stringify(view))
+            } catch (error: unknown) {
+              res.writeHead(409, { 'content-type': 'application/json' })
+              res.end(JSON.stringify({ error: error instanceof Error ? error.message : 'amend-failed' }))
+            }
+          }, (error: unknown) => {
+            res.writeHead(400, { 'content-type': 'application/json' })
+            res.end(JSON.stringify({ error: error instanceof Error ? error.message : 'invalid-body' }))
+          })
           return
         }
         try {
@@ -148,6 +191,7 @@ export function apply(ctx: Context): void {
         name: run.name,
         status: run.status,
         nodeCount: run.nodeCount,
+        script: run.script,
         result: run.result,
         error: run.error,
         holes: run.holes,

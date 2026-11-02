@@ -495,8 +495,9 @@ declare module '@deepseek-ai/dsh-session' {
 ### 12.1 右侧栏 `workflow` tab
 
 - 已实现：run 列表（状态、名称、节点数）、点击展开节点（序号/状态/prompt）与最近 12 条 journal 事件（时间、类型、payload 摘要），3 秒轮询。
-- 已实现：运行中/排队中的 run 在面板内 Cancel；failed/interrupted/cancelled 的 run 在面板内 Resume（`POST /<id>/resume`）。Resume 只有在启动该 run 的 session 仍然存活时可用；重启后要回到原会话调 `workflow_resume`。
-- 未实现：耗时/模型列、子会话链接、面板内 amend。
+- 已实现：运行中/排队中的 run 在面板内 Cancel；failed/interrupted/cancelled 的 run 在 Resume（`POST /<id>/resume`）；已结束的 run 打开 Amend 编辑器（`GET /<id>` 取 script，`POST /<id>/amend` 保存），改脚本会创建 successor run。
+- 限制：Resume/Amend 只有在启动该 run 的 session 仍然存活时可用；重启后要回到原会话调 `workflow_resume`/`workflow_amend`。
+- 未实现：耗时/模型列、子会话链接、失败重试按钮。
 - 详情：节点树（agent/world/hole）、每个节点的输入摘要/输出摘要/子会话链接、错误。
 
 ### 12.2 对话内卡片

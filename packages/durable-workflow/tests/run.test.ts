@@ -88,6 +88,23 @@ describe('durable workflow', () => {
     await ctx.dispose?.()
   })
 
+  it('amends a settled run from its recorded parent session', async () => {
+    const { ctx, service, parent, created } = await harness()
+    const view = service.start({ script: 'return await agent("hi")' }, parent)
+    await service.wait(view.id, 5_000)
+
+    const renamed = service.amendFromStore(view.id, { name: 'renamed from panel' })
+    expect(renamed.id).toBe(view.id)
+    expect(renamed.name).toBe('renamed from panel')
+
+    const successor = service.amendFromStore(view.id, { script: 'return await agent("again")' })
+    expect(successor.id).not.toBe(view.id)
+    const done = await service.wait(successor.id, 5_000)
+    expect(done.status).toBe('succeeded')
+    expect(created).toHaveLength(2)
+    await ctx.dispose?.()
+  })
+
   it('replays a completed node on resume instead of calling the model again', async () => {
     const { ctx, service, parent, created } = await harness()
     const view = service.start({ script: 'return await agent("hi")' }, parent)

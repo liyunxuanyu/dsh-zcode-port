@@ -184,6 +184,16 @@ try {
   // refuse with a readable 409 instead of starting a detached run.
   const resume = await fetch(`http://127.0.0.1:${port}/zcd/workflow/runs/${runningId}/resume`, { method: 'POST' })
   if (resume.status !== 409) throw new Error(`workflow resume without a live parent should be 409: ${resume.status}`)
+  const detail = await (await fetch(`http://127.0.0.1:${port}/zcd/workflow/runs/${fixtureId}`)).json().catch(() => undefined)
+  if (detail?.script !== 'return await agent("Summarize the changelog")') {
+    throw new Error(`workflow detail did not expose the script: ${JSON.stringify(detail)}`)
+  }
+  const amend = await fetch(`http://127.0.0.1:${port}/zcd/workflow/runs/${fixtureId}/amend`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ script: 'return "amended"' }),
+  })
+  if (amend.status !== 409) throw new Error(`workflow amend without a live parent should be 409: ${amend.status}`)
 
   const workflow = await fetch(`http://127.0.0.1:${port}/zcd/workflow/runs/not-a-run`)
   const workflowBody = await workflow.text()

@@ -151,6 +151,26 @@ export class DurableWorkflowService extends Service {
   }
 
   /**
+   * Amend a run from its recorded parent session, when that session is live.
+   * A new script creates a successor run; a name-only change renames in place.
+   *
+   * @param runId - run id.
+   * @param patch - replacement script and/or display name.
+   * @returns the amended or successor view.
+   */
+  amendFromStore(runId: string, patch: { script?: string; name?: string }): WorkflowRunView {
+    const record = this.requireRun(runId)
+    if (record.parentSessionId === undefined) {
+      throw new Error(`workflow ${runId} has no recorded parent session`)
+    }
+    const parent = this.ctx.agents.get(record.parentSessionId as SessionId)
+    if (parent === undefined) {
+      throw new Error(`workflow ${runId} parent session is not live; amend it from that session`)
+    }
+    return this.amend(runId, patch, parent)
+  }
+
+  /**
    * Cancel a queued or running run.
    * @param runId - run id.
    * @param reason - recorded in the error field.

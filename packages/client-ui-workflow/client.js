@@ -18,6 +18,7 @@ window.__ModuleLoader__.load({
     const cell = { padding: '4px 0', fontSize: '12px', color: 'var(--text-secondary, #555)' }
     const mono = { fontFamily: 'var(--font-mono, monospace)' }
     const smallButton = { border: '1px solid var(--border, #ccc)', background: 'transparent', color: 'inherit', borderRadius: '6px', padding: '1px 6px', cursor: 'pointer', fontSize: '11px', width: 'fit-content' }
+    const editorStyle = { width: '100%', boxSizing: 'border-box', border: '1px solid var(--border, #ccc)', background: 'transparent', color: 'inherit', borderRadius: '6px', padding: '6px', fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', resize: 'vertical' }
 
     /** Compact one-line event payload for the panel. */
     function summarize(data) {
@@ -36,6 +37,9 @@ window.__ModuleLoader__.load({
       const [events, setEvents] = React.useState({})
       const [refresh, setRefresh] = React.useState(0)
       const [actionError, setActionError] = React.useState(undefined)
+      const [editing, setEditing] = React.useState(undefined)
+      const [draft, setDraft] = React.useState('')
+      const [draftName, setDraftName] = React.useState('')
       React.useEffect(() => {
         let alive = true
         const read = () => {
@@ -65,6 +69,30 @@ window.__ModuleLoader__.load({
             .then((value) => Promise.reject(new Error(value.error ?? String(response.status))))
             .catch((reason) => Promise.reject(reason instanceof Error ? reason : new Error(String(response.status)))))
           .then(() => setRefresh((value) => value + 1))
+          .catch((reason) => setActionError(String(reason?.message ?? reason)))
+      }
+      const beginAmend = (id) => {
+        setActionError(undefined)
+        fetch(`/zcd/workflow/runs/${id}`)
+          .then((response) => response.ok ? response.json() : Promise.reject(new Error(String(response.status))))
+          .then((value) => {
+            setEditing(id)
+            setDraft(typeof value.script === 'string' ? value.script : '')
+            setDraftName(typeof value.name === 'string' ? value.name : '')
+          })
+          .catch((reason) => setActionError(String(reason?.message ?? reason)))
+      }
+      const saveAmend = (id) => {
+        setActionError(undefined)
+        fetch(`/zcd/workflow/runs/${id}/amend`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ script: draft, name: draftName }),
+        })
+          .then((response) => response.ok ? response.json() : response.json()
+            .then((value) => Promise.reject(new Error(value.error ?? String(response.status))))
+            .catch((reason) => Promise.reject(reason instanceof Error ? reason : new Error(String(response.status)))))
+          .then(() => { setEditing(undefined); setRefresh((value) => value + 1) })
           .catch((reason) => setActionError(String(reason?.message ?? reason)))
       }
       const toggle = (id) => {
@@ -117,6 +145,49 @@ window.__ModuleLoader__.load({
                   style: smallButton,
                   onClick: (event) => { event.stopPropagation(); act(run.id, 'resume') },
                   children: 'Resume',
+                })
+                : null,
+              run.status === 'succeeded' || run.status === 'failed'
+                || run.status === 'interrupted' || run.status === 'cancelled'
+                ? jsx('button', {
+                  type: 'button',
+                  style: smallButton,
+                  onClick: (event) => { event.stopPropagation(); beginAmend(run.id) },
+                  children: 'Amend',
+                })
+                : null,
+              editing === run.id
+                ? jsxs('div', {
+                  style: { display: 'grid', gap: '6px', margin: '6px 0' },
+                  onClick: (event) => event.stopPropagation(),
+                  children: [
+                    jsx('input', {
+                      value: draftName,
+                      onChange: (event) => setDraftName(event.target.value),
+                      placeholder: 'Run name',
+                      style: editorStyle,
+                    }),
+                    jsx('textarea', {
+                      value: draft,
+                      onChange: (event) => setDraft(event.target.value),
+                      rows: 6,
+                      style: editorStyle,
+                    }),
+                    jsxs('div', { style: { display: 'flex', gap: '6px' }, children: [
+                      jsx('button', {
+                        type: 'button',
+                        style: smallButton,
+                        onClick: () => saveAmend(run.id),
+                        children: 'Save amend',
+                      }),
+                      jsx('button', {
+                        type: 'button',
+                        style: smallButton,
+                        onClick: () => setEditing(undefined),
+                        children: 'Cancel edit',
+                      }),
+                    ] }),
+                  ],
                 })
                 : null,
               ...nodeRows,
