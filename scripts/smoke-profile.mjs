@@ -80,6 +80,12 @@ try {
     throw new Error(`genui route failed: ${genui.status} csp=${csp}`)
   }
 
+  const status = await fetch(`http://127.0.0.1:${port}/zcd/status`)
+  const statusBody = await status.json().catch(() => undefined)
+  if (status.status !== 200 || statusBody?.product !== 'ZCD') {
+    throw new Error(`status route failed: ${status.status}`)
+  }
+
   const workflow = await fetch(`http://127.0.0.1:${port}/zcd/workflow/runs/not-a-run`)
   const workflowBody = await workflow.text()
   if (workflow.status !== 404 || !workflowBody.includes('not-found')) {
@@ -94,6 +100,7 @@ try {
   for (const [id, marker] of [
     ['@zcd/client-ui-genui', 'tool.call.toolview'],
     ['@zcd/client-ui-zcd', 'read_document'],
+    ['@zcd/client-ui-settings-zcd', 'settings.section'],
   ]) {
     const prefix = `${id}/client.js&rev=`
     const at = html.indexOf(prefix)

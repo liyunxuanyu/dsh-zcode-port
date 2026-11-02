@@ -4,6 +4,12 @@
 # add their `ui-*` rows here as those work packages land; keeping the file
 # present means the profile composition stays stable.
 - insert:
+    - id: zcd-status-host
+      name: '@zcd/status-host'
+
+    - id: zcd-client-ui-settings-zcd
+      name: '@zcd/client-ui-settings-zcd'
+
     - id: zcd-workflow-ui-host
       name: '@zcd/workflow-ui-host'
 
