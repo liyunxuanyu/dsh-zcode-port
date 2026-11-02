@@ -48,9 +48,9 @@
 | `@zcd/genui-host` | `/zcd/genui/...` 沙箱路由：严格 CSP + sandbox + no-store | 激活成功 | smoke 探测 200 + CSP |
 | `@zcd/client-ui-genui` | 手写 lazy-CJS client bundle：`visualize` 结果渲染为沙箱 iframe | 进入 boot graph，bundle 200 | smoke 检查 |
 | `@zcd/status-host` | `/zcd/status` 只读 JSON：Node/dsh/uptime/最近 runs | 激活成功 | smoke 探测 200 |
-| `@zcd/workflow-ui-host` | `/zcd/workflow/runs/<id>` 只读 JSON（无脚本） | 激活成功 | smoke 探测 404 契约 |
+| `@zcd/workflow-ui-host` | `/zcd/workflow/runs/<id>` JSON + `POST .../cancel` | 激活成功 | smoke 探测 404 契约 |
 | `@zcd/client-ui-settings-zcd` | `settings.section` 的 ZCD 页：运行环境 + 最近 runs | **视觉验收通过** | [截图](assets/zcd-settings.png) + smoke |
-| `@zcd/client-ui-zcd` | 文档卡 Open 按钮（`openFile` → 内置 Office/PDF 预览）、workflow 卡片轮询状态 | 进入 boot graph，bundle 200 | smoke 检查 |
+| `@zcd/client-ui-zcd` | 文档卡 Open/自动打开、workflow 卡片轮询 + 取消按钮 | 进入 boot graph，bundle 200 | smoke 检查 |
 | `@zcd/tool-visualize` | `visualize`：写自包含 HTML，返回沙箱 URL（deferred） | 激活成功 | — |
 | `skills/superpowers`（14） | ZCode 工程方法技能，工具名已映射为 dsh | 已安装到 `$DSH_HOME/skills` | `install-skills.mjs` |
 | `skills/dsh-guide`（6） | 自诊断技能改写为 dsh：profile/bundle/patch、MCP、hooks、skills、commands | 已安装 | `install-skills.mjs` |

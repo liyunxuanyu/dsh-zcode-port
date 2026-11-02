@@ -91,6 +91,8 @@ try {
   if (workflow.status !== 404 || !workflowBody.includes('not-found')) {
     throw new Error(`workflow route failed: ${workflow.status} ${workflowBody}`)
   }
+  const cancel = await fetch(`http://127.0.0.1:${port}/zcd/workflow/runs/not-a-run/cancel`, { method: 'POST' })
+  if (cancel.status !== 404) throw new Error(`workflow cancel route failed: ${cancel.status}`)
 
   // Client cards must be in the browser boot graph and their bundles served.
   const login = await fetch(`http://127.0.0.1:${port}/?token=${token}`, { redirect: 'manual' })

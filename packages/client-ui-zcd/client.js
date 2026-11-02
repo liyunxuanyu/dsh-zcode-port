@@ -99,10 +99,27 @@ window.__ModuleLoader__.load({
         return () => { alive = false; clearInterval(timer) }
       }, [id])
       if (text === '' && id === undefined) return null
+      const current = status === undefined ? undefined : status
+      const cancellable = id !== undefined && (current === 'running' || current === 'queued')
       return jsx('div', {
         'data-tool': 'workflow_run',
         style: rowStyle,
-        children: jsx('span', { children: status === undefined ? text : `${id} [${status}]` }),
+        children: [
+          jsx('span', { key: 'label', children: current === undefined ? text : `${id} [${current}]` }),
+          cancellable
+            ? jsx('button', {
+              key: 'cancel',
+              type: 'button',
+              style: buttonStyle,
+              onClick: () => {
+                fetch(`/zcd/workflow/runs/${id}/cancel`, { method: 'POST' })
+                  .then((response) => { if (response.ok) setStatus('cancelled') })
+                  .catch(() => {})
+              },
+              children: 'Cancel',
+            })
+            : null,
+        ],
       })
     }
 
