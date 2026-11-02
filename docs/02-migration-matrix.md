@@ -36,7 +36,7 @@
 | 18 | `ReadSessionContext` | `read-session-context.ts:160-190` | `session_*` 五件套（experimental） | S2 | 新增 `session_handoff` 工具；topic 附件不移植 | WP-05 | M | 中（授权） |
 | 19 | `ListModels` | `handlers/list-models.ts` | `list_subagent_models` | S1 | 技能里映射；不新增工具 | WP-02 | XS | 低 |
 | 20 | `GoalRead` | `handlers/target.ts:26`（未注册） | `get_goal` / `create_goal` / `update_goal` | S1 | 用 dsh goal 三件套；不移植 GoalRead | WP-02 | XS | 低 |
-| 21 | 动态工作流 11 工具 | `handlers/index.ts:81-127` | `workflow`（单工具，无恢复） | S3 | 新 `durableWorkflow` seam + 11 工具（`workflow_*`） | WP-07/08 | XL | 高 |
+| 21 | 动态工作流 11 工具 | `handlers/index.ts:81-127` | `workflow`（单工具，无恢复） | S3 | 新 `durableWorkflow` seam；MVP 已落 5 工具（run/get/list/resume/cancel），其余待做 | WP-07/08 | XL | 高 |
 
 **工具面统计**：S1 13 项、S2 6 项、S3 1 项、S4 0。
 

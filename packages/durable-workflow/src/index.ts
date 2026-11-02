@@ -1,0 +1,315 @@
+/**
+ * `ctx.durableWorkflow` — replayable workflow runs (MVP).
+ *
+ * The MVP executes a plain-JavaScript body sequentially. Each `agent(prompt)`
+ * is a durable node keyed by `(scriptHash, ordinal, prompt)`: a second
+ * execution of the same run returns the stored output instead of calling the
+ * model again. There is no parallel(), hole(), amend(), or UI yet; those are
+ * specified in docs/04 and land on top of this seam.
+ *
+ * @module @zcd/durable-workflow
+ */
+
+import { randomUUID } from 'node:crypto'
+import { homedir } from 'node:os'
+import { join } from 'node:path'
+import vm from 'node:vm'
+import { Service } from '@deepseek-ai/cordis'
+import type { Context } from '@deepseek-ai/cordis'
+import type { Agent } from '@deepseek-ai/dsh-agent'
+import type {} from '@deepseek-ai/dsh-agent-default-model'
+import { createUserMessage } from '@deepseek-ai/dsh-llm'
+import type { SessionId } from '@deepseek-ai/dsh-session'
+import { FileWorkflowStore, type NodeRecord, type RunRecord } from '@zcd/workflow-store'
+import type { WorkflowRunView, WorkflowStartRequest } from './types.js'
+
+export type * from './types.js'
+
+/** Deployment configuration. */
+export interface Config {
+  /** Store root; defaults to `$DSH_HOME/storages/zcd-workflow`. */
+  root?: string
+  /** Hard cap on `agent()` calls in one run. */
+  maxNodes?: number
+  /** Per-node deadline in milliseconds. */
+  nodeTimeoutMs?: number
+}
+
+declare module '@deepseek-ai/cordis' {
+  interface Context {
+    durableWorkflow: DurableWorkflowService
+  }
+}
+
+/** Flatten model content into text. */
+function flatten(content: readonly unknown[]): string {
+  const parts: string[] = []
+  for (const block of content) {
+    if (typeof block !== 'object' || block === null) continue
+    const candidate = block as { type?: string; text?: string }
+    if (candidate.type === 'text' && typeof candidate.text === 'string') parts.push(candidate.text)
+  }
+  return parts.join('\n').trim()
+}
+
+/**
+ * Durable workflow service.
+ */
+export class DurableWorkflowService extends Service {
+  static inject = ['agents']
+
+  private readonly store: FileWorkflowStore
+  private readonly aborters = new Map<string, AbortController>()
+  private readonly maxNodes: number
+  private readonly nodeTimeoutMs: number
+
+  constructor(ctx: Context, private readonly config: Config = {}) {
+    super(ctx, 'durableWorkflow')
+    const root = config.root ?? join(process.env.DSH_HOME ?? join(homedir(), '.dsh'), 'storages', 'zcd-workflow')
+    this.store = new FileWorkflowStore(root)
+    this.maxNodes = config.maxNodes ?? 100
+    this.nodeTimeoutMs = config.nodeTimeoutMs ?? 30 * 60_000
+  }
+
+  /**
+   * Create and start a run without waiting for it.
+   * @param request - script, label, and args.
+   * @param parent - agent that owns the run.
+   * @returns the run view at creation time.
+   */
+  start(request: WorkflowStartRequest, parent: Agent): WorkflowRunView {
+    const script = request.script.trim()
+    if (script.length === 0) throw new Error('workflow script must not be empty')
+    const id = `run-${randomUUID()}`
+    const scriptHash = FileWorkflowStore.hashScript(script)
+    const record: RunRecord = {
+      id,
+      name: request.name?.trim() || 'workflow',
+      status: 'queued',
+      script,
+      scriptHash,
+      args: request.args ?? {},
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      nodeCount: 0,
+    }
+    this.store.createRun(record)
+    const aborter = new AbortController()
+    this.aborters.set(id, aborter)
+    void this.execute(record, parent, aborter.signal).finally(() => { this.aborters.delete(id) })
+    return this.view(record)
+  }
+
+  /**
+   * Resume an interrupted or failed run. Completed nodes are replayed from the
+   * store and never call the model again.
+   * @param runId - run id.
+   * @param parent - agent that owns the resumed run.
+   * @returns the run view at resume time.
+   */
+  resume(runId: string, parent: Agent): WorkflowRunView {
+    const record = this.requireRun(runId)
+    if (record.status === 'running') throw new Error(`workflow ${runId} is already running`)
+    const next = this.store.updateRun(runId, { status: 'queued', error: undefined })
+    const aborter = new AbortController()
+    this.aborters.set(runId, aborter)
+    void this.execute(next, parent, aborter.signal).finally(() => { this.aborters.delete(runId) })
+    return this.view(next)
+  }
+
+  /**
+   * Cancel a queued or running run.
+   * @param runId - run id.
+   * @param reason - recorded in the error field.
+   */
+  cancel(runId: string, reason = 'cancelled by request'): void {
+    const record = this.requireRun(runId)
+    this.aborters.get(runId)?.abort(new Error(reason))
+    if (record.status === 'queued' || record.status === 'running') {
+      this.store.updateRun(runId, { status: 'cancelled', error: { code: 'WORKFLOW_CANCELLED', message: reason } })
+      this.store.appendEvent(runId, { at: Date.now(), type: 'run/cancelled', data: { reason } })
+    }
+  }
+
+  /**
+   * Wait until a run reaches a terminal state.
+   * @param runId - run id.
+   * @param timeoutMs - maximum wait; rejects on timeout.
+   * @returns the terminal view.
+   */
+  async wait(runId: string, timeoutMs = 10 * 60_000): Promise<WorkflowRunView> {
+    const deadline = Date.now() + timeoutMs
+    while (Date.now() < deadline) {
+      const record = this.requireRun(runId)
+      if (record.status === 'succeeded' || record.status === 'failed'
+        || record.status === 'cancelled') return this.view(record)
+      await new Promise(resolve => setTimeout(resolve, 200))
+    }
+    throw new Error(`workflow ${runId} did not finish within ${timeoutMs}ms`)
+  }
+
+  /**
+   * Read one run.
+   * @param runId - run id.
+   * @returns a detached view.
+   */
+  get(runId: string): WorkflowRunView {
+    return this.view(this.requireRun(runId))
+  }
+
+  /**
+   * List runs, newest first.
+   * @param limit - maximum rows.
+   * @returns detached views.
+   */
+  list(limit = 20): WorkflowRunView[] {
+    return this.store.listRuns().slice(0, Math.max(1, limit)).map(record => this.view(record))
+  }
+
+  /** Load a run or throw a typed message. */
+  private requireRun(runId: string): RunRecord {
+    const record = this.store.getRun(runId)
+    if (record === undefined) throw new Error(`workflow run ${runId} does not exist`)
+    return record
+  }
+
+  /** Project the store record onto the public view. */
+  private view(record: RunRecord): WorkflowRunView {
+    return {
+      id: record.id,
+      name: record.name,
+      status: record.status,
+      script: record.script,
+      args: record.args,
+      createdAt: record.createdAt,
+      updatedAt: record.updatedAt,
+      nodeCount: record.nodeCount,
+      ...(record.result === undefined ? {} : { result: record.result }),
+      ...(record.error === undefined ? {} : { error: record.error }),
+    }
+  }
+
+  /**
+   * Execute (or replay) one run.
+   * @param record - run summary.
+   * @param parent - owning agent.
+   * @param signal - cancellation.
+   */
+  private async execute(record: RunRecord, parent: Agent, signal: AbortSignal): Promise<void> {
+    this.store.updateRun(record.id, { status: 'running' })
+    let index = 0
+    const executeAgent = async (prompt: string): Promise<string> => {
+      if (signal.aborted) throw new Error('workflow cancelled')
+      if (index >= this.maxNodes) throw new Error(`workflow exceeded ${this.maxNodes} agent calls`)
+      const ordinal = index++
+      return this.runAgent(record, ordinal, String(prompt), parent, signal)
+    }
+    const sandbox = {
+      agent: executeAgent,
+      log: (message: unknown) => {
+        this.store.appendEvent(record.id, { at: Date.now(), type: 'run/log', data: { message: String(message) } })
+      },
+      args: structuredClone(record.args),
+      console: { log: (message: unknown) => { this.store.appendEvent(record.id, { at: Date.now(), type: 'run/log', data: { message: String(message) } }) } },
+    }
+    try {
+      const script = new vm.Script(`(async () => {\n${record.script}\n})()`, { filename: `${record.id}.workflow.js` })
+      const context = vm.createContext(sandbox, { name: record.id })
+      const pending = script.runInContext(context, { timeout: 5_000 }) as Promise<unknown>
+      const value = await pending
+      if (signal.aborted) throw new Error('workflow cancelled')
+      const result = value === undefined ? null : JSON.parse(JSON.stringify(value)) as unknown
+      this.store.updateRun(record.id, { status: 'succeeded', result, error: undefined })
+      this.store.appendEvent(record.id, { at: Date.now(), type: 'run/finished', data: { status: 'succeeded' } })
+    } catch (error: unknown) {
+      if (signal.aborted) {
+        this.store.updateRun(record.id, { status: 'cancelled', error: { code: 'WORKFLOW_CANCELLED', message: 'cancelled' } })
+        return
+      }
+      const message = error instanceof Error ? error.message : String(error)
+      this.store.updateRun(record.id, { status: 'failed', error: { code: 'WORKFLOW_FAILED', message } })
+      this.store.appendEvent(record.id, { at: Date.now(), type: 'run/finished', data: { status: 'failed', message } })
+    }
+  }
+
+  /**
+   * Run one durable node, replaying a settled output when present.
+   * @param record - owning run.
+   * @param index - call ordinal within the script.
+   * @param prompt - model instruction.
+   * @param parent - owning agent (cwd source).
+   * @param signal - cancellation.
+   * @returns the child's final assistant text.
+   */
+  private async runAgent(record: RunRecord, index: number, prompt: string, parent: Agent, signal: AbortSignal): Promise<string> {
+    const nodeId = FileWorkflowStore.nodeId(record.scriptHash, index, prompt)
+    const existing = this.store.getNode(record.id, nodeId)
+    if (existing?.status === 'succeeded') {
+      this.store.appendEvent(record.id, { at: Date.now(), type: 'node/replayed', data: { nodeId, index } })
+      return existing.output ?? ''
+    }
+    const startedAt = Date.now()
+    this.store.appendEvent(record.id, { at: startedAt, type: 'node/started', data: { nodeId, index } })
+    const cwd = parent.session.header.cwd
+    const selection = this.ctx.get('agentDefaultModel')?.currentSelection()
+    const child = await this.ctx.agents.create({
+      sessionId: `session-${randomUUID()}` as SessionId,
+      parentAgent: parent,
+      ...(cwd === undefined ? {} : { meta: { cwd, parentSession: parent.session.id, origin: 'subagent' as const } }),
+      ...(selection === undefined ? {} : { agentOptions: selection }),
+    })
+    const agent = child.agent
+    let last = ''
+    const off = this.ctx.on('session/event', (session, event) => {
+      if (session !== agent.session) return
+      if (event.type !== 'assistant/message') return
+      const text = flatten(event.data.message.content)
+      if (text.length > 0) last = text
+    })
+    const timer = setTimeout(() => {
+      agent.cancel({ kind: 'user' })
+    }, this.nodeTimeoutMs)
+    try {
+      agent.followup(createUserMessage({
+        content: [{ type: 'text', text: prompt }],
+        source: { kind: 'user' },
+      }))
+      await agent.whenIdle()
+      if (signal.aborted) throw new Error('workflow cancelled')
+      const node: NodeRecord = {
+        runId: record.id,
+        nodeId,
+        index,
+        prompt,
+        status: 'succeeded',
+        output: last,
+        startedAt,
+        endedAt: Date.now(),
+      }
+      this.store.putNode(node)
+      const run = this.requireRun(record.id)
+      this.store.updateRun(record.id, { nodeCount: run.nodeCount + 1 })
+      this.store.appendEvent(record.id, { at: Date.now(), type: 'node/finished', data: { nodeId, index } })
+      return last
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error)
+      this.store.putNode({
+        runId: record.id,
+        nodeId,
+        index,
+        prompt,
+        status: 'failed',
+        error: { code: 'NODE_FAILED', message },
+        startedAt,
+        endedAt: Date.now(),
+      })
+      throw error
+    } finally {
+      clearTimeout(timer)
+      off()
+      await child.dispose()
+    }
+  }
+}
+
+export default DurableWorkflowService

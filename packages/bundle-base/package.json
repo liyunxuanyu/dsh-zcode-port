@@ -19,6 +19,9 @@
     "@zcd/tool-models": "workspace:*",
     "@zcd/tool-session": "workspace:*",
     "@zcd/memory": "workspace:*",
-    "@zcd/tool-memory": "workspace:*"
+    "@zcd/tool-memory": "workspace:*",
+    "@zcd/durable-workflow": "workspace:*",
+    "@zcd/tool-workflow": "workspace:*",
+    "@zcd/workflow-store": "workspace:*"
   }
 }

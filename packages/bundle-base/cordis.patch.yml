@@ -29,6 +29,16 @@
     - id: zcd-tool-offpeak
       name: '@zcd/tool-offpeak'
 
+    # Durable workflow (MVP): replayable script runs with per-node caching.
+    - id: zcd-durable-workflow
+      name: '@zcd/durable-workflow'
+      config:
+        maxNodes: 100
+        nodeTimeoutMs: 1800000
+
+    - id: zcd-tool-workflow
+      name: '@zcd/tool-workflow'
+
     # Long-term memory: project/user Markdown entries + generated index.
     - id: zcd-memory
       name: '@zcd/memory'

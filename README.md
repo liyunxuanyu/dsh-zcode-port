@@ -106,7 +106,7 @@
 
 ## 7. 当前进度与下一步
 
-**已完成**：WP-01 骨架、`tool_search`、`todo_read`、`policy-plan-readonly`；product profile 可启动并接入 dsh 原生 bundle。
+**已完成**：WP-01 骨架、`tool_search`/deferred、plan 工具与策略、OffPeak、Memory、session handoff、list_models、durable workflow MVP（resume 重放）、14 个技能。product profile 可启动并接入 dsh 原生 bundle。
 
 **下一步**（详见 `docs/13-implementation-status.md` §2）：
 
