@@ -63,6 +63,14 @@
     - id: zcd-tool-visualize
       name: '@zcd/tool-visualize'
 
+    # Workflow authoring gate: workflow_run/workflow_amend need the
+    # dynamic-workflows skill loaded in the visible session history.
+    - id: zcd-policy-skill-gate
+      name: '@zcd/policy-skill-gate'
+      config:
+        skills: ['dynamic-workflows']
+        gatedTools: ['workflow_run', 'workflow_amend']
+
     # Durable workflow (MVP): replayable script runs with per-node caching.
     - id: zcd-durable-workflow
       name: '@zcd/durable-workflow'

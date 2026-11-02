@@ -2,7 +2,7 @@
 
 > 目标：在 **DeepSeek Harness（dsh）** 之上，用 **overlay 插件** 的方式，复刻 ZCode 最好用的产品能力与技能，同时保留 dsh 的插件化内核。
 >
-> 状态：**P0 已验收，P1/P2 核心能力与 P4 部分 UI 已落地**（33 个工具、33 个技能、76 个单测；product profile 可启动，设置页用户记忆增删与 workflow 面板已通过真实浏览器视觉验收）。进度见 [`docs/13-implementation-status.md`](docs/13-implementation-status.md)。日期：2026-11-03。
+> 状态：**P0 已验收，P1/P2 核心能力与 P4 部分 UI 已落地**（33 个工具、33 个技能、80 个单测；product profile 可启动，设置页用户记忆增删与 workflow 面板已通过真实浏览器视觉验收）。进度见 [`docs/13-implementation-status.md`](docs/13-implementation-status.md)。日期：2026-11-03。
 > 参考基线：`archive/`（ZCode 60 个文件 + dsh 38 个文件）。
 
 ---
@@ -111,6 +111,7 @@
 | overlay 骨架 + product profile | ✅ | `dsh --profile product --dump-config` 1243 行；smoke 启动 Web |
 | 工具面 | ✅ 33 个 | `tool_search`、`todo_read`、`enter_plan_mode`、OffPeak 3、Memory 5、`list_models`、`session_handoff`、workflow 7、`visualize`、文档 5、浏览器 6 |
 | deferred 工具加载 | ✅ | `@zcd/deferred-tools` + 服务级 admission 测试 |
+| Workflow 技能门禁 | ✅ | `@zcd/policy-skill-gate`：未加载 `dynamic-workflows` 时 deny `workflow_run`/改脚本的 amend；compaction 后重新关闭 |
 | OffPeak | ✅ | `tasks.json` 持久化、pending 恢复、running→interrupted |
 | Memory | ✅ | 条目/索引/dream/路径约束/secret 拒绝；per-agent prompt section |
 | Durable Workflow MVP | ✅ | 文件 store、`agent()`/`parallel()`/`pipeline()`/`hole()`、resume 重放、amend、通知 |

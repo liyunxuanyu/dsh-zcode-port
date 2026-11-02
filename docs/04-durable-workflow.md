@@ -2,6 +2,8 @@
 
 > **实现状态（2026-11-03）**：MVP 已落地于 `@zcd/durable-workflow` + `@zcd/workflow-store` + `@zcd/tool-workflow`。当前支持 `agent()`、`parallel()`、`pipeline()`、`hole()`、节点缓存、resume、cancel、7 个工具、完成/留白通知、amend successor；右侧栏 run 面板可列出 run、展开节点并显示 journal 事件（`/zcd/workflow/runs/<id>/events`，[截图](assets/workflow-panel-events.png)）。
 
+> **作者门禁（已实现）**：`@zcd/policy-skill-gate` 在 `workflow_run` 与改脚本的 `workflow_amend` 前检查会话日志，必须有一次成功的 `skill({ name: "dynamic-workflows" })`；compaction 会关闭门禁，要求重新加载。仅改名的 amend 与 `resume/answer_hole/cancel` 不受门禁。
+>
 > 这是本项目**唯一新增的 seam**。目标：把 ZCode 动态工作流的 journal/resume/留白/amend/live-retune 带到 dsh，同时不改 dsh 的 `workflow`。
 >
 > 参考：`archive/zcode/docs/dynamic-workflow/*`、`archive/zcode/docs/dynamic-workflow.md`、`archive/dsh/docs/subsystems/workflow.md`、`archive/dsh/packages/workflow/workflow/README.md`。

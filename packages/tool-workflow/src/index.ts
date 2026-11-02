@@ -65,8 +65,9 @@ export function apply(ctx: Context): void {
       'Start a durable workflow: a JavaScript body with `await agent(prompt, { key })`, `parallel(items, fn)`, '
       + '`pipeline(items, ...stages)`, `phase(name)`, `report(value)`, `log(value)`, ending with `return <json>`. Each agent call is persisted by '
       + '(script, ordinal, prompt); resuming the run replays completed steps without calling the '
-      + 'model again. Use it for multi-step work that should survive a restart. Returns immediately '
-      + 'with a run id unless `wait` is true.',
+      + 'model again. Load the dynamic-workflows skill before calling this tool; the host denies '
+      + 'the call until that skill is loaded. Use it for multi-step work that should survive a '
+      + 'restart. Returns immediately with a run id unless `wait` is true.',
     parameters: {
       script: {
         type: 'string',

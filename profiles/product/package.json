@@ -47,6 +47,7 @@
     "@zcd/memory-ui-host": "workspace:*",
     "@deepseek-ai/dsh-skill-office": "0.2.2-alpha.2",
     "@zcd/browser": "workspace:*",
-    "@zcd/tool-browser": "workspace:*"
+    "@zcd/tool-browser": "workspace:*",
+    "@zcd/policy-skill-gate": "workspace:*"
   }
 }

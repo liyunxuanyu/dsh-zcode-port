@@ -7,7 +7,7 @@
 
 ## 0. 一句话
 
-**P0 已通过，P1/P2/P4 部分落地**：product profile 在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**33 个** ZCD 工具激活，**33 个技能**可用（26 个文件技能 + 7 个 dsh 原生 Office；覆盖 34/39 项 ZCode 技能），**76 个单测（13 个文件）**、命名门禁、docs 链接、运行时 doctor 与启动 smoke 全部通过。设置页已能在真实浏览器里列出、添加、删除**用户记忆**；workflow run 面板与文档卡已可用。
+**P0 已通过，P1/P2/P4 部分落地**：product profile 在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**33 个** ZCD 工具激活，**33 个技能**可用（26 个文件技能 + 7 个 dsh 原生 Office；覆盖 34/39 项 ZCode 技能），**80 个单测（14 个文件）**、命名门禁、docs 链接、运行时 doctor 与启动 smoke 全部通过。设置页已能在真实浏览器里列出、添加、删除**用户记忆**；workflow run 面板与文档卡已可用。
 
 ---
 
@@ -38,6 +38,7 @@
 | `@zcd/tool-todo-read` | `todo_read`：deferred，读 `todos` 投影 | 激活成功 | — |
 | `@zcd/tool-plan-mode` | `enter_plan_mode`：程序化执行 `/plan`，不拥有 plan 状态 | 激活成功 | — |
 | `@zcd/policy-plan-readonly` | plan mode 严格只读：deny 写工具与非只读 bash | 编译通过；bundle 中默认 `disabled: true` | 35 + 4 个单测 |
+| `@zcd/policy-skill-gate` | 工作流作者门禁：未加载 `dynamic-workflows` 时 deny `workflow_run`/改脚本 amend；compaction 后失效 | 激活成功 | 4 个单测（加载/错误结果/compaction/豁免） |
 | `@zcd/offpeak` | `ctx.offpeak`：空闲判定、新会话执行、用户输入即让路、`tasks.json` 恢复 | 激活成功 | 3 个单测 |
 | `@zcd/tool-offpeak` | `offpeak_create/list/cancel`（deferred） | 激活成功 | — |
 | `@zcd/tool-models` | `list_models`：按 provider 列出可路由模型（deferred） | 激活成功 | — |
@@ -87,7 +88,7 @@
 
 ```sh
 pnpm typecheck     # 全部 workspace 包通过
-pnpm test          # 13 个文件 / 76 个用例通过
+pnpm test          # 14 个文件 / 80 个用例通过
 pnpm verify        # verify-naming: 33 ZCD tools, 32 reserved names；docs 链接 0 问题
 pnpm build         # 所有包 emit 到 lib/
 node scripts/link-profile.mjs
@@ -119,6 +120,7 @@ P0 已通过；P1（"ZCode 工具语义对齐"）**还没有全部验收**，巡
 | ToolSearch 可观测性 | 已有服务级测试：加载前 `when=false`，加载后 `when=true` |
 | OffPeak 恢复 | 已有持久化测试：pending 恢复、running→interrupted、空闲执行 |
 | 只读策略集成 | 已有分类器/决策单测；端到端 dsh 夹具仍待补 |
+| skill gate | 已实现并通过纯函数测试；尚未在真实模型会话里观察拒绝 |
 | S1 工具对齐 | 已确认由 `schedule_edit`、`list_agents`/`interrupt_agent` 覆盖，不新增工具 |
 | 技能 | 33 个技能可用，覆盖 34/39（26 个移植/改写 + 7 个 dsh 原生 Office） |
 | 设置页写入 | 用户记忆已通；其余配置项未做 |
