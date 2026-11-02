@@ -111,6 +111,19 @@ describe('durable workflow', () => {
     await ctx.dispose?.()
   })
 
+  it('amends a script into a successor run and stops the old one', async () => {
+    const { ctx, service, parent } = await harness()
+    const first = service.start({ script: 'return 1' }, parent)
+    await service.wait(first.id, 5_000)
+    const second = service.amend(first.id, { script: 'return 2' }, parent)
+    expect(second.id).not.toBe(first.id)
+    const done = await service.wait(second.id, 5_000)
+    expect(done.status).toBe('succeeded')
+    expect(done.result).toBe(2)
+    expect(service.get(first.id).status).toBe('succeeded')
+    await ctx.dispose?.()
+  })
+
   it('fails a script with a clear code', async () => {
     const { ctx, service, parent } = await harness()
     const view = service.start({ script: 'throw new Error("boom")' }, parent)

@@ -162,6 +162,32 @@ export function apply(ctx: Context): void {
     },
   }), { group: 'workflow', keywords: ['cancel', 'stop'] })
 
+  const offAmend = ctx.deferredTools.register(defineTool({
+    name: 'workflow_amend',
+    description:
+      'Amend a workflow run. A new `script` creates a successor run and stops the old one; a '
+      + '`name` alone relabels the existing run. Use it when the plan changes after a run started.',
+    parameters: {
+      run_id: { type: 'string', required: true },
+      script: { type: 'string', description: 'Replacement script; starts a successor run.' },
+      name: { type: 'string', description: 'New display label.' },
+    },
+    output: {
+      schema: { type: 'object', additionalProperties: false, properties: { run: { ...runSchema, required: true } } },
+      render: (_args, value) => [{ type: 'text', text: `Amended to ${value.run.id} [${value.run.status}]` }],
+    },
+    async execute(args, exec) {
+      const agent = exec.agent
+      if (agent === undefined) throw new Error('workflow_amend requires an owning agent session')
+      return {
+        run: project(ctx.durableWorkflow.amend(args.run_id, {
+          ...(args.script === undefined ? {} : { script: args.script }),
+          ...(args.name === undefined ? {} : { name: args.name }),
+        }, agent)),
+      }
+    },
+  }), { group: 'workflow', keywords: ['amend', 'change', 'revise', 'successor'] })
+
   const offAnswer = ctx.deferredTools.register(defineTool({
     name: 'workflow_answer_hole',
     description:
@@ -183,7 +209,7 @@ export function apply(ctx: Context): void {
     },
   }), { group: 'workflow', keywords: ['hole', 'answer', 'resume'] })
 
-  ctx.effect(() => () => { offGet(); offList(); offResume(); offCancel(); offAnswer() }, 'zcd-tool-workflow: deferred registrations')
+  ctx.effect(() => () => { offGet(); offList(); offResume(); offCancel(); offAmend(); offAnswer() }, 'zcd-tool-workflow: deferred registrations')
 }
 
 /** Drop the script from tool-facing rows. */

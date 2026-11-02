@@ -158,6 +158,30 @@ export class DurableWorkflowService extends Service {
   }
 
   /**
+   * Amend a run. A new script creates a successor run and cancels the old one;
+   * a name-only change updates the existing summary.
+   * @param runId - run id.
+   * @param patch - replacement script and/or display name.
+   * @param parent - agent that owns the run.
+   * @returns the amended or successor view.
+   */
+  amend(runId: string, patch: { script?: string; name?: string }, parent: Agent): WorkflowRunView {
+    const record = this.requireRun(runId)
+    if (patch.script === undefined) {
+      if (patch.name === undefined) throw new Error('workflow_amend requires a script or a name')
+      return this.view(this.store.updateRun(runId, { name: patch.name.trim() || record.name }))
+    }
+    if (record.status === 'running' || record.status === 'queued') {
+      this.cancel(runId, 'superseded by an amended script')
+    }
+    return this.start({
+      script: patch.script,
+      name: patch.name?.trim() || `${record.name} (amended)`,
+      args: record.args,
+    }, parent)
+  }
+
+  /**
    * Answer an open hole and continue the run. The script replays from the top;
    * completed agent nodes and earlier answered holes are reused.
    * @param runId - run id.
