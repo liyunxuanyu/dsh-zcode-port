@@ -124,9 +124,11 @@
 
 **决定**：
 
-- 只读免打扰只对**可证明只读**的命令生效，实现为 `approval/request` 的 **answerer**：命中只读规则时返回 `allowed-once`，不确定时 `next()` 交回正常审批。它不绕过 monotonic guard，也不改变 `never` 策略的语义。
+- 只读免打扰只对**可证明只读**的命令生效，实现为 `tools/pre-execute` 的**窄放行**：命中只读规则返回 `{kind:'allow'}`（仍会经过 monotonic guard），不确定时 `next()` 交回正常审批。
+- 实现期修正：`PreToolDecision` 只有 `allow/deny/cancel/ask`，没有“建议允许”的表达；因此只读插件要么放行、要么交回，不能只给意见。
 - 不放宽 sandbox 默认值；不改 `approval` 的 `never` 语义；不改 `read-before-write` 门。
 - 新增工具若声明 `readOnly` 类语义，必须有测试证明其不会写文件/发网络请求。
+- dsh 原生 plan mode 默认不限制工具；ZCode 式严格只读是**可选插件**（默认 `disabled`），不改变 dsh 默认行为。
 
 **后果**：免打扰覆盖率低于 ZCode；换来不可绕的安全基线。
 

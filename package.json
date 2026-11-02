@@ -11,11 +11,14 @@
     "typecheck": "pnpm -r --filter \"./packages/**\" run typecheck",
     "test": "vitest run",
     "test:watch": "vitest",
-    "verify": "node scripts/verify-naming.mjs && node scripts/check-docs.js",
+    "verify": "node scripts/verify-naming.mjs && node scripts/check-docs.cjs",
     "runtime:ensure": "node scripts/ensure-runtime.mjs",
     "runtime:link": "node scripts/link-profile.mjs",
     "pack:product": "node scripts/pack-product.mjs",
-    "sync:upstream": "node scripts/sync-upstream.mjs"
+    "sync:upstream": "node scripts/sync-upstream.mjs",
+    "smoke": "node scripts/smoke-profile.mjs",
+    "profile": "node scripts/link-profile.mjs",
+    "prep": "node scripts/ensure-runtime.mjs && node scripts/link-profile.mjs && node scripts/smoke-profile.mjs"
   },
   "devDependencies": {
     "@deepseek-ai/dsh": "0.2.2-alpha.2",

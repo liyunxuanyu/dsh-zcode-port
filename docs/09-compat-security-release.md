@@ -92,7 +92,7 @@
 |---|---|---|
 | S1 | 沙箱默认值不被放宽（dsh 的 `read-only` / base 的 `workspace-write`） | 配置快照 diff |
 | S2 | 审批 fail-closed：`unavailable` 视为拒绝 | 单测 |
-| S3 | monotonic guard 不被绕过；只读放行走 approval answerer，不跳过 guard | 集成测试（写命令仍审批） |
+| S3 | monotonic guard 不被绕过；只读放行是 pre-execute 的窄 `allow`，不跳过 guard | 集成测试（写命令仍审批） |
 | S4 | 只读判定不确定时 fail-closed（走审批） | 规则表反例测试 |
 | S5 | 脚本执行无网络/文件（除 facade） | 沙箱逃逸测试 |
 | S6 | Gen UI 页面无 same-origin、无 Host API | CSP + 安全测试 |

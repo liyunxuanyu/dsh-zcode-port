@@ -2,7 +2,7 @@
 
 > 目标：在 **DeepSeek Harness（dsh）** 之上，用 **overlay 插件** 的方式，复刻 ZCode 最好用的产品能力与技能，同时保留 dsh 的插件化内核。
 >
-> 状态：架构设计（未实现）。日期：2026-11-03。
+> 状态：**P0 已实现并跑通**（product profile 在 dsh 0.2.2-alpha.2 上启动 Web，插件全部激活）。进度见 [`docs/13-implementation-status.md`](docs/13-implementation-status.md)。日期：2026-11-03。
 > 参考基线：`archive/`（ZCode 60 个文件 + dsh 38 个文件）。
 
 ---
@@ -72,6 +72,8 @@
 | [`docs/09-compat-security-release.md`](docs/09-compat-security-release.md) | 上游同步、事件/工具命名、安全不变量、许可 | 架构/安全 |
 | [`docs/10-roadmap.md`](docs/10-roadmap.md) | P0–P6 里程碑与人力估算 | 所有人 |
 | [`docs/11-alternatives.md`](docs/11-alternatives.md) | 四个方案的首次/长期成本对比，何时改选 | 决策者 |
+| [`docs/12-runtime-and-packaging.md`](docs/12-runtime-and-packaging.md) | 运行时清单、一键安装、打包、接入外部插件 | 开发/运维 |
+| [`docs/13-implementation-status.md`](docs/13-implementation-status.md) | **实现状态**：已完成/进行中/缺口/设计修正 | 所有人 |
 | [`archive/INDEX.md`](archive/INDEX.md) | 参考文档归档与用途 | 所有人 |
 | [`architecture.html`](architecture.html) | 一页可视化总览（分层、数字、路线图） | 所有人 |
 
@@ -102,8 +104,15 @@
 
 ---
 
-## 7. 下一步
+## 7. 当前进度与下一步
 
-1. 评审 `docs/02-migration-matrix.md` 的 S1–S4 分类与 `docs/03-work-packages.md` 的优先级。
-2. 先落 **WP-01（骨架）** 与 **WP-02（兼容工具包）**，用 1–2 周验证 overlay 是否真的不用改上游。
-3. 工作流（WP-07/08）单独立项，先写 seam 契约再写实现。
+**已完成**：WP-01 骨架、`tool_search`、`todo_read`、`policy-plan-readonly`；product profile 可启动并接入 dsh 原生 bundle。
+
+**下一步**（详见 `docs/13-implementation-status.md` §2）：
+
+1. 把 `todo_read` 接成首个 deferred 工具，让 `tool_search` 有真实条目。
+2. `enter_plan_mode`（先验证 commands 能否程序化执行 `/plan`）。
+3. OffPeak（`ctx.offpeak` + 3 个工具）。
+4. Durable workflow 单独立项。
+
+**接入外部 dsh 插件**：`dsh plugin --profile product add <pkg>`，见 `docs/12-runtime-and-packaging.md` §5。
