@@ -15,22 +15,24 @@ import { fileURLToPath } from 'node:url'
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const version = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).version ?? '0.0.0'
 const outDir = join(root, 'dist')
-const out = join(outDir, `zcd-product-${version}.tgz`)
+const suffix = process.env.ZCD_PACK_NODE_MODULES === '1' ? '-offline' : ''
+const out = join(outDir, `zcd-product-${version}${suffix}.tgz`)
 
 execFileSync('pnpm', ['build'], { cwd: root, stdio: 'inherit', shell: true })
 mkdirSync(outDir, { recursive: true })
 
+const includeDependencies = process.env.ZCD_PACK_NODE_MODULES === '1'
 const paths = [
   'packages', 'profiles', 'skills', 'runtime', 'scripts', 'docs',
   'README.md', 'LICENSE', 'NOTICE', 'package.json', 'pnpm-lock.yaml',
   'pnpm-workspace.yaml', 'tsconfig.base.json', 'upstream.pin.json',
+  ...includeDependencies ? ['node_modules'] : [],
 ].filter(path => existsSync(join(root, path)))
 
 console.log(`→ tar ${out}`)
 const result = spawnSync('tar', [
   '-czf', out,
-  '--exclude=node_modules',
-  '--exclude=*/node_modules',
+  ...includeDependencies ? [] : ['--exclude=node_modules', '--exclude=*/node_modules'],
   '--exclude=.git',
   '-C', root,
   ...paths,

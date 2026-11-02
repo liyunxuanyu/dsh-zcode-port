@@ -91,6 +91,18 @@ node scripts/smoke-profile.mjs
 | 9 | **Browser / CUA**（WP-10/11） | `js` code-act + 浏览器 provider + 面板 |
 | 10 | **UI**（WP-12/13/14） | Gen UI、文档工具、设置页 |
 
+## 2.5 P1 尚未全部通过的验收
+
+P0 已通过；P1（"ZCode 工具语义对齐"）**还没有全部验收**，因此巡检任务不要提前结束：
+
+| 项 | 缺口 | 下一步 |
+|---|---|---|
+| ToolSearch 可观测性 | 没有 UI/查询证明"加载后下一步可见" | 加集成测试：两 step 的 tool set 断言 |
+| OffPeak 恢复 | 没有重启后 pending/interrupted 的自动化用例 | 加进程重启测试（或服务级单测） |
+| 只读策略集成 | 只有分类器单测，没有 plan-mode 端到端 | 用 dsh 测试夹具跑一次 plan → deny write |
+| S1 工具对齐 | `schedule_delete/pause`、`subagent_output/stop` 未实现 | 补工具或明确不做 |
+| 技能 | 39 个中只移植 14 个 | 按 `docs/08` 推进 |
+
 ## 3. 已知缺口
 
 | 缺口 | 影响 | 计划 |

@@ -46,7 +46,7 @@ DSH_HOME=./.dsh-home npx @deepseek-ai/dsh@0.2.2-alpha.2 --profile product
 ## 3. 为什么依赖能“打包”
 
 `pnpm-lock.yaml` 固定了 779 个解析结果（含 dsh 0.2.2-alpha.2 与 Cordis 4.0.6-alpha.1）。
-`scripts/pack-product.mjs` 产出 `dist/zcd-product-<version>.tgz`，包含：
+`scripts/pack-product.mjs` 产出 `dist/zcd-product-<version>.tgz`（离线包用 `ZCD_PACK_NODE_MODULES=1`，产物带 `-offline` 后缀并包含 `node_modules`），包含：
 
 ```
 packages/        # 源码 + 构建后的 lib
