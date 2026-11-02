@@ -108,6 +108,18 @@ pnpm doctor
 
 它不联网、不依赖第三方库；CI 在 `link-profile` 之前运行它。发现硬冲突时退出码 1，警告只打印不阻塞。
 
+## 5.6 MCP runtime
+
+`runtime/mcp/` pins the MCP servers this product ships or tests with.
+
+```sh
+node scripts/install-mcp.mjs   # pnpm install in runtime/mcp, outside the workspace
+```
+
+The profile patch contains a commented `@deepseek-ai/dsh-mcp-client` example.
+Enable it after installing the runtime, or point `command` at your own server.
+`runtime/mcp/pnpm-lock.yaml` is committed; `node_modules` is not.
+
 ## 6. 故障排查
 
 | 现象 | 原因 | 处理 |

@@ -1,0 +1,9 @@
+{
+  "name": "@zcd/mcp-runtime",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Pinned local MCP servers for offline/product bundles.",
+  "dependencies": {
+    "@modelcontextprotocol/server-everything": "2.1.0"
+  }
+}

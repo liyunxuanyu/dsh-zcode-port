@@ -2,3 +2,13 @@
 # here, feature wiring belongs in the bundles. A patch file must be a top-level
 # YAML array, even when empty.
 []
+
+# Example: an external MCP server. Uncomment after installing the pinned runtime
+# (`node scripts/install-mcp.mjs`) or replace the command with your own server.
+# - id: mcp-everything
+#   name: '@deepseek-ai/dsh-mcp-client'
+#   config:
+#     serverName: everything
+#     transport: stdio
+#     command: npx
+#     args: ['-y', '@modelcontextprotocol/server-everything@2.1.0']
