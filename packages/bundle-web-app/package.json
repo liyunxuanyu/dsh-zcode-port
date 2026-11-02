@@ -9,6 +9,7 @@
     }
   },
   "dependencies": {
-    "@zcd/client-ui-genui": "workspace:*"
+    "@zcd/client-ui-genui": "workspace:*",
+    "@zcd/client-ui-zcd": "workspace:*"
   }
 }

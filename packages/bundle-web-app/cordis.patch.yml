@@ -4,5 +4,8 @@
 # add their `ui-*` rows here as those work packages land; keeping the file
 # present means the profile composition stays stable.
 - insert:
+    - id: zcd-client-ui-zcd
+      name: '@zcd/client-ui-zcd'
+
     - id: zcd-client-ui-genui
       name: '@zcd/client-ui-genui'

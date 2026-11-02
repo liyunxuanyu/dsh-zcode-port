@@ -35,6 +35,7 @@
     "@zcd/genui-host": "workspace:*",
     "@zcd/tool-visualize": "workspace:*",
     "@zcd/tool-documents": "workspace:*",
-    "@zcd/client-ui-genui": "workspace:*"
+    "@zcd/client-ui-genui": "workspace:*",
+    "@zcd/client-ui-zcd": "workspace:*"
   }
 }

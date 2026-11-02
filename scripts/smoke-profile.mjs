@@ -73,7 +73,35 @@ try {
   if (stderr.includes('did not activate')) {
     throw new Error(`a plugin failed to activate:\n${stderr}`)
   }
-  console.log(`✓ product profile boots on :${port}; HTTP ${response.status}; all plugins active`)
+
+  const genui = await fetch(`http://127.0.0.1:${port}/zcd/genui/__smoke__/probe`)
+  const csp = genui.headers.get('content-security-policy') ?? ''
+  if (genui.status !== 200 || !csp.includes('sandbox allow-scripts')) {
+    throw new Error(`genui route failed: ${genui.status} csp=${csp}`)
+  }
+
+  // Client cards must be in the browser boot graph and their bundles served.
+  const login = await fetch(`http://127.0.0.1:${port}/?token=${token}`, { redirect: 'manual' })
+  const cookie = (login.headers.get('set-cookie') ?? '').split(';')[0]
+  const page = await fetch(`http://127.0.0.1:${port}/`, { headers: cookie === '' ? {} : { cookie } })
+  const html = await page.text()
+  for (const [id, marker] of [
+    ['@zcd/client-ui-genui', 'tool.call.toolview'],
+    ['@zcd/client-ui-zcd', 'read_document'],
+  ]) {
+    const prefix = `${id}/client.js&rev=`
+    const at = html.indexOf(prefix)
+    const rev = at < 0 ? undefined : html.slice(at + prefix.length, at + prefix.length + 12)
+    if (rev === undefined || !/^[a-f0-9]{12}$/.test(rev)) {
+      throw new Error(`${id} is missing from the browser boot graph`)
+    }
+    const bundle = await fetch(`http://127.0.0.1:${port}/plugins/??${id}/client.js&rev=${rev}`)
+    const source = await bundle.text()
+    if (bundle.status !== 200 || !source.includes(marker)) {
+      throw new Error(`${id} bundle failed: ${bundle.status}`)
+    }
+  }
+  console.log(`✓ product profile boots on :${port}; HTTP ${response.status}; all plugins and client cards active`)
 } finally {
   child.kill('SIGTERM')
   await new Promise(resolve => setTimeout(resolve, 500))
