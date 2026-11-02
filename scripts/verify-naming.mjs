@@ -67,16 +67,27 @@ for (const file of walk(join(root, 'packages'))) {
   }
 }
 
-const known = new Set([...toolNames, ...RESERVED])
+const ZCODE_TOOL_NAMES = new Set([
+  'Read', 'Write', 'Edit', 'Bash', 'Glob', 'Grep', 'WebFetch', 'WebSearch',
+  'TodoRead', 'TodoWrite', 'Agent', 'Task', 'SendMessage', 'TaskOutput',
+  'TaskStop', 'Skill', 'AskUserQuestion', 'EnterPlanMode', 'ExitPlanMode',
+  'CreateWorkflow', 'AmendWorkflow', 'SaveWorkflow', 'EvalWorkflowSnippet',
+  'ListWorkflowRuns', 'GetWorkflowRun', 'ResumeWorkflowRun', 'FillWorkflowHole',
+  'ResolveWorkflowQuestion', 'ListSavedWorkflows', 'ListModels',
+  'ReadSessionContext', 'CronCreate', 'CronList', 'CronUpdate', 'CronDelete',
+  'CronPauseSelf', 'OffPeakCreate', 'OffPeakList',
+])
+
+// Ported skills must not reference ZCode's PascalCase wire names. Only
+// backticked names are checked: prose may legitimately say "Agent" or "Task".
 for (const file of walk(join(root, 'skills'))) {
-  if (!file.endsWith('.md')) continue
+  if (!file.endsWith('SKILL.md')) continue
   const source = readFileSync(file, 'utf8')
-  for (const match of source.matchAll(/`([a-z][a-z0-9_]{2,40})`/g)) {
+  for (const match of source.matchAll(/`([A-Z][A-Za-z]+)`/g)) {
     const token = match[1]
-    // Only flag backticked snake_case tokens that look like tool calls.
-    if (!token.includes('_')) continue
-    if (known.has(token)) continue
-    problems.push(`${relative(root, file)}: references unknown tool "${token}"`)
+    if (ZCODE_TOOL_NAMES.has(token)) {
+      problems.push(`${relative(root, file)}: still references ZCode tool "${token}"`)
+    }
   }
 }
 
@@ -86,4 +97,4 @@ if (problems.length > 0) {
   process.exit(1)
 }
 
-console.log(`verify-naming: ok (${toolNames.size} ZCD tools, ${[...known].length} known names)`)
+console.log(`verify-naming: ok (${toolNames.size} ZCD tools, ${RESERVED.size} reserved names)`)

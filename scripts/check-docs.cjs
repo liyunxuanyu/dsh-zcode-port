@@ -16,7 +16,7 @@ for (const f of files) {
   const s = stripFences(fs.readFileSync(f, 'utf8'))
   for (const m of s.matchAll(linkRe)) {
     const l = m[1]
-    if (l.startsWith('http') || l.startsWith('#')) continue
+    if (l.startsWith('http') || l.startsWith('#') || l.startsWith('/')) continue
     const target = path.resolve(path.dirname(f), l.split('#')[0])
     if (!fs.existsSync(target)) { console.log('MISSING LINK', path.relative(root, f), '->', l); problems++ }
   }
