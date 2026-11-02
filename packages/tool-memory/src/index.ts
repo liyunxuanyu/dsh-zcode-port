@@ -155,10 +155,41 @@ export function apply(ctx: Context): void {
     },
   }), { group: 'memory', keywords: ['delete', 'forget', 'remove'] })
 
+  const offDream = ctx.deferredTools.register(defineTool({
+    name: 'memory_dream',
+    description:
+      'Tidy one memory scope: move unparseable entries and older duplicates to .trash, then rebuild '
+      + 'the index. Deterministic and reversible (.trash keeps seven days).',
+    parameters: {
+      scope: { type: 'string', required: true, enum: ['project', 'user'] },
+    },
+    output: {
+      schema: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          scanned: { type: 'integer', required: true },
+          removed: { type: 'integer', required: true },
+          kept: { type: 'integer', required: true },
+        },
+      },
+      render: (_args, value) => [{
+        type: 'text',
+        text: `Memory tidy: scanned ${value.scanned}, kept ${value.kept}, moved ${value.removed} to .trash.`,
+      }],
+    },
+    async execute(args, exec) {
+      const agent = exec.agent
+      if (agent === undefined) throw new Error('memory_dream requires an owning agent session')
+      return ctx.memory.dream(args.scope, agent.session.header.cwd)
+    },
+  }), { group: 'memory', keywords: ['dream', 'tidy', 'dedupe', 'consolidate'] })
+
   ctx.effect(() => () => {
     offSearch()
     offRead()
     offWrite()
     offRemove()
+    offDream()
   }, 'zcd-tool-memory: deferred registrations')
 }

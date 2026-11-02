@@ -13,6 +13,8 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, writeFile
 import { homedir } from 'node:os'
 import { join, resolve, sep } from 'node:path'
 import { Service } from '@deepseek-ai/cordis'
+import type {} from '@deepseek-ai/dsh-agent'
+import type {} from '@deepseek-ai/dsh-system-prompt'
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@zcd/shared/events'
 import type { MemoryEntry, MemoryScope, MemoryType } from './types.js'
@@ -105,6 +107,31 @@ export function assertNoSecrets(text: string): void {
 export class MemoryService extends Service {
   constructor(ctx: Context, private readonly config: Config) {
     super(ctx, 'memory')
+  }
+
+  protected [Service.init](): void {
+    // One scoped section per agent, so the index belongs to that agent's cwd.
+    // Subagents skip it: their cwd is the parent's, and the parent already
+    // carries the index; duplicating it only spends context.
+    this.ctx.on('agent/created', ({ agent }): undefined => {
+      if (agent.session.header.origin === 'subagent') return undefined
+      const cwd = agent.session.header.cwd
+      if (cwd === undefined) return undefined
+      agent.ctx.systemPrompt.section({
+        name: 'zcd:memory:index',
+        order: 2950,
+        text: () => {
+          const index = this.index('project', cwd).trim()
+          if (index.length === 0) return ''
+          return `# Project memory (index)
+
+${index}
+
+Use memory_search and memory_read before asking the user to repeat a preference, decision, or fact.`
+        },
+      })
+      return undefined
+    })
   }
 
   /**
@@ -270,6 +297,51 @@ ${body}`)
     mkdirSync(root, { recursive: true })
     writeFileSync(this.contained(root, join(root, 'MEMORY.md')), lines.join('\n'))
     return lines.join('\n')
+  }
+
+  /**
+   * Deterministically tidy one scope: drop unparseable entries, keep the
+   * newest entry per name, and rebuild the index. This is the no-model half of
+   * "dream"; an LLM summary can be layered on later without changing it.
+   * @param scope - project or user.
+   * @param cwd - workspace directory for the project scope.
+   * @returns counters for the report.
+   */
+  dream(scope: MemoryScope, cwd: string | undefined): { scanned: number; removed: number; kept: number } {
+    const root = this.root(scope, cwd)
+    const entriesDir = this.contained(root, join(root, 'entries'))
+    if (!existsSync(entriesDir)) return { scanned: 0, removed: 0, kept: 0 }
+    const trash = this.contained(root, join(root, '.trash'))
+    const byName = new Map<string, MemoryEntry>()
+    let scanned = 0
+    let removed = 0
+    for (const file of readdirSync(entriesDir)) {
+      if (!file.endsWith('.md')) continue
+      scanned++
+      const path = join(entriesDir, file)
+      const entry = parseEntry(scope, file.slice(0, -3), readFileSync(path, 'utf8'))
+      if (entry === undefined) {
+        mkdirSync(trash, { recursive: true })
+        renameSync(path, join(trash, `${file.slice(0, -3)}-${Date.now()}.md`))
+        removed++
+        continue
+      }
+      const previous = byName.get(entry.name)
+      if (previous === undefined || entry.updatedAt > previous.updatedAt) {
+        if (previous !== undefined) {
+          mkdirSync(trash, { recursive: true })
+          renameSync(join(entriesDir, `${previous.id}.md`), join(trash, `${previous.id}-${Date.now()}.md`))
+          removed++
+        }
+        byName.set(entry.name, entry)
+      } else {
+        mkdirSync(trash, { recursive: true })
+        renameSync(path, join(trash, `${entry.id}-${Date.now()}.md`))
+        removed++
+      }
+    }
+    this.rebuildIndex(scope, cwd)
+    return { scanned, removed, kept: byName.size }
   }
 
   /**

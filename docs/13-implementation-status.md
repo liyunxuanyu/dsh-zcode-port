@@ -7,7 +7,7 @@
 
 ## 0. 一句话
 
-**P0 已通过，P1 进行中**：product profile 能在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**十二个** ZCD 工具激活（deferred-tools / tool-search / todo-read / plan-mode / plan-policy / offpeak / tool-offpeak / memory / tool-memory / tool-models / tool-session），并安装 14 个技能，单测与命名门禁通过。
+**P0 已通过，P1 进行中**：product profile 能在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**十三个** ZCD 工具激活（deferred-tools / tool-search / todo-read / plan-mode / plan-policy / offpeak / tool-offpeak / memory / tool-memory / tool-models / tool-session），并安装 14 个技能，单测与命名门禁通过。
 
 ---
 
@@ -40,7 +40,7 @@
 | `@zcd/tool-models` | `list_models`：按 provider 列出可路由模型（deferred） | 激活成功 | — |
 | `@zcd/tool-session` | `session_handoff`：同 cwd 会话的 bounded handoff（deferred） | 激活成功 | — |
 | `@zcd/memory` | `ctx.memory`：项目/用户 Markdown 条目、索引重建、路径约束、secret 拒绝 | 激活成功 | 6 个单测（slug/parse/secret） |
-| `@zcd/tool-memory` | `memory_search/read/write/remove`（deferred） | 激活成功 | — |
+| `@zcd/tool-memory` | `memory_search/read/write/remove/dream`（deferred） | 激活成功 | — |
 | `skills/superpowers`（14） | ZCode 工程方法技能，工具名已映射为 dsh | 已安装到 `$DSH_HOME/skills` | `install-skills.mjs` |
 | `@zcd/policy-plan-readonly` | plan mode 严格只读：deny 写工具与非只读 bash | 编译通过；bundle 中默认 `disabled: true` | 35 个分类器单测 |
 | `@zcd/bundle-base` | 三行 insert（tool-search / todo-read / plan policy） | 已组合 | dump-config |
@@ -84,9 +84,9 @@ node scripts/smoke-profile.mjs
 | 3 | ~~`session_handoff`~~ | 已完成：读 `ctx.sessionQuery.readSurface`，按 cwd 精确授权，截断 20 条/20k 字符 |
 | 4 | ~~`list_models`~~ | 已完成：`ctx.llm.listProviders()` + `listModels()`，deferred |
 | 5 | ~~OffPeak~~ | 已完成：`ctx.offpeak` + 3 个 deferred 工具；空闲 10 分钟启动，用户输入即 taken-over |
-| 6 | ~~Memory~~（WP-06） | v1 已完成：条目/索引/路径/secret/软删除；dream 与 prompt 注入留待下一步 |
+| 6 | ~~Memory~~（WP-06） | 已完成：条目/索引/路径/secret/软删除 + 确定性 dream + 每 agent 的索引 prompt section |
 | 7 | **Durable Workflow**（WP-08/09） | 唯一新 seam；单独立项 |
-| 8 | **Memory dream + prompt index** | 空闲整理、system prompt 注入索引 |
+| 8 | ~~Memory dream + prompt index~~ | 已完成：确定性整理 + `zcd:memory:index` section（子代理跳过） |
 | 8.5 | **其余技能** | 已完成 superpowers 14/39；office/browser/CUA/guide 随对应 WP |
 | 9 | **Browser / CUA**（WP-10/11） | `js` code-act + 浏览器 provider + 面板 |
 | 10 | **UI**（WP-12/13/14） | Gen UI、文档工具、设置页 |
