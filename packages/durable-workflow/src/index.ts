@@ -208,6 +208,16 @@ export class DurableWorkflowService extends Service {
   }
 
   /**
+   * List the settled nodes of one run.
+   * @param runId - run id.
+   * @returns nodes ordered by call ordinal.
+   */
+  nodes(runId: string): NodeRecord[] {
+    this.requireRun(runId)
+    return this.store.listNodes(runId)
+  }
+
+  /**
    * Read one run.
    * @param runId - run id.
    * @returns a detached view.

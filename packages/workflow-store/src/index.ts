@@ -187,6 +187,17 @@ export class FileWorkflowStore {
     return createHash('sha256').update(`${scriptHash}\0${ordinal}\0${prompt}`).digest('hex').slice(0, 20)
   }
 
+  /** All settled nodes for one run, ordered by call ordinal. */
+  listNodes(runId: string): NodeRecord[] {
+    const dir = join(this.runDir(runId), 'nodes')
+    if (!existsSync(dir)) return []
+    return readdirSync(dir)
+      .filter(name => name.endsWith('.json'))
+      .map(name => this.readJson<NodeRecord>(join(dir, name)))
+      .filter((node): node is NodeRecord => node !== undefined)
+      .sort((left, right) => left.index - right.index)
+  }
+
   /** Number of settled node files for one run. */
   countNodes(runId: string): number {
     const dir = join(this.runDir(runId), 'nodes')

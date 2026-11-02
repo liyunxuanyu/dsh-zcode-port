@@ -111,6 +111,8 @@ try {
   }
   const cancel = await fetch(`http://127.0.0.1:${port}/zcd/workflow/runs/not-a-run/cancel`, { method: 'POST' })
   if (cancel.status !== 404) throw new Error(`workflow cancel route failed: ${cancel.status}`)
+  const nodes = await fetch(`http://127.0.0.1:${port}/zcd/workflow/runs/not-a-run/nodes`)
+  if (nodes.status !== 404) throw new Error(`workflow nodes route failed: ${nodes.status}`)
 
   // Client cards must be in the browser boot graph and their bundles served.
   const login = await fetch(`http://127.0.0.1:${port}/?token=${token}`, { redirect: 'manual' })
