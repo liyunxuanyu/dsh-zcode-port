@@ -126,11 +126,11 @@
 
 **下一步**（详见 `docs/13-implementation-status.md` §2）：
 
-1. Gen UI 卡片视觉验收（需要一次 `visualize` 结果会话）。
+1. Gen UI 会话内卡片验收（需要一次 `visualize` 结果会话；路由渲染已验收）。
 2. CUA：dsh 原生 provider 仅支持 macOS；Windows 需另找驱动。
-3. 浏览器 v2：`js` code-act、tab/用户浏览器、可视面板。
+3. 浏览器 v2：Node 级 `js` code-act、tab/用户浏览器、可视面板；页面级 `browser_evaluate` 已落地。
 4. 设置页其余写入（workflow 配置、只读策略开关）。
-5. Workflow run 详情补 resume/amend、耗时与失败重试。
+5. Workflow run 详情补 amend、耗时与失败重试；cancel/resume 已完成。
 6. 剩余 5 项（CUA 1 + 主动丢弃的站点/移动端/旧会话恢复 4）。
 
 **接入外部 dsh 插件**：`pnpm doctor` → `dsh plugin --profile product add <pkg>`，见 `docs/12-runtime-and-packaging.md` §5。
