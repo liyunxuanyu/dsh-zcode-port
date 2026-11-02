@@ -29,6 +29,13 @@
     - id: zcd-tool-offpeak
       name: '@zcd/tool-offpeak'
 
+    # Cross-session handoff (deferred): bounded context from an earlier session.
+    - id: zcd-tool-session
+      name: '@zcd/tool-session'
+      config:
+        maxMessages: 20
+        maxChars: 20000
+
     # Model catalog (deferred): pick a route without guessing.
     - id: zcd-tool-models
       name: '@zcd/tool-models'

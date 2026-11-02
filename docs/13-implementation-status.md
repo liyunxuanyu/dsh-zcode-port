@@ -38,6 +38,7 @@
 | `@zcd/offpeak` | `ctx.offpeak`：空闲判定、新会话执行、用户输入即让路 | 激活成功 | — |
 | `@zcd/tool-offpeak` | `offpeak_create/list/cancel`（deferred） | 激活成功 | — |
 | `@zcd/tool-models` | `list_models`：按 provider 列出可路由模型（deferred） | 激活成功 | — |
+| `@zcd/tool-session` | `session_handoff`：同 cwd 会话的 bounded handoff（deferred） | 激活成功 | — |
 | `@zcd/policy-plan-readonly` | plan mode 严格只读：deny 写工具与非只读 bash | 编译通过；bundle 中默认 `disabled: true` | 35 个分类器单测 |
 | `@zcd/bundle-base` | 三行 insert（tool-search / todo-read / plan policy） | 已组合 | dump-config |
 | `@zcd/bundle-web-app` | 空 insert（为 UI 工作包预留） | 已组合 | dump-config |
@@ -77,7 +78,7 @@ node scripts/smoke-profile.mjs
 |---|---|---|
 | 1 | ~~`todo_read` 接入 deferred~~ | 已完成：`@zcd/deferred-tools` + `when` 策略；`tool_search` 命中后下一步可见 |
 | 2 | ~~`enter_plan_mode`~~ | 已完成：通过 `ctx.commands.execute(agent, '/plan', ...)`，不碰 plan 私有状态 |
-| 3 | **`session_handoff`** | 包 `ctx.sessionQuery`，实现 ZCode 的跨会话 handoff |
+| 3 | ~~`session_handoff`~~ | 已完成：读 `ctx.sessionQuery.readSurface`，按 cwd 精确授权，截断 20 条/20k 字符 |
 | 4 | ~~`list_models`~~ | 已完成：`ctx.llm.listProviders()` + `listModels()`，deferred |
 | 5 | ~~OffPeak~~ | 已完成：`ctx.offpeak` + 3 个 deferred 工具；空闲 10 分钟启动，用户输入即 taken-over |
 | 6 | **Memory**（WP-06） | 目录、`memory_*` 工具、dream |

@@ -47,6 +47,9 @@ importers:
       '@zcd/tool-search':
         specifier: workspace:*
         version: link:../tool-search
+      '@zcd/tool-session':
+        specifier: workspace:*
+        version: link:../tool-session
       '@zcd/tool-todo-read':
         specifier: workspace:*
         version: link:../tool-todo-read
@@ -201,6 +204,28 @@ importers:
         specifier: 4.0.6-alpha.1
         version: 4.0.6-alpha.1(@deepseek-ai/cordis-plugin-include@1.0.11-alpha.1)(@deepseek-ai/cordis-plugin-loader@1.0.7-alpha.1)
 
+  packages/tool-session:
+    dependencies:
+      '@deepseek-ai/dsh-agent':
+        specifier: 0.2.2-alpha.2
+        version: 0.2.2-alpha.2(c09e321863b8ebb6167f522cda8f63dc)
+      '@deepseek-ai/dsh-session':
+        specifier: 0.2.2-alpha.2
+        version: 0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1)(@deepseek-ai/dsh-scope@0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1))
+      '@deepseek-ai/dsh-session-query':
+        specifier: 0.2.2-alpha.2
+        version: 0.2.2-alpha.2(44d9f99561bbf0a226dc7ca00df1118f)
+      '@deepseek-ai/dsh-tools':
+        specifier: 0.2.2-alpha.2
+        version: 0.2.2-alpha.2(d570a50fd9051dfa7084c71da173b036)
+      '@zcd/deferred-tools':
+        specifier: workspace:*
+        version: link:../deferred-tools
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: 4.0.6-alpha.1
+        version: 4.0.6-alpha.1(@deepseek-ai/cordis-plugin-include@1.0.11-alpha.1)(@deepseek-ai/cordis-plugin-loader@1.0.7-alpha.1)
+
   packages/tool-todo-read:
     dependencies:
       '@deepseek-ai/dsh-session':
@@ -258,6 +283,9 @@ importers:
       '@zcd/tool-search':
         specifier: workspace:*
         version: link:../../packages/tool-search
+      '@zcd/tool-session':
+        specifier: workspace:*
+        version: link:../../packages/tool-session
       '@zcd/tool-todo-read':
         specifier: workspace:*
         version: link:../../packages/tool-todo-read

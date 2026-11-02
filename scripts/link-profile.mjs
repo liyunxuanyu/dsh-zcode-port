@@ -23,6 +23,7 @@ const directories = {
   '@zcd/offpeak': 'packages/offpeak',
   '@zcd/tool-offpeak': 'packages/tool-offpeak',
   '@zcd/tool-models': 'packages/tool-models',
+  '@zcd/tool-session': 'packages/tool-session',
   '@zcd/tool-plan-mode': 'packages/tool-plan-mode',
   '@zcd/tool-search': 'packages/tool-search',
   '@zcd/tool-todo-read': 'packages/tool-todo-read',
