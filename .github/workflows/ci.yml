@@ -23,6 +23,7 @@ jobs:
       - run: pnpm verify
       - run: pnpm build
       - run: node scripts/pack-product.mjs
+      - run: pnpm doctor
       - run: node scripts/link-profile.mjs
         env:
           ZCD_DSH_HOME: ${{ github.workspace }}/.dsh-home

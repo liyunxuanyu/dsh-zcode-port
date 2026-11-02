@@ -18,7 +18,8 @@
     "sync:upstream": "node scripts/sync-upstream.mjs",
     "smoke": "node scripts/smoke-profile.mjs",
     "profile": "node scripts/link-profile.mjs",
-    "prep": "node scripts/ensure-runtime.mjs && node scripts/link-profile.mjs && node scripts/smoke-profile.mjs"
+    "prep": "node scripts/ensure-runtime.mjs && node scripts/link-profile.mjs && node scripts/smoke-profile.mjs",
+    "doctor": "node scripts/doctor-plugins.mjs"
   },
   "devDependencies": {
     "@deepseek-ai/dsh": "0.2.2-alpha.2",

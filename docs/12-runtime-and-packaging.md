@@ -93,6 +93,21 @@ package.json / pnpm-lock.yaml / pnpm-workspace.yaml / tsconfig.base.json
 - 不改 `dsh-base` / `dsh-web-app` 的行；需要改时在自己的 bundle 里用同一 id 覆盖并写理由。
 - 外部插件若声明 `engines.dsh`，pin 的 dsh 版本必须满足。
 
+## 5.5 接入外部插件前的 doctor
+
+```sh
+pnpm doctor
+```
+
+`scripts/doctor-plugins.mjs` 在启动前检查：
+
+- profile 声明的依赖是否真的安装在 profile 的 `node_modules`；
+- 每个包的 `engines.dsh` 是否接受 pin 的 dsh 版本；
+- 同名包是否解析到两个版本；
+- bundle 列表里的包是否存在、是否声明 `dsh.bundle.patch`。
+
+它不联网、不依赖第三方库；CI 在 `link-profile` 之前运行它。发现硬冲突时退出码 1，警告只打印不阻塞。
+
 ## 6. 故障排查
 
 | 现象 | 原因 | 处理 |
