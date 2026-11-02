@@ -24,6 +24,7 @@
     "@zcd/deferred-tools": "workspace:*",
     "@zcd/tool-plan-mode": "workspace:*",
     "@zcd/offpeak": "workspace:*",
-    "@zcd/tool-offpeak": "workspace:*"
+    "@zcd/tool-offpeak": "workspace:*",
+    "@zcd/tool-models": "workspace:*"
   }
 }

@@ -29,6 +29,10 @@
     - id: zcd-tool-offpeak
       name: '@zcd/tool-offpeak'
 
+    # Model catalog (deferred): pick a route without guessing.
+    - id: zcd-tool-models
+      name: '@zcd/tool-models'
+
     # Tool-shaped entry into plan mode (dsh exposes only the exit tool).
     - id: zcd-tool-plan-mode
       name: '@zcd/tool-plan-mode'
