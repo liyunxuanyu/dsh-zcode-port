@@ -180,6 +180,10 @@ try {
   if (!Array.isArray(cancelledEvents?.events) || !cancelledEvents.events.some(event => event.type === 'run/cancelled')) {
     throw new Error(`workflow cancel did not append run/cancelled: ${JSON.stringify(cancelledEvents)}`)
   }
+  // Fixtures have no live parent session, so the panel's resume path must
+  // refuse with a readable 409 instead of starting a detached run.
+  const resume = await fetch(`http://127.0.0.1:${port}/zcd/workflow/runs/${runningId}/resume`, { method: 'POST' })
+  if (resume.status !== 409) throw new Error(`workflow resume without a live parent should be 409: ${resume.status}`)
 
   const workflow = await fetch(`http://127.0.0.1:${port}/zcd/workflow/runs/not-a-run`)
   const workflowBody = await workflow.text()

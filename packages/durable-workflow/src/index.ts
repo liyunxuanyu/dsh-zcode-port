@@ -99,6 +99,7 @@ export class DurableWorkflowService extends Service {
       script,
       scriptHash,
       args: request.args ?? {},
+      parentSessionId: String(parent.session.id),
       createdAt: Date.now(),
       updatedAt: Date.now(),
       nodeCount: 0,
@@ -125,6 +126,28 @@ export class DurableWorkflowService extends Service {
     this.aborters.set(runId, aborter)
     void this.execute(next, parent, aborter.signal).finally(() => { this.aborters.delete(runId) })
     return this.view(next)
+  }
+
+  /**
+   * Resume a run from its recorded parent session, when that session is live.
+   *
+   * The CLI tools already pass the caller agent directly. This method is for
+   * host surfaces (the run panel) that only know the run id; after a restart the
+   * parent is gone, and the caller must resume from that session instead.
+   *
+   * @param runId - run id.
+   * @returns the run view at resume time.
+   */
+  resumeFromStore(runId: string): WorkflowRunView {
+    const record = this.requireRun(runId)
+    if (record.parentSessionId === undefined) {
+      throw new Error(`workflow ${runId} has no recorded parent session`)
+    }
+    const parent = this.ctx.agents.get(record.parentSessionId as SessionId)
+    if (parent === undefined) {
+      throw new Error(`workflow ${runId} parent session is not live; resume it from that session`)
+    }
+    return this.resume(runId, parent)
   }
 
   /**

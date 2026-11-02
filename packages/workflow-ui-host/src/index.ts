@@ -46,10 +46,11 @@ export function apply(ctx: Context): void {
         res.end(JSON.stringify({ runs }))
         return
       }
-      const match = /^\/zcd\/workflow\/runs\/([A-Za-z0-9_-]+)(\/cancel|\/nodes|\/events)?$/.exec(url.pathname)
+      const match = /^\/zcd\/workflow\/runs\/([A-Za-z0-9_-]+)(\/cancel|\/resume|\/nodes|\/events)?$/.exec(url.pathname)
       const id = match?.[1]
       const sub = match?.[2]
       const cancel = sub === '/cancel'
+      const resume = sub === '/resume'
       if (id === undefined) {
         res.writeHead(404)
         res.end()
@@ -108,17 +109,20 @@ export function apply(ctx: Context): void {
           return
         }
       }
-      if (cancel) {
+      if (cancel || resume) {
         if (req.method !== 'POST') {
           res.writeHead(405, { allow: 'POST' })
           res.end()
           return
         }
         try {
-          ctx.durableWorkflow.cancel(id)
-        } catch {
-          res.writeHead(404, { 'content-type': 'application/json' })
-          res.end(JSON.stringify({ error: 'not-found' }))
+          if (cancel) ctx.durableWorkflow.cancel(id)
+          else ctx.durableWorkflow.resumeFromStore(id)
+        } catch (error: unknown) {
+          res.writeHead(cancel ? 404 : 409, { 'content-type': 'application/json' })
+          res.end(JSON.stringify({
+            error: error instanceof Error ? error.message : (cancel ? 'not-found' : 'resume-failed'),
+          }))
           return
         }
       } else if (req.method !== 'GET') {

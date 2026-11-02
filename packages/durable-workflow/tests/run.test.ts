@@ -9,6 +9,7 @@ import { DurableWorkflowService } from '../src/index.js'
 async function harness() {
   const ctx = new Context()
   const created: string[] = []
+  let parentAgent: unknown
   ctx.provide('agents', {
     async create({ sessionId }: { sessionId: string }) {
       created.push(sessionId)
@@ -37,7 +38,7 @@ async function harness() {
       return { agent: agent as never, dispose: async () => {} }
     },
     list: () => [],
-    get: () => undefined,
+    get: () => parentAgent,
   })
   await ctx.plugin(DurableWorkflowService, {
     root: mkdtempSync(join(tmpdir(), 'zcd-workflow-run-')),
@@ -52,6 +53,7 @@ async function harness() {
       injected.push(message.content.map(block => block.text ?? '').join(''))
     },
   } as never
+  parentAgent = parent
   return { ctx, service, parent, created, injected }
 }
 
@@ -69,6 +71,20 @@ describe('durable workflow', () => {
     expect(types).toContain('node/started')
     expect(types).toContain('node/finished')
     expect(types).toContain('run/finished')
+    await ctx.dispose?.()
+  })
+
+  it('resumes a settled run from its recorded parent session', async () => {
+    const { ctx, service, parent, created } = await harness()
+    const view = service.start({ script: 'return await agent("hi")' }, parent)
+    await service.wait(view.id, 5_000)
+    expect(created).toHaveLength(1)
+
+    service.resumeFromStore(view.id)
+    const done = await service.wait(view.id, 5_000)
+    expect(done.status).toBe('succeeded')
+    expect(done.nodeCount).toBe(1)
+    expect(created).toHaveLength(1)
     await ctx.dispose?.()
   })
 

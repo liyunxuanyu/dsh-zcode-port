@@ -35,6 +35,7 @@ window.__ModuleLoader__.load({
       const [nodes, setNodes] = React.useState({})
       const [events, setEvents] = React.useState({})
       const [refresh, setRefresh] = React.useState(0)
+      const [actionError, setActionError] = React.useState(undefined)
       React.useEffect(() => {
         let alive = true
         const read = () => {
@@ -57,11 +58,14 @@ window.__ModuleLoader__.load({
         setNodes((previous) => ({ ...previous, [id]: [] }))
         setEvents((previous) => ({ ...previous, [id]: [] }))
       })
-      const cancel = (id) => {
-        fetch(`/zcd/workflow/runs/${id}/cancel`, { method: 'POST' })
-          .then((response) => response.ok ? undefined : Promise.reject(new Error(String(response.status))))
+      const act = (id, action) => {
+        setActionError(undefined)
+        fetch(`/zcd/workflow/runs/${id}/${action}`, { method: 'POST' })
+          .then((response) => response.ok ? undefined : response.json()
+            .then((value) => Promise.reject(new Error(value.error ?? String(response.status))))
+            .catch((reason) => Promise.reject(reason instanceof Error ? reason : new Error(String(response.status)))))
           .then(() => setRefresh((value) => value + 1))
-          .catch((reason) => setError(String(reason?.message ?? reason)))
+          .catch((reason) => setActionError(String(reason?.message ?? reason)))
       }
       const toggle = (id) => {
         if (expanded === id) { setExpanded(undefined); return }
@@ -76,6 +80,7 @@ window.__ModuleLoader__.load({
       }
       return jsxs('div', { style: { display: 'grid', gap: '6px', padding: '12px' }, children: [
         jsx('div', { style: { fontWeight: 600, fontSize: '13px' }, children: 'Workflow runs' }),
+        actionError === undefined ? null : jsx('div', { style: { ...cell, color: 'var(--red, #b00)' }, children: actionError }),
         ...runs.map((run) => {
           const nodeRows = expanded === run.id
             ? (nodes[run.id] ?? []).map((node) => jsx('div', {
@@ -102,8 +107,16 @@ window.__ModuleLoader__.load({
                 ? jsx('button', {
                   type: 'button',
                   style: smallButton,
-                  onClick: (event) => { event.stopPropagation(); cancel(run.id) },
+                  onClick: (event) => { event.stopPropagation(); act(run.id, 'cancel') },
                   children: 'Cancel',
+                })
+                : null,
+              run.status === 'failed' || run.status === 'interrupted' || run.status === 'cancelled'
+                ? jsx('button', {
+                  type: 'button',
+                  style: smallButton,
+                  onClick: (event) => { event.stopPropagation(); act(run.id, 'resume') },
+                  children: 'Resume',
                 })
                 : null,
               ...nodeRows,

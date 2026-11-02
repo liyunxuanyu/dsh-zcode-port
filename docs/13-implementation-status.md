@@ -7,7 +7,7 @@
 
 ## 0. 一句话
 
-**P0 已通过，P1/P2/P4 部分落地**：product profile 在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**33 个** ZCD 工具激活，**33 个技能**可用（26 个文件技能 + 7 个 dsh 原生 Office；覆盖 34/39 项 ZCode 技能），**80 个单测（14 个文件）**、命名门禁、docs 链接、运行时 doctor 与启动 smoke 全部通过。设置页已能在真实浏览器里列出、添加、删除**用户记忆**；workflow run 面板与文档卡已可用。
+**P0 已通过，P1/P2/P4 部分落地**：product profile 在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**33 个** ZCD 工具激活，**33 个技能**可用（26 个文件技能 + 7 个 dsh 原生 Office；覆盖 34/39 项 ZCode 技能），**81 个单测（14 个文件）**、命名门禁、docs 链接、运行时 doctor 与启动 smoke 全部通过。设置页已能在真实浏览器里列出、添加、删除**用户记忆**；workflow run 面板与文档卡已可用。
 
 ---
 
@@ -55,10 +55,10 @@
 | `@zcd/genui-host` | `/zcd/genui/...` 沙箱路由：严格 CSP + sandbox + no-store | 激活成功 | smoke 200 + CSP；[路由渲染截图](assets/zcd-genui-render.png) |
 | `@zcd/client-ui-genui` | lazy-CJS：`visualize` 结果渲染为沙箱 iframe | 进入 boot graph | smoke 检查；会话内卡片待模型会话验收 |
 | `@zcd/status-host` | `/zcd/status`：Node/dsh/uptime/最近 runs | 激活成功 | smoke 200 |
-| `@zcd/workflow-ui-host` | `/zcd/workflow/runs` 列表、`/<id>` JSON、`/<id>/nodes`、`/<id>/events`、`POST /<id>/cancel` | 激活成功 | smoke：fixture 列表/节点/事件 + 404 契约 |
+| `@zcd/workflow-ui-host` | `/zcd/workflow/runs` 列表、`/<id>` JSON、`/<id>/nodes`、`/<id>/events`、`POST /<id>/cancel`、`POST /<id>/resume` | 激活成功 | smoke：fixture 列表/节点/事件/cancel + resume 409 契约 |
 | `@zcd/memory-ui-host` | `GET/POST /zcd/memory`、`DELETE /zcd/memory/<id>`（仅 user scope） | 激活成功 | smoke 增删查往返 |
 | `@zcd/client-ui-settings-zcd` | `settings.section` 的 ZCD 页：运行环境、最近 runs、**用户记忆增删** | **视觉验收通过** | [截图](assets/zcd-settings-memory.png) + smoke |
-| `@zcd/client-ui-workflow` | 右侧栏 workflow tab：3s 轮询 + 节点展开 + 最近 12 条 journal 事件 + 运行中 run 取消 | **视觉验收通过** | [截图](assets/workflow-panel-events.png) + smoke |
+| `@zcd/client-ui-workflow` | 右侧栏 workflow tab：3s 轮询 + 节点展开 + 最近 12 条 journal 事件 + 取消/恢复 | **视觉验收通过** | [截图](assets/workflow-panel-resume.png) + smoke |
 | `@zcd/client-ui-zcd` | 文档卡 Open/自动打开、workflow 卡片轮询 + 取消 | 进入 boot graph | smoke 检查 |
 | `@zcd/tool-visualize` | `visualize`：写自包含 HTML，返回沙箱 URL（deferred） | 激活成功 | 2 个单测（落盘/URL、限额/高度） |
 | `@zcd/browser` | `ctx.browser`：headless Chrome、每会话隔离 context/page、截图落盘、URL 白名单 | 激活成功 | 3 个单测（URL/Chrome 探测/真实导航） |
@@ -88,7 +88,7 @@
 
 ```sh
 pnpm typecheck     # 全部 workspace 包通过
-pnpm test          # 14 个文件 / 80 个用例通过
+pnpm test          # 14 个文件 / 81 个用例通过
 pnpm verify        # verify-naming: 33 ZCD tools, 32 reserved names；docs 链接 0 问题
 pnpm build         # 所有包 emit 到 lib/
 node scripts/link-profile.mjs
@@ -108,7 +108,7 @@ smoke 覆盖：Web 启动、无 `did not activate`、Gen UI CSP、文档视图 P
 | 2 | CUA（WP-11） | dsh 原生 provider 仅 macOS；Windows 需另找 CUA 驱动 |
 | 3 | 浏览器 v2 | `js` code-act、tab/用户浏览器、可视面板 |
 | 4 | 设置页继续写入 | workflow 配置、只读策略开关；用户记忆已经可用 |
-| 5 | Workflow run 详情 | 面板内 resume/amend、耗时/模型列、失败重试入口；cancel 已完成 |
+| 5 | Workflow run 详情 | 面板内 amend、耗时/模型列、失败重试入口；cancel/resume 已完成 |
 | 6 | 剩余技能 | 覆盖 34/39；剩 CUA 1 + 主动丢弃 4（站点/移动端/旧会话恢复） |
 
 ## 2.5 P1 尚未全部通过的验收
@@ -131,7 +131,7 @@ P0 已通过；P1（"ZCode 工具语义对齐"）**还没有全部验收**，巡
 |---|---|---|
 | 无 CUA 工具 | Windows 上无法做桌面自动化 | 等待可用驱动；macOS 可挂 dsh 原生 provider |
 | 浏览器只有 6 个工具 | 无 tab、无用户浏览器、无 `js` 持久内核、无可视面板 | 浏览器 v2 |
-| 工作流只能取消 | 面板内不能 resume/amend | 保存 parent session 后接入 |
+| 面板不能 amend | 改脚本仍要回会话调 `workflow_amend` | 后续加脚本编辑器 |
 | 设置页只写用户记忆 | Memory 配置、只读策略开关仍不可改 | 复用 `configForms` |
 | workflow 面板缺操作 | 只能查看，cancel/resume/amend 需回到工具调用 | 面板加操作按钮 |
 | policy-plan-readonly 默认关闭 | 默认行为与 dsh 一致；严格模式需显式开 | 设置页开关 |

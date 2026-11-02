@@ -31,6 +31,8 @@ export interface RunRecord {
   script: string
   scriptHash: string
   args: unknown
+  /** Session that started the run; lets the host resume it while that session is live. */
+  parentSessionId?: string
   createdAt: number
   updatedAt: number
   result?: unknown
