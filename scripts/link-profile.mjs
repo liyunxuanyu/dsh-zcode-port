@@ -40,6 +40,7 @@ const directories = {
   '@zcd/tool-models': 'packages/tool-models',
   '@zcd/tool-session': 'packages/tool-session',
   '@zcd/tool-documents': 'packages/tool-documents',
+  '@zcd/tool-office': 'packages/tool-office',
   '@zcd/tool-plan-mode': 'packages/tool-plan-mode',
   '@zcd/tool-search': 'packages/tool-search',
   '@zcd/tool-todo-read': 'packages/tool-todo-read',

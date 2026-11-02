@@ -1,0 +1,27 @@
+{
+  "name": "@zcd/tool-office",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "exports": { ".": { "types": "./lib/index.d.ts", "default": "./lib/index.js" } },
+  "files": ["lib"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@deepseek-ai/dsh-agent": "0.2.2-alpha.2",
+    "@deepseek-ai/dsh-tools": "0.2.2-alpha.2",
+    "@zcd/deferred-tools": "workspace:*",
+    "docx": "^9.5.0",
+    "exceljs": "^4.4.0",
+    "pdfkit": "^0.17.0"
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "4.0.6-alpha.1",
+    "@types/pdfkit": "^0.17.0"
+  },
+  "peerDependencies": { "@deepseek-ai/cordis": "~4.0.6-alpha.1" }
+}

@@ -27,6 +27,7 @@
     "@zcd/tool-visualize": "workspace:*",
     "@zcd/tool-documents": "workspace:*",
     "@zcd/document-view": "workspace:*",
-    "@zcd/documents-ui-host": "workspace:*"
+    "@zcd/documents-ui-host": "workspace:*",
+    "@zcd/tool-office": "workspace:*"
   }
 }

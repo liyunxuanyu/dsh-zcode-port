@@ -29,6 +29,10 @@
     - id: zcd-tool-offpeak
       name: '@zcd/tool-offpeak'
 
+    # Office generation: create_document (docx/xlsx/pdf).
+    - id: zcd-tool-office
+      name: '@zcd/tool-office'
+
     # Session-owned document view state (get_view).
     - id: zcd-document-view
       name: '@zcd/document-view'
