@@ -29,6 +29,10 @@
     - id: zcd-tool-offpeak
       name: '@zcd/tool-offpeak'
 
+    # Office/text document extraction (read_document / search_document).
+    - id: zcd-tool-documents
+      name: '@zcd/tool-documents'
+
     # Gen UI: sandboxed HTML artifacts served by the host route.
     - id: zcd-genui-host
       name: '@zcd/genui-host'

@@ -7,7 +7,7 @@
 
 ## 0. 一句话
 
-**P0 已通过，P1/P2 进行中**：product profile 能在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**二十一个** ZCD 工具激活（tool_search / todo_read / enter_plan_mode / offpeak_* / memory_* / list_models / session_handoff / workflow_* / visualize / plan policy），并安装 **20 个技能**，63 个单测、命名门禁、docs 链接与启动 smoke 全部通过。
+**P0 已通过，P1/P2 进行中**：product profile 能在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**二十三个** ZCD 工具激活（tool_search / todo_read / enter_plan_mode / offpeak_* / memory_* / list_models / session_handoff / workflow_* / visualize / plan policy），并安装 **20 个技能**，63 个单测、命名门禁、docs 链接与启动 smoke 全部通过。
 
 ---
 
@@ -44,6 +44,7 @@
 | `@zcd/workflow-store` | 文件型 run 存储：run.json + nodes + events.jsonl，原子写 | 已编译 | 3 个单测 |
 | `@zcd/durable-workflow` | `ctx.durableWorkflow`：脚本执行、`agent()`/`parallel()`/`pipeline()`、`hole()`、节点缓存、resume、cancel、amend、完成/留白通知 | 激活成功 | 6 个单测（运行/重放/并行/留白/失败/修订） |
 | `@zcd/tool-workflow` | `workflow_run/get_run/list_runs/resume/cancel/amend/answer_hole` | 激活成功 | — |
+| `@zcd/tool-documents` | `read_document` / `search_document`：text/docx/xlsx/pdf，带位置锚点 | 激活成功 | 2 个单测 |
 | `@zcd/genui-host` | `/zcd/genui/...` 沙箱路由：严格 CSP + sandbox + no-store | 激活成功 | smoke 探测 200 + CSP |
 | `@zcd/tool-visualize` | `visualize`：写自包含 HTML，返回沙箱 URL（deferred） | 激活成功 | — |
 | `skills/superpowers`（14） | ZCode 工程方法技能，工具名已映射为 dsh | 已安装到 `$DSH_HOME/skills` | `install-skills.mjs` |
@@ -57,7 +58,7 @@
 
 ```sh
 pnpm typecheck     # 4 个包全部通过
-pnpm test          # 8 个文件 / 64 个用例通过
+pnpm test          # 9 个文件 / 66 个用例通过
 pnpm verify        # verify-naming: 2 ZCD tools, 34 known names；docs 链接检查通过
 pnpm build         # 4 个包 emit 到 lib/
 node scripts/link-profile.mjs
@@ -96,7 +97,7 @@ node scripts/smoke-profile.mjs
 | 8.5 | **其余技能** | 已完成 20/39（superpowers 14 + dsh-guide 6）；office/browser/CUA 随对应 WP |
 | 9 | **Workflow 完整版** | parallel/pipeline、hole、amend、run 面板、通知 |
 | 10 | **Browser / CUA**（WP-10/11） | `js` code-act + 浏览器 provider + 面板 |
-| 11 | **UI**（WP-12/13/14） | Gen UI 宿主已通；客户端卡片、文档工具、设置页待做 |
+| 11 | **UI**（WP-12/13/14） | Gen UI 宿主 + 文档 read/search 已通；客户端卡片、open/viewer、设置页待做 |
 
 ## 2.5 P1 尚未全部通过的验收
 

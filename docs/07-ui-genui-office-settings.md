@@ -1,6 +1,6 @@
 # 07 · UI：Gen UI / Office / 设置页
 
-> **实现状态（2026-11-03）**：`visualize` 工具 + `/zcd/genui` 沙箱路由已落地（CSP + `sandbox allow-scripts`，smoke 断言 200）。客户端 iframe 卡片尚未实现；Office 文档工具与设置页仍待做。
+> **实现状态（2026-11-03）**：`visualize` 工具 + `/zcd/genui` 沙箱路由已落地；`read_document` / `search_document` 已支持 text/docx/xlsx/pdf 并输出位置锚点。客户端 iframe 卡片、`open_document`/`show_in_viewer`、Office 生成技能、设置页仍待做。
 
 > 目标：在 dsh Web 客户端上，用 client 插件补齐 ZCode 的三类 UI 体验，不重建组件库。
 >
