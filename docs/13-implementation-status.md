@@ -24,7 +24,8 @@
 | profile 物化（`$DSH_HOME/profiles/product`） | `scripts/link-profile.mjs` |
 | 产品打包（可含 `node_modules`） | `scripts/pack-product.mjs` |
 | 命名门禁 / 文档门禁 / 插件 doctor | `scripts/verify-naming.mjs`、`check-docs.cjs`、`doctor-plugins.mjs` |
-| CI | `.github/workflows/ci.yml`（typecheck/test/verify/build/pack/doctor/smoke） |
+| CI | `.github/workflows/ci.yml`（typecheck/test/verify/build/pack/doctor/MCP check/smoke） |
+| MCP 运行时 | `runtime/mcp` pin `server-everything@2.1.0`；`pnpm mcp:check` 完成 initialize + tools/list（16 tools） |
 
 当前 workspace 共 **32 个包**：2 个 bundle、4 个 client bundle、5 个 Web host、其余为服务与工具包。
 
@@ -90,6 +91,7 @@
 pnpm typecheck     # 全部 workspace 包通过
 pnpm test          # 14 个文件 / 81 个用例通过
 pnpm verify        # verify-naming: 33 ZCD tools, 32 reserved names；docs 链接 0 问题
+pnpm mcp:check     # pinned MCP server: initialize + tools/list
 pnpm build         # 所有包 emit 到 lib/
 node scripts/pack-product.mjs   # dist/zcd-product-<version>.tgz（相对路径，Windows 也可用）
 node scripts/link-profile.mjs

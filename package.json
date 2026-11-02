@@ -20,7 +20,8 @@
     "profile": "node scripts/link-profile.mjs",
     "prep": "node scripts/ensure-runtime.mjs && node scripts/link-profile.mjs && node scripts/smoke-profile.mjs",
     "doctor": "node scripts/doctor-plugins.mjs",
-    "mcp:install": "node scripts/install-mcp.mjs"
+    "mcp:install": "node scripts/install-mcp.mjs",
+    "mcp:check": "node scripts/check-mcp.mjs"
   },
   "devDependencies": {
     "@deepseek-ai/dsh": "0.2.2-alpha.2",

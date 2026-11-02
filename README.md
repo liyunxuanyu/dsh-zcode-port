@@ -122,7 +122,7 @@
 | 技能 | ✅ 33 个（覆盖 34/39） | superpowers 14 + dsh-guide 6 + zcd 6（office-viewer/browser-use/visualize/dynamic-workflows/skill-creator/plugin-creator）+ dsh 原生 Office 7 |
 | 浏览器 v1 | ✅ | `@zcd/browser`（headless Chrome）+ 6 个 deferred 工具；每会话一页，真实 Chrome 集成测试 |
 | 外部插件接入 | ✅ doctor | `pnpm doctor` 检查依赖/engines/重复版本/bundle manifest |
-| MCP 运行时 | ✅ pinned | `runtime/mcp` + `pnpm mcp:install` |
+| MCP 运行时 | ✅ pinned + smoke | `runtime/mcp` + `pnpm mcp:install` + `pnpm mcp:check`（stdio initialize/tools/list） |
 
 **下一步**（详见 `docs/13-implementation-status.md` §2）：
 

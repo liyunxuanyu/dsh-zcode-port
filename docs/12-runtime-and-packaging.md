@@ -119,6 +119,7 @@ pnpm doctor
 
 ```sh
 node scripts/install-mcp.mjs   # pnpm install in runtime/mcp, outside the workspace
+node scripts/check-mcp.mjs     # stdio initialize + tools/list smoke
 ```
 
 The profile patch contains a commented `@deepseek-ai/dsh-mcp-client` example.
