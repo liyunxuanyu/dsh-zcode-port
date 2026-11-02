@@ -7,7 +7,7 @@
 
 ## 0. 一句话
 
-**P0 已通过，P1/P2/P4 部分落地**：product profile 在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**33 个** ZCD 工具激活，**33 个技能**可用（26 个文件技能 + 7 个 dsh 原生 Office；覆盖 34/39 项 ZCode 技能），**85 个单测（14 个文件）**、命名门禁、docs 链接、运行时 doctor 与启动 smoke 全部通过。设置页已能在真实浏览器里列出、添加、删除**用户记忆**；workflow run 面板与文档卡已可用。
+**P0 已通过，P1/P2/P4 部分落地**：product profile 在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**34 个** ZCD 工具激活，**33 个技能**可用（26 个文件技能 + 7 个 dsh 原生 Office；覆盖 34/39 项 ZCode 技能），**87 个单测（16 个文件）**、命名门禁、docs 链接、运行时 doctor 与启动 smoke 全部通过。设置页已能在真实浏览器里列出、添加、删除**用户记忆**；workflow run 面板与文档卡已可用。
 
 ---
 
@@ -39,7 +39,7 @@
 | `@zcd/tool-todo-read` | `todo_read`：deferred，读 `todos` 投影 | 激活成功 | — |
 | `@zcd/tool-plan-mode` | `enter_plan_mode`：程序化执行 `/plan`，不拥有 plan 状态 | 激活成功 | — |
 | `@zcd/policy-plan-readonly` | plan mode 严格只读：deny 写工具与非只读 bash | 编译通过；bundle 中默认 `disabled: true` | 35 + 4 单测 + 4 集成测试 |
-| `@zcd/policy-skill-gate` | 工作流作者门禁：未加载 `dynamic-workflows` 时 deny `workflow_run`/改脚本 amend；compaction 后失效 | 激活成功 | 4 个单测（加载/错误结果/compaction/豁免） |
+| `@zcd/policy-skill-gate` | 工作流作者门禁：未加载 `dynamic-workflows` 时 deny `workflow_run`/改脚本 amend；compaction 后失效 | 激活成功 | 4 单测 + 2 集成测试 |
 | `@zcd/offpeak` | `ctx.offpeak`：空闲判定、新会话执行、用户输入即让路、`tasks.json` 恢复 | 激活成功 | 3 个单测 |
 | `@zcd/tool-offpeak` | `offpeak_create/list/cancel`（deferred） | 激活成功 | — |
 | `@zcd/tool-models` | `list_models`：按 provider 列出可路由模型（deferred） | 激活成功 | — |
@@ -63,11 +63,11 @@
 | `@zcd/client-ui-zcd` | 文档卡 Open/自动打开、workflow 卡片轮询 + 取消 | 进入 boot graph | smoke 检查 |
 | `@zcd/tool-visualize` | `visualize`：写自包含 HTML，返回沙箱 URL（deferred） | 激活成功 | 2 个单测（落盘/URL、限额/高度） |
 | `@zcd/browser` | `ctx.browser`：headless Chrome、每会话隔离 context/page、截图落盘、URL 白名单 | 激活成功 | 3 个单测（URL/Chrome 探测/真实导航） |
-| `@zcd/tool-browser` | `browser_open/snapshot/click/type/screenshot/close`（deferred） | 激活成功 | 1 个真实 Chrome 工具链测试 |
+| `@zcd/tool-browser` | `browser_open/snapshot/evaluate/click/type/screenshot/close`（deferred） | 激活成功 | 1 个真实 Chrome 工具链测试 |
 | `skills/superpowers`（14） | ZCode 工程方法技能，工具名已映射为 dsh | 已安装 | `install-skills.mjs` |
 | `skills/dsh-guide`（6） | dsh 自诊断：profile/bundle/patch、插件、MCP、skills | 已安装 | `install-skills.mjs` |
 | `skills/zcd/office-viewer`（1） | Word/Excel/PDF/文本的 read/search/open/show/get_view 与锚点语义 | 已安装 | `install-skills.mjs` + verify-naming |
-| `skills/zcd/browser-use`（1） | browser_* 工具的工作流、selector 纪律与安全边界 | 已安装 | `install-skills.mjs` + verify-naming |
+| `skills/zcd/browser-use`（1） | browser_* 工具的工作流、selector 纪律、evaluate 边界与安全 | 已安装 | `install-skills.mjs` + verify-naming |
 | `skills/zcd/visualize`（1） | 会话内 HTML 可视化的选择、CSP 契约与 authoring | 已安装 | verify-naming |
 | `skills/zcd/dynamic-workflows`（1） | workflow_run 脚本 API、拓扑、replay/hole 规则 | 已安装 | verify-naming |
 | `skills/zcd/skill-creator`（1） | dsh SKILL.md frontmatter、发现顺序与门禁 | 已安装 | verify-naming |
@@ -89,7 +89,7 @@
 
 ```sh
 pnpm typecheck     # 全部 workspace 包通过
-pnpm test          # 15 个文件 / 85 个用例通过
+pnpm test          # 16 个文件 / 87 个用例通过
 pnpm verify        # verify-naming: 33 ZCD tools, 32 reserved names；docs 链接 0 问题
 pnpm mcp:check     # pinned MCP server: initialize + tools/list
 pnpm build         # 所有包 emit 到 lib/
@@ -133,7 +133,7 @@ P0 已通过；P1（"ZCode 工具语义对齐"）**还没有全部验收**，巡
 | 缺口 | 影响 | 计划 |
 |---|---|---|
 | 无 CUA 工具 | Windows 上无法做桌面自动化 | 等待可用驱动；macOS 可挂 dsh 原生 provider |
-| 浏览器只有 6 个工具 | 无 tab、无用户浏览器、无 `js` 持久内核、无可视面板 | 浏览器 v2 |
+| 浏览器只有 7 个工具 | 无 tab、无用户浏览器、无 Node 级 `js` 内核、无可视面板 | 浏览器 v2 |
 | 面板不能 amend | 改脚本仍要回会话调 `workflow_amend` | 后续加脚本编辑器 |
 | 设置页只写用户记忆 | Memory 配置、只读策略开关仍不可改 | 复用 `configForms` |
 | workflow 面板缺操作 | 只能查看，cancel/resume/amend 需回到工具调用 | 面板加操作按钮 |

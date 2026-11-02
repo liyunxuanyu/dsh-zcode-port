@@ -1,6 +1,6 @@
 ---
 name: browser-use
-description: Use when the user wants to open, navigate, inspect, test, click, type, fill, screenshot, or verify a web page from the agent. Covers browser_open, browser_snapshot, browser_click, browser_type, browser_screenshot, and browser_close.
+description: Use when the user wants to open, navigate, inspect, test, click, type, fill, evaluate, screenshot, or verify a web page from the agent. Covers browser_open, browser_snapshot, browser_click, browser_type, browser_evaluate, browser_screenshot, and browser_close.
 ---
 
 <!-- Rewritten for dsh from ZCode browser-use skills (Apache-2.0):
@@ -29,10 +29,15 @@ first, then the rest become available after the first load.
    several elements, the call fails; take a fresh snapshot and rebuild it.
 5. Observe again. After navigation or a click that changes content, call
    `browser_snapshot()`; do not assume the old tree is current.
-6. `browser_screenshot()` — writes a PNG under the host storage directory and
+6. `browser_evaluate(code)` runs JavaScript in the page and returns JSON as
+   text. Use it for bulk extraction (`[...document.querySelectorAll(...)]`) or
+   a multi-step DOM interaction that would take many round trips. It runs in
+   the page, not in Node: no filesystem, no `require`, no tool calls. Use an
+   expression or an async IIFE; the result must be JSON-serializable.
+7. `browser_screenshot()` — writes a PNG under the host storage directory and
    returns the path. Use it only when layout or rendering actually matters; the
    image is not embedded in the tool result.
-7. `browser_close()` — release the page when the task is finished. The page is
+8. `browser_close()` — release the page when the task is finished. The page is
    also closed when the session ends.
 
 ## Safety

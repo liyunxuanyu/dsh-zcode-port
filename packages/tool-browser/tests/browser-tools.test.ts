@@ -19,6 +19,7 @@ describe.skipIf(chrome === undefined)('browser tools', () => {
         <h1>Tool browser</h1>
         <button id="go" onclick="document.getElementById('out').textContent = 'clicked'">Go</button>
         <input id="name" aria-label="Name">
+        <ul><li>a</li><li>b</li></ul>
         <div id="out"></div>`)
     })
     await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve))
@@ -57,6 +58,15 @@ describe.skipIf(chrome === undefined)('browser tools', () => {
 
       const snapshot = await run('browser_snapshot', {})
       expect(String(snapshot.text)).toContain('Tool browser')
+
+      const evaluated = await run('browser_evaluate', {
+        code: "({ title: document.title, items: [...document.querySelectorAll('li')].length })",
+      })
+      expect(JSON.parse(String(evaluated.result))).toEqual({ title: 'Tool browser', items: 2 })
+      const asyncValue = await run('browser_evaluate', {
+        code: '(async () => ({ title: document.title }))()',
+      })
+      expect(JSON.parse(String(asyncValue.result))).toEqual({ title: 'Tool browser' })
 
       await run('browser_click', { selector: '#go' })
       const afterClick = await run('browser_snapshot', {})

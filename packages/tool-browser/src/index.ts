@@ -98,6 +98,47 @@ export function apply(ctx: Context): void {
     },
   }), { group: 'browser', keywords: ['snapshot', 'accessibility', 'dom', 'read', 'inspect'] })
 
+  const offEvaluate = ctx.deferredTools.register(defineTool({
+    name: 'browser_evaluate',
+    description:
+      'Execute JavaScript in the current page and return its JSON result as text. Use an expression or '
+      + 'an async IIFE, for example `(async () => ({ title: document.title }))()`. It runs in the page, '
+      + 'not in Node: no filesystem, no require, no tool calls. Prefer browser_snapshot for reading and '
+      + 'this tool for bulk extraction or a multi-step DOM interaction.',
+    parameters: {
+      code: { type: 'string', required: true, description: 'JavaScript expression or async IIFE.' },
+    },
+    output: {
+      schema: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          result: { type: 'string', required: true },
+          truncated: { type: 'boolean', required: true },
+        },
+      },
+      render: (_args, value) => [{
+        type: 'text',
+        text: `Page result${value.truncated ? ' (truncated)' : ''}: ${value.result}`,
+      }],
+    },
+    async execute(args, exec) {
+      const page = await ctx.browser.page(sessionId(exec))
+      const value = await page.evaluate(args.code)
+      let text: string
+      try {
+        text = JSON.stringify(value, null, 2) ?? 'null'
+      } catch {
+        text = String(value)
+      }
+      const limit = 60_000
+      return {
+        result: text.length > limit ? text.slice(0, limit) : text,
+        truncated: text.length > limit,
+      }
+    },
+  }), { group: 'browser', keywords: ['evaluate', 'javascript', 'script', 'extract', 'dom'] })
+
   const offClick = ctx.deferredTools.register(defineTool({
     name: 'browser_click',
     description:
@@ -197,6 +238,7 @@ export function apply(ctx: Context): void {
   ctx.effect(() => () => {
     offOpen()
     offSnapshot()
+    offEvaluate()
     offClick()
     offType()
     offScreenshot()
