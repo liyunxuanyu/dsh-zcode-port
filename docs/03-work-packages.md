@@ -4,7 +4,7 @@
 > 估算是**单人**投入（人周），不含评审/等待；并行时按依赖排。
 > 阶段：P0 地基 / P1 基础能力 / P2 工作流 / P3 浏览器·CUA / P4 UI / P5 技能。
 >
-> **实现状态**：WP-01 已完成（P0 验收通过）；WP-02/03/04 已落第一批（`todo_read`、`tool_search`、`policy-plan-readonly`、`policy-skill-gate`）；WP-05 的 memory/offpeak 与 WP-13 的文档工具 5/5 已完成；Office 技能采用 dsh 原生 7 个 + `office-viewer`；WP-12/14 的 Gen UI 路由、workflow 面板（含 journal）、设置页（含用户记忆增删）已落地；WP-10 的浏览器 v1（7 个 `browser_*` 工具 + headless Chrome）已完成。以 `docs/13-implementation-status.md` 为准。
+> **实现状态**：WP-01 已完成（P0 验收通过）；WP-02/03/04 已落第一批（`todo_read`、`tool_search`、`policy-plan-readonly`、`policy-skill-gate`）；WP-05 的 memory/offpeak 与 WP-13 的文档工具 5/5 已完成；Office 技能采用 dsh 原生 7 个 + `office-viewer`；WP-12/14 的 Gen UI 路由、workflow 面板（含 journal）、设置页（含用户记忆增删）已落地；WP-10 的浏览器 v1（11 个 `browser_*` 工具 + headless Chrome，含多 tab）已完成。以 `docs/13-implementation-status.md` 为准。
 
 ---
 

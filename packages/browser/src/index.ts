@@ -38,10 +38,20 @@ declare module '@deepseek-ai/cordis' {
   }
 }
 
-/** One session's isolated context and page. */
+/** One session's isolated context and its tabs. */
 interface SessionBrowser {
   context: BrowserContext
-  page: Page
+  pages: Map<string, Page>
+  active: string | undefined
+  next: number
+}
+
+/** Public tab identity. */
+export interface TabInfo {
+  id: string
+  url: string
+  title: string
+  active: boolean
 }
 
 /**
@@ -122,15 +132,70 @@ export class BrowserService extends Service {
    * @returns the session page.
    */
   async page(sessionId: string): Promise<Page> {
-    const existing = this.sessions.get(sessionId)
-    if (existing !== undefined) return (await existing).page
-    const created = this.createSession(sessionId)
-    this.sessions.set(sessionId, created)
-    try {
-      return (await created).page
-    } catch (error: unknown) {
+    const session = await this.session(sessionId)
+    let page = session.active === undefined ? undefined : session.pages.get(session.active)
+    if (page === undefined || page.isClosed()) {
+      page = await this.openTab(session)
+    }
+    return page
+  }
+
+  /**
+   * Open a new tab and make it active.
+   * @param sessionId - agent session id.
+   * @param url - optional absolute http(s) URL.
+   * @returns the new tab's identity.
+   */
+  async newTab(sessionId: string, url?: string): Promise<TabInfo> {
+    const session = await this.session(sessionId)
+    const page = await this.openTab(session)
+    if (url !== undefined) await page.goto(assertHttpUrl(url), { waitUntil: 'domcontentloaded' })
+    return this.tabInfo(page, session)
+  }
+
+  /**
+   * List the session's tabs.
+   * @param sessionId - agent session id.
+   * @returns tabs in creation order.
+   */
+  async listTabs(sessionId: string): Promise<TabInfo[]> {
+    const session = await this.session(sessionId)
+    const rows: TabInfo[] = []
+    for (const [id, page] of session.pages) {
+      if (page.isClosed()) continue
+      rows.push(await this.tabInfo(page, session, id))
+    }
+    return rows
+  }
+
+  /**
+   * Make one tab active.
+   * @param sessionId - agent session id.
+   * @param tabId - id from `listTabs`.
+   */
+  async switchTab(sessionId: string, tabId: string): Promise<void> {
+    const session = await this.session(sessionId)
+    const page = session.pages.get(tabId)
+    if (page === undefined || page.isClosed()) throw new Error(`browser tab ${tabId} does not exist`)
+    session.active = tabId
+    await page.bringToFront().catch(() => undefined)
+  }
+
+  /**
+   * Close one tab. Closing the last tab releases the session context.
+   * @param sessionId - agent session id.
+   * @param tabId - id from `listTabs`.
+   */
+  async closeTab(sessionId: string, tabId: string): Promise<void> {
+    const session = await this.session(sessionId)
+    const page = session.pages.get(tabId)
+    if (page === undefined) throw new Error(`browser tab ${tabId} does not exist`)
+    session.pages.delete(tabId)
+    await page.close().catch(() => undefined)
+    if (session.active === tabId) session.active = session.pages.keys().next().value
+    if (session.pages.size === 0) {
       this.sessions.delete(sessionId)
-      throw error
+      await session.context.close().catch(() => undefined)
     }
   }
 
@@ -160,6 +225,44 @@ export class BrowserService extends Service {
     mkdirSync(dirname(path), { recursive: true })
     await page.screenshot({ path, fullPage: options.fullPage ?? false })
     return path
+  }
+
+  /** Get or create the session container. */
+  private async session(sessionId: string): Promise<SessionBrowser> {
+    const existing = this.sessions.get(sessionId)
+    if (existing !== undefined) return existing
+    const created = this.createSession(sessionId)
+    this.sessions.set(sessionId, created)
+    try {
+      return await created
+    } catch (error: unknown) {
+      this.sessions.delete(sessionId)
+      throw error
+    }
+  }
+
+  /** Open a blank tab inside an existing session. */
+  private async openTab(session: SessionBrowser): Promise<Page> {
+    const page = await session.context.newPage()
+    page.setDefaultTimeout(this.config.timeoutMs)
+    const id = `tab-${session.next++}`
+    session.pages.set(id, page)
+    session.active = id
+    return page
+  }
+
+  /** Read one tab's public identity. */
+  private async tabInfo(page: Page, session: SessionBrowser, id?: string): Promise<TabInfo> {
+    let tabId = id
+    if (tabId === undefined) {
+      for (const [candidate, value] of session.pages) if (value === page) tabId = candidate
+    }
+    return {
+      id: tabId ?? 'tab-0',
+      url: page.url(),
+      title: await page.title().catch(() => ''),
+      active: session.active === tabId,
+    }
   }
 
   /** Close the browser and every session. */
@@ -193,15 +296,13 @@ export class BrowserService extends Service {
     }
   }
 
-  /** Create an isolated context and page for one session. */
-  private async createSession(sessionId: string): Promise<SessionBrowser> {
+  /** Create an isolated context for one session. */
+  private async createSession(_sessionId: string): Promise<SessionBrowser> {
     const browser = await this.launch()
     const context = await browser.newContext({
       viewport: this.config.viewport ?? { width: 1280, height: 720 },
     })
-    const page = await context.newPage()
-    page.setDefaultTimeout(this.config.timeoutMs)
-    return { context, page }
+    return { context, pages: new Map(), active: undefined, next: 1 }
   }
 }
 

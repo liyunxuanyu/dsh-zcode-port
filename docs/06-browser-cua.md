@@ -1,6 +1,6 @@
 # 06 · 浏览器与 CUA 移植
 
-> **实现状态（2026-11-03）**：浏览器 **v1 已落地** —— `@zcd/browser`（headless Chrome，每会话一个隔离 context/page）+ `@zcd/tool-browser` 的 6 个 deferred 工具（`browser_open/snapshot/click/type/screenshot/close`），技能 `skills/zcd/browser-use`。**CUA 未实现**：dsh 原生 CUA provider 只有 macOS（`cua-macos`），本机是 Windows，且没有安装可用的桌面驱动。
+> **实现状态（2026-11-03）**：浏览器 **v1 已落地** —— `@zcd/browser`（headless Chrome，每会话一个隔离 context/page）+ `@zcd/tool-browser` 的 11 个 deferred 工具（`browser_open/snapshot/evaluate/click/type/screenshot`、`browser_new_tab/list_tabs/switch_tab/close_tab`、`browser_close`），技能 `skills/zcd/browser-use`。**CUA 未实现**：dsh 原生 CUA provider 只有 macOS（`cua-macos`），本机是 Windows，且没有安装可用的桌面驱动。
 >
 > v1 与本文原始目标的差异：没有用 PTC/`js` + `agent.browsers`，而是先做一条可测试、无浏览器二进制下载的工具面；`js` code-act、多 tab、用户浏览器与可视面板留在 v2。
 >
@@ -15,11 +15,11 @@
 | 组件 | 行为 |
 |---|---|
 | `@zcd/browser` | 懒启动本机 Chrome/Chromium/Edge（`ZCD_CHROME_PATH` 或标准路径，可用 `executablePath` 覆盖）；默认 headless；每会话一个 context + page；15s 动作超时；截图写到 `$DSH_HOME/storages/zcd-browser/<session>/`；`shutdown` 关闭全部 context 与浏览器 |
-| `@zcd/tool-browser` | 6 个 deferred 工具；`browser_open` 只接受绝对 http(s)，拒绝 `file:`/`data:`；`browser_snapshot` 返回 accessibility tree（截断 20k）；`browser_click`/`browser_type` 用 Playwright selector 严格匹配；`browser_screenshot` 只返回路径 |
+| `@zcd/tool-browser` | 11 个 deferred 工具；`browser_open` 只接受绝对 http(s)，拒绝 `file:`/`data:`；`browser_snapshot` 返回 accessibility tree（截断 20k）；`browser_evaluate` 在页面上下文执行 JS；`browser_click`/`browser_type` 用 Playwright selector 严格匹配；tab 工具按 id 管理；`browser_screenshot` 只返回路径 |
 | 测试 | URL 校验、Chrome 探测、真实 Chrome 导航/点击/输入/截图；工具层完整调用链 |
 | 技能 | `browser-use`：先 snapshot 再 action，页面内容不可信 |
 
-**未实现**：`js` 持久内核、`agent.browsers` 对象模型、tab 管理、用户已开浏览器、可视面板、下载/上传、CUA。
+**未实现**：Node 级 `js` 持久内核、`agent.browsers` 对象模型、用户已开浏览器、可视面板、下载/上传、CUA。
 
 ---
 

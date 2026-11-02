@@ -217,6 +217,112 @@ export function apply(ctx: Context): void {
     },
   }), { group: 'browser', keywords: ['screenshot', 'capture', 'image', 'png'] })
 
+  const offNewTab = ctx.deferredTools.register(defineTool({
+    name: 'browser_new_tab',
+    description:
+      'Open a new tab and make it active. An http(s) URL opens directly; omit it for a blank tab. '
+      + 'Use browser_list_tabs and browser_switch_tab to move between tabs.',
+    parameters: {
+      url: { type: 'string', description: 'Optional absolute http(s) URL.' },
+    },
+    output: {
+      schema: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          id: { type: 'string', required: true },
+          url: { type: 'string', required: true },
+          title: { type: 'string', required: true },
+        },
+      },
+      render: (_args, value) => [{ type: 'text', text: `Opened ${value.id} at ${value.url}` }],
+    },
+    async execute(args, exec) {
+      const tab = await ctx.browser.newTab(sessionId(exec), args.url)
+      return { id: tab.id, url: tab.url, title: tab.title }
+    },
+  }), { group: 'browser', keywords: ['tab', 'new', 'open', 'window'] })
+
+  const offListTabs = ctx.deferredTools.register(defineTool({
+    name: 'browser_list_tabs',
+    description: 'List the session browser tabs with their ids, URLs, titles, and the active one.',
+    parameters: {},
+    output: {
+      schema: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          tabs: {
+            type: 'array',
+            required: true,
+            items: {
+              type: 'object',
+              additionalProperties: false,
+              properties: {
+                id: { type: 'string', required: true },
+                url: { type: 'string', required: true },
+                title: { type: 'string', required: true },
+                active: { type: 'boolean', required: true },
+              },
+            },
+          },
+        },
+      },
+      render: (_args, value) => [{
+        type: 'text',
+        text: value.tabs.length === 0
+          ? 'No browser tabs are open.'
+          : value.tabs.map(tab => `${tab.active ? '*' : ' '} ${tab.id} ${tab.title || '(untitled)'} ${tab.url}`).join(String.fromCharCode(10)),
+      }],
+    },
+    async execute(_args, exec) {
+      return { tabs: await ctx.browser.listTabs(sessionId(exec)) }
+    },
+  }), { group: 'browser', keywords: ['tab', 'list', 'tabs'] })
+
+  const offSwitchTab = ctx.deferredTools.register(defineTool({
+    name: 'browser_switch_tab',
+    description: 'Make one browser tab active. Use the id from browser_list_tabs.',
+    parameters: {
+      tab_id: { type: 'string', required: true, description: 'Tab id from browser_list_tabs.' },
+    },
+    output: {
+      schema: {
+        type: 'object',
+        additionalProperties: false,
+        properties: { tab_id: { type: 'string', required: true } },
+      },
+      render: (_args, value) => [{ type: 'text', text: `Switched to ${value.tab_id}` }],
+    },
+    async execute(args, exec) {
+      await ctx.browser.switchTab(sessionId(exec), args.tab_id)
+      return { tab_id: args.tab_id }
+    },
+  }), { group: 'browser', keywords: ['tab', 'switch', 'activate'] })
+
+  const offCloseTab = ctx.deferredTools.register(defineTool({
+    name: 'browser_close_tab',
+    description: 'Close one browser tab. Closing the last tab also releases the session context.',
+    parameters: {
+      tab_id: { type: 'string', required: true, description: 'Tab id from browser_list_tabs.' },
+    },
+    output: {
+      schema: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          tab_id: { type: 'string', required: true },
+          closed: { type: 'boolean', required: true },
+        },
+      },
+      render: (_args, value) => [{ type: 'text', text: `Closed ${value.tab_id}` }],
+    },
+    async execute(args, exec) {
+      await ctx.browser.closeTab(sessionId(exec), args.tab_id)
+      return { tab_id: args.tab_id, closed: true }
+    },
+  }), { group: 'browser', keywords: ['tab', 'close', 'window'] })
+
   const offClose = ctx.deferredTools.register(defineTool({
     name: 'browser_close',
     description: 'Close the session browser page and release its context. Safe when nothing is open.',
@@ -242,6 +348,10 @@ export function apply(ctx: Context): void {
     offClick()
     offType()
     offScreenshot()
+    offNewTab()
+    offListTabs()
+    offSwitchTab()
+    offCloseTab()
     offClose()
   }, 'zcd-tool-browser: deferred registrations')
 }

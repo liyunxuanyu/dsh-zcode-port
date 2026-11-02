@@ -79,6 +79,16 @@ describe.skipIf(chrome === undefined)('browser tools', () => {
       const shot = await run('browser_screenshot', {})
       expect(String(shot.path)).toMatch(/\.png$/)
 
+      const second = await run('browser_new_tab', { url: `http://127.0.0.1:${port}/second` })
+      expect(String(second.id)).toBe('tab-2')
+      const tabs = await run('browser_list_tabs', {})
+      expect(Array.isArray(tabs.tabs)).toBe(true)
+      expect((tabs.tabs as unknown[]).length).toBe(2)
+      await run('browser_switch_tab', { tab_id: 'tab-1' })
+      await run('browser_close_tab', { tab_id: 'tab-1' })
+      const remaining = await run('browser_list_tabs', {})
+      expect((remaining.tabs as unknown[]).length).toBe(1)
+
       expect(await run('browser_close', {})).toEqual({ closed: true })
     } finally {
       await (ctx.get('browser') as BrowserService).shutdown()
