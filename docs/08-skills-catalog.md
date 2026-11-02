@@ -1,6 +1,6 @@
 # 08 · 技能迁移目录
 
-> **进度（2026-11-03）**：**29/39 可用** —— `skills/superpowers/` 14 个 + `skills/dsh-guide/` 6 个 + `skills/zcd/office-viewer/` 1 个 + `skills/zcd/browser-use/` 1 个，另挂载 dsh 原生 `@deepseek-ai/dsh-skill-office` 的 7 个 Office 技能；文件技能通过命名门禁，安装脚本 `scripts/install-skills.mjs`。其余按下方分类推进。
+> **进度（2026-11-03）**：**33 个技能可用，覆盖 34/39** —— 文件技能 26 个（superpowers 14 + dsh-guide 6 + zcd 6：office-viewer/browser-use/visualize/dynamic-workflows/skill-creator/plugin-creator），另挂载 dsh 原生 `@deepseek-ai/dsh-skill-office` 的 7 个 Office 技能；浏览器 2 个 ZCode 技能合并为 `browser-use`。剩余 5 项：CUA 1 + 主动丢弃 4。
 
 > ZCode 共 **39 个 SKILL.md**（38 个产品技能 + `dynamic-workflows`）。本文逐条给出：用途、依赖工具、dsh 对应能力、处理方式、改动点、优先级。
 >
@@ -58,7 +58,7 @@
 
 | 技能 | 用途 | 依赖 | 处理 | 改动 | 优先级 |
 |---|---|---|---|---|---|
-| `dynamic-workflows` | 动态工作流作者指南：拓扑选择、facade、质量、交付、提交后 | `CreateWorkflow` 等 11 个 | **重写** | 全部工具名映射；facade 按 `04-durable-workflow.md` §6 改写（TS + `clock/random`）；删除 `report/artifact/world` 中 dsh 不支持的部分 | P2（随 WP-08/09） |
+| `dynamic-workflows` | 动态工作流作者指南：拓扑选择、facade、质量、交付、提交后 | `CreateWorkflow` 等 11 个 | **重写为 `dynamic-workflows`** | 改为 `workflow_run` 脚本 + `agent/parallel/pipeline/hole`；replay 规则按实际 store 实现 | ✅ 已安装 |
 
 体量：ZCode 原文约 1,600 行（§16 facade 占大头）。建议拆成 2 个技能：`dynamic-workflows`（判断层）+ `workflow-facade`（API 参考），按需加载。
 
@@ -102,7 +102,7 @@
 
 | 技能 | 用途 | 依赖 | 处理 | 改动 | 优先级 |
 |---|---|---|---|---|---|
-| `visualize` | 生成 inline 可交互 HTML（图表、模拟、表单） | `Read`、`Write`、`present`、`js`、`Agent` | **重写** | ZCode 是 `::visualize{path}` 引用协议；dsh 是 `visualize` 工具 + 卡片。正文改为"调 `visualize` 工具"；`window.zcode.*` API 改为 `postMessage` 协议 | P4（WP-12） |
+| `visualize` | 生成 inline 可交互 HTML（图表、模拟、表单） | `Read`、`Write`、`present`、`js`、`Agent` | **重写为 `visualize`** | 改为 `visualize` 工具 + 沙箱路由；删除 `window.zcode.*` 与 CDN，正文按严格 CSP 重写 | ✅ 已安装 |
 
 ---
 
@@ -148,9 +148,9 @@
 
 | 技能 | 用途 | 处理 | 改动 | 优先级 |
 |---|---|---|---|---|
-| `skill-creator` | 创建/改进技能 | **改名** | dsh 技能格式（frontmatter）+ `skill` 工具 | P5 |
-| `plugin-creator` | 创建 ZCode 插件 | **重写** | 改为"创建 Cordis 插件/bundle"（`docs/cookbook/adding-a-package.md`） | P5 |
-| `site-deploy` | 发布静态站点 | **丢弃** | 依赖 ZCode Sites 服务 | — |
+| `skill-creator` | 创建/改进技能 | **重写为 `skill-creator`** | dsh frontmatter/发现顺序/命名门禁；不引用 ZCode 市场 | ✅ 已安装 |
+| `plugin-creator` | 创建 ZCode 插件 | **重写为 `plugin-creator`** | 改为 Cordis 插件/bundle/profile + 本仓库 smoke/doctor | ✅ 已安装 |
+| `site-deploy` | 发布静态站点 | **丢弃** | 依赖 ZCode Sites 服务 | —（不计入覆盖） |
 
 ---
 

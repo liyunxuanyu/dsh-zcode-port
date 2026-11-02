@@ -7,7 +7,7 @@
 
 ## 0. 一句话
 
-**P0 已通过，P1/P2/P4 部分落地**：product profile 在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**33 个** ZCD 工具激活，**29 个技能**可用（22 个文件技能 + 7 个 dsh 原生 Office），**74 个单测（12 个文件）**、命名门禁、docs 链接、运行时 doctor 与启动 smoke 全部通过。设置页已能在真实浏览器里列出、添加、删除**用户记忆**；workflow run 面板与文档卡已可用。
+**P0 已通过，P1/P2/P4 部分落地**：product profile 在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**33 个** ZCD 工具激活，**33 个技能**可用（26 个文件技能 + 7 个 dsh 原生 Office；覆盖 34/39 项 ZCode 技能），**74 个单测（12 个文件）**、命名门禁、docs 链接、运行时 doctor 与启动 smoke 全部通过。设置页已能在真实浏览器里列出、添加、删除**用户记忆**；workflow run 面板与文档卡已可用。
 
 ---
 
@@ -66,6 +66,10 @@
 | `skills/dsh-guide`（6） | dsh 自诊断：profile/bundle/patch、插件、MCP、skills | 已安装 | `install-skills.mjs` |
 | `skills/zcd/office-viewer`（1） | Word/Excel/PDF/文本的 read/search/open/show/get_view 与锚点语义 | 已安装 | `install-skills.mjs` + verify-naming |
 | `skills/zcd/browser-use`（1） | browser_* 工具的工作流、selector 纪律与安全边界 | 已安装 | `install-skills.mjs` + verify-naming |
+| `skills/zcd/visualize`（1） | 会话内 HTML 可视化的选择、CSP 契约与 authoring | 已安装 | verify-naming |
+| `skills/zcd/dynamic-workflows`（1） | workflow_run 脚本 API、拓扑、replay/hole 规则 | 已安装 | verify-naming |
+| `skills/zcd/skill-creator`（1） | dsh SKILL.md frontmatter、发现顺序与门禁 | 已安装 | verify-naming |
+| `skills/zcd/plugin-creator`（1） | Cordis 插件/bundle/profile 接入与故障排查 | 已安装 | verify-naming |
 | `@deepseek-ai/dsh-skill-office`（7） | office 路由 + docx/pptx/xlsx/render/recalculate/export-pdf | 已挂载 | 启动 smoke；LibreOffice kit 由 dsh 依赖提供 |
 | `@zcd/bundle-base` | 基础能力行（tool-search / todo-read / deferred / offpeak / memory / workflow / documents / genui / browser …） | 已组合 | dump-config |
 | `@zcd/bundle-web-app` | 5 个 host 行 + 4 个 client bundle 行 | 已组合 | dump-config |
@@ -104,7 +108,7 @@ smoke 覆盖：Web 启动、无 `did not activate`、Gen UI CSP、文档视图 P
 | 3 | 浏览器 v2 | `js` code-act、tab/用户浏览器、可视面板 |
 | 4 | 设置页继续写入 | workflow 配置、只读策略开关；用户记忆已经可用 |
 | 5 | Workflow run 详情 | 面板内 resume/amend、耗时/模型列、失败重试入口；cancel 已完成 |
-| 6 | 剩余技能 | 29/39（CUA 1、创作类等）；按 `docs/08-skills-catalog.md` 推进 |
+| 6 | 剩余技能 | 覆盖 34/39；剩 CUA 1 + 主动丢弃 4（站点/移动端/旧会话恢复） |
 
 ## 2.5 P1 尚未全部通过的验收
 
@@ -116,7 +120,7 @@ P0 已通过；P1（"ZCode 工具语义对齐"）**还没有全部验收**，巡
 | OffPeak 恢复 | 已有持久化测试：pending 恢复、running→interrupted、空闲执行 |
 | 只读策略集成 | 已有分类器/决策单测；端到端 dsh 夹具仍待补 |
 | S1 工具对齐 | 已确认由 `schedule_edit`、`list_agents`/`interrupt_agent` 覆盖，不新增工具 |
-| 技能 | 39 个中 29 个可用（22 个移植/改写 + 7 个 dsh 原生 Office） |
+| 技能 | 33 个技能可用，覆盖 34/39（26 个移植/改写 + 7 个 dsh 原生 Office） |
 | 设置页写入 | 用户记忆已通；其余配置项未做 |
 
 ## 3. 已知缺口

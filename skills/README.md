@@ -14,13 +14,17 @@ links each bundle into `$DSH_HOME/skills/<name>`.
 | `dsh-guide/` (6) | ZCode `zcode-guide-plugin` (Apache-2.0) | Rewritten for dsh: profile/bundle/patch, MCP, hooks, skills, commands |
 | `zcd/office-viewer` (1) | ZCode documents/spreadsheets/pdf/presentations viewer skills (Apache-2.0) | Rewritten for `read_document`/`search_document`/`open_document`/`show_in_viewer`/`get_view` |
 | `zcd/browser-use` (1) | ZCode browser-use skills (Apache-2.0) | Rewritten for `browser_open`/`browser_snapshot`/`browser_click`/`browser_type`/`browser_screenshot`/`browser_close` |
+| `zcd/visualize` (1) | ZCode visualize skill (Apache-2.0) | Rewritten for the `visualize` tool and strict CSP sandbox |
+| `zcd/dynamic-workflows` (1) | ZCode dynamic-workflows skill (Apache-2.0) | Rewritten for `workflow_run` scripts, replay and holes |
+| `zcd/skill-creator` (1) | ZCode skill-creator (Apache-2.0) | Rewritten for dsh frontmatter, discovery and naming gates |
+| `zcd/plugin-creator` (1) | ZCode plugin-creator (Apache-2.0) | Rewritten for Cordis plugins, bundles and profiles |
 
 Office authoring is **not** forked from ZCode: the profile mounts dsh's
 `@deepseek-ai/dsh-skill-office` (7 skills: office router, docx, pptx, xlsx,
 render, recalculate, export-pdf), and `zcd/office-viewer` covers viewing.
 
-Planned categories (see `docs/08-skills-catalog.md`): computer-use (1),
-visualize (1), creators (2).
+Remaining coverage: computer-use (1). Site deploy, Android/iOS, and legacy
+session restore are intentionally dropped.
 
 ## Porting rules
 
