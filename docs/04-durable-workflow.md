@@ -493,7 +493,8 @@ declare module '@deepseek-ai/dsh-session' {
 ### 12.1 右侧栏 `workflow` tab
 
 - 已实现：run 列表（状态、名称、节点数）、点击展开节点（序号/状态/prompt）与最近 12 条 journal 事件（时间、类型、payload 摘要），3 秒轮询。
-- 未实现：耗时/模型列、子会话链接、面板内 cancel/resume/amend（cancel 目前在 `workflow_run` 工具卡上）。
+- 已实现：运行中/排队中的 run 在面板内直接 Cancel（`POST /<id>/cancel`），成功后列表自动刷新。
+- 未实现：耗时/模型列、子会话链接、面板内 resume/amend。
 - 详情：节点树（agent/world/hole）、每个节点的输入摘要/输出摘要/子会话链接、错误。
 
 ### 12.2 对话内卡片

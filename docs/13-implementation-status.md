@@ -57,7 +57,7 @@
 | `@zcd/workflow-ui-host` | `/zcd/workflow/runs` 列表、`/<id>` JSON、`/<id>/nodes`、`/<id>/events`、`POST /<id>/cancel` | 激活成功 | smoke：fixture 列表/节点/事件 + 404 契约 |
 | `@zcd/memory-ui-host` | `GET/POST /zcd/memory`、`DELETE /zcd/memory/<id>`（仅 user scope） | 激活成功 | smoke 增删查往返 |
 | `@zcd/client-ui-settings-zcd` | `settings.section` 的 ZCD 页：运行环境、最近 runs、**用户记忆增删** | **视觉验收通过** | [截图](assets/zcd-settings-memory.png) + smoke |
-| `@zcd/client-ui-workflow` | 右侧栏 workflow tab：3s 轮询 + 节点展开 + 最近 12 条 journal 事件 | **视觉验收通过** | [截图](assets/workflow-panel-events.png) + smoke |
+| `@zcd/client-ui-workflow` | 右侧栏 workflow tab：3s 轮询 + 节点展开 + 最近 12 条 journal 事件 + 运行中 run 取消 | **视觉验收通过** | [截图](assets/workflow-panel-events.png) + smoke |
 | `@zcd/client-ui-zcd` | 文档卡 Open/自动打开、workflow 卡片轮询 + 取消 | 进入 boot graph | smoke 检查 |
 | `@zcd/tool-visualize` | `visualize`：写自包含 HTML，返回沙箱 URL（deferred） | 激活成功 | — |
 | `@zcd/browser` | `ctx.browser`：headless Chrome、每会话隔离 context/page、截图落盘、URL 白名单 | 激活成功 | 3 个单测（URL/Chrome 探测/真实导航） |
@@ -103,7 +103,7 @@ smoke 覆盖：Web 启动、无 `did not activate`、Gen UI CSP、文档视图 P
 | 2 | CUA（WP-11） | dsh 原生 provider 仅 macOS；Windows 需另找 CUA 驱动 |
 | 3 | 浏览器 v2 | `js` code-act、tab/用户浏览器、可视面板 |
 | 4 | 设置页继续写入 | workflow 配置、只读策略开关；用户记忆已经可用 |
-| 5 | Workflow run 详情 | 面板内 resume/amend、耗时/模型列、失败重试入口 |
+| 5 | Workflow run 详情 | 面板内 resume/amend、耗时/模型列、失败重试入口；cancel 已完成 |
 | 6 | 剩余技能 | 29/39（CUA 1、创作类等）；按 `docs/08-skills-catalog.md` 推进 |
 
 ## 2.5 P1 尚未全部通过的验收
@@ -125,6 +125,7 @@ P0 已通过；P1（"ZCode 工具语义对齐"）**还没有全部验收**，巡
 |---|---|---|
 | 无 CUA 工具 | Windows 上无法做桌面自动化 | 等待可用驱动；macOS 可挂 dsh 原生 provider |
 | 浏览器只有 6 个工具 | 无 tab、无用户浏览器、无 `js` 持久内核、无可视面板 | 浏览器 v2 |
+| 工作流只能取消 | 面板内不能 resume/amend | 保存 parent session 后接入 |
 | 设置页只写用户记忆 | Memory 配置、只读策略开关仍不可改 | 复用 `configForms` |
 | workflow 面板缺操作 | 只能查看，cancel/resume/amend 需回到工具调用 | 面板加操作按钮 |
 | policy-plan-readonly 默认关闭 | 默认行为与 dsh 一致；严格模式需显式开 | 设置页开关 |

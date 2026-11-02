@@ -17,6 +17,7 @@ window.__ModuleLoader__.load({
 
     const cell = { padding: '4px 0', fontSize: '12px', color: 'var(--text-secondary, #555)' }
     const mono = { fontFamily: 'var(--font-mono, monospace)' }
+    const smallButton = { border: '1px solid var(--border, #ccc)', background: 'transparent', color: 'inherit', borderRadius: '6px', padding: '1px 6px', cursor: 'pointer', fontSize: '11px', width: 'fit-content' }
 
     /** Compact one-line event payload for the panel. */
     function summarize(data) {
@@ -33,6 +34,7 @@ window.__ModuleLoader__.load({
       const [expanded, setExpanded] = React.useState(undefined)
       const [nodes, setNodes] = React.useState({})
       const [events, setEvents] = React.useState({})
+      const [refresh, setRefresh] = React.useState(0)
       React.useEffect(() => {
         let alive = true
         const read = () => {
@@ -44,7 +46,7 @@ window.__ModuleLoader__.load({
         read()
         const timer = setInterval(read, 3000)
         return () => { alive = false; clearInterval(timer) }
-      }, [])
+      }, [refresh])
       const load = (id) => Promise.all([
         fetch(`/zcd/workflow/runs/${id}/nodes`).then((response) => response.ok ? response.json() : Promise.reject(new Error(String(response.status)))),
         fetch(`/zcd/workflow/runs/${id}/events`).then((response) => response.ok ? response.json() : Promise.reject(new Error(String(response.status)))),
@@ -55,6 +57,12 @@ window.__ModuleLoader__.load({
         setNodes((previous) => ({ ...previous, [id]: [] }))
         setEvents((previous) => ({ ...previous, [id]: [] }))
       })
+      const cancel = (id) => {
+        fetch(`/zcd/workflow/runs/${id}/cancel`, { method: 'POST' })
+          .then((response) => response.ok ? undefined : Promise.reject(new Error(String(response.status))))
+          .then(() => setRefresh((value) => value + 1))
+          .catch((reason) => setError(String(reason?.message ?? reason)))
+      }
       const toggle = (id) => {
         if (expanded === id) { setExpanded(undefined); return }
         setExpanded(id)
@@ -90,6 +98,14 @@ window.__ModuleLoader__.load({
             children: [
               jsx('div', { style: mono, children: `${run.id} [${run.status}]` }),
               jsx('div', { children: `${run.name} · ${run.nodeCount} nodes` }),
+              run.status === 'queued' || run.status === 'running'
+                ? jsx('button', {
+                  type: 'button',
+                  style: smallButton,
+                  onClick: (event) => { event.stopPropagation(); cancel(run.id) },
+                  children: 'Cancel',
+                })
+                : null,
               ...nodeRows,
               ...eventRows,
             ],

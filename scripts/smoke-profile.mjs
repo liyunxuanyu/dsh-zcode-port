@@ -21,6 +21,7 @@ const memoryHome = join(home, 'memory-smoke')
 const workflowRuns = join(home, 'storages', 'zcd-workflow', 'runs')
 const fixtureId = 'run-smoke'
 const fixtureNodeId = 'smoke-node-1'
+const runningId = 'run-smoke-running'
 
 if (!existsSync(bin)) {
   console.error('✖ dsh is not installed; run `pnpm install` first.')
@@ -34,6 +35,7 @@ if (!existsSync(profile)) {
 mkdirSync(genuiDir, { recursive: true })
 rmSync(memoryHome, { recursive: true, force: true })
 rmSync(join(workflowRuns, fixtureId), { recursive: true, force: true })
+rmSync(join(workflowRuns, runningId), { recursive: true, force: true })
 const now = Date.now()
 mkdirSync(join(workflowRuns, fixtureId, 'nodes'), { recursive: true })
 writeFileSync(join(workflowRuns, fixtureId, 'run.json'), JSON.stringify({
@@ -58,6 +60,20 @@ writeFileSync(join(workflowRuns, fixtureId, 'nodes', `${fixtureNodeId}.json`), J
   startedAt: now,
   endedAt: now + 10,
 }, null, 2))
+mkdirSync(join(workflowRuns, runningId, 'nodes'), { recursive: true })
+writeFileSync(join(workflowRuns, runningId, 'run.json'), JSON.stringify({
+  id: runningId,
+  name: 'smoke running fixture',
+  status: 'running',
+  script: 'return await agent("still running")',
+  scriptHash: 'smoke-running',
+  args: {},
+  createdAt: now + 1,
+  updatedAt: now + 1,
+  nodeCount: 0,
+}, null, 2))
+writeFileSync(join(workflowRuns, runningId, 'events.jsonl'),
+  `${JSON.stringify({ at: now + 1, type: 'run/created', data: { name: 'smoke running fixture' } })}\n`)
 writeFileSync(join(workflowRuns, fixtureId, 'events.jsonl'), [
   { at: now, type: 'run/created', data: { name: 'smoke fixture' } },
   { at: now + 1, type: 'node/started', data: { nodeId: fixtureNodeId, index: 0 } },
@@ -153,6 +169,16 @@ try {
   const eventTypes = Array.isArray(fixtureEventsBody?.events) ? fixtureEventsBody.events.map(event => event.type) : []
   for (const type of ['run/created', 'node/started', 'node/finished', 'run/finished']) {
     if (!eventTypes.includes(type)) throw new Error(`workflow events missing ${type}: ${JSON.stringify(fixtureEventsBody)}`)
+  }
+  const cancelled = await fetch(`http://127.0.0.1:${port}/zcd/workflow/runs/${runningId}/cancel`, { method: 'POST' })
+  if (cancelled.status !== 200) throw new Error(`workflow cancel of a running run failed: ${cancelled.status}`)
+  const cancelledBody = await (await fetch(`http://127.0.0.1:${port}/zcd/workflow/runs/${runningId}`)).json().catch(() => undefined)
+  if (cancelledBody?.status !== 'cancelled') {
+    throw new Error(`workflow cancel did not settle the run: ${JSON.stringify(cancelledBody)}`)
+  }
+  const cancelledEvents = await (await fetch(`http://127.0.0.1:${port}/zcd/workflow/runs/${runningId}/events`)).json().catch(() => undefined)
+  if (!Array.isArray(cancelledEvents?.events) || !cancelledEvents.events.some(event => event.type === 'run/cancelled')) {
+    throw new Error(`workflow cancel did not append run/cancelled: ${JSON.stringify(cancelledEvents)}`)
   }
 
   const workflow = await fetch(`http://127.0.0.1:${port}/zcd/workflow/runs/not-a-run`)

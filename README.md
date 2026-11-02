@@ -116,7 +116,7 @@
 | Durable Workflow MVP | ✅ | 文件 store、`agent()`/`parallel()`/`pipeline()`/`hole()`、resume 重放、amend、通知 |
 | 文档 | ✅ 5/5 + 生成 | read/search/open/show/get_view；docx/xlsx/pdf/text 锚点；create_document 基础生成 |
 | Gen UI | ✅ 工具 + 路由 + 卡片 | `visualize` + `/zcd/genui` CSP 沙箱 + lazy-CJS iframe 卡片 |
-| Workflow 面板 | ✅ 视觉验收 | 右侧栏 run 列表 + 节点展开 + journal 事件 + 取消（[截图](docs/assets/workflow-panel-events.png)） |
+| Workflow 面板 | ✅ 视觉验收 | 右侧栏 run 列表 + 节点展开 + journal 事件 + 运行中 run 取消（[截图](docs/assets/workflow-panel-events.png)） |
 | ZCD 设置页 | ✅ 视觉验收 | 运行环境 + 最近 runs + 用户记忆增删（`/zcd/memory`，[截图](docs/assets/zcd-settings-memory.png)） |
 | 技能 | ✅ 29/39 | superpowers 14 + dsh-guide 6 + office-viewer/browser-use 2 + dsh 原生 Office 7；文件技能安装到 `$DSH_HOME/skills` |
 | 浏览器 v1 | ✅ | `@zcd/browser`（headless Chrome）+ 6 个 deferred 工具；每会话一页，真实 Chrome 集成测试 |
