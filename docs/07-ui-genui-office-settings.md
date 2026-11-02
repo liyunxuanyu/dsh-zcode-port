@@ -1,6 +1,6 @@
 # 07 · UI：Gen UI / Office / 设置页
 
-> **实现状态（2026-11-03）**：`visualize` 工具 + `/zcd/genui` 沙箱路由已落地；`read_document` / `search_document` 已支持 text/docx/xlsx/pdf 并输出位置锚点。Gen UI 卡片、文档卡、workflow 实时卡片已实现（手写 lazy-CJS）；文档卡用 `openFile` 打开内置预览，workflow 卡片轮询 `/zcd/workflow/runs/<id>`。`show_in_viewer` 定位、run 面板、设置页的写入能力、视觉验收仍待做；只读 ZCD 设置页（`settings.section`）已实现并通过真实浏览器视觉验收（[截图](assets/zcd-settings.png)）。
+> **实现状态（2026-11-03）**：`visualize` 工具 + `/zcd/genui` 沙箱路由已落地；`read_document` / `search_document` 已支持 text/docx/xlsx/pdf 并输出位置锚点。Gen UI 卡片、文档卡、workflow 实时卡片已实现（手写 lazy-CJS）；文档卡用 `openFile` 打开内置预览，workflow 卡片轮询 `/zcd/workflow/runs/<id>`。`open_document` / `show_in_viewer` 已实现（文本 `#l:n` 可定位行，其他格式打开文件）；`get_view`、run 面板、设置页写入仍待做。只读 ZCD 设置页已通过真实浏览器视觉验收（[截图](assets/zcd-settings.png)）。
 
 > 目标：在 dsh Web 客户端上，用 client 插件补齐 ZCode 的三类 UI 体验，不重建组件库。
 >

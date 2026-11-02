@@ -131,5 +131,63 @@ export function apply(ctx: Context): void {
     },
   }), { group: 'documents', keywords: ['search', 'find', 'grep', 'document'] })
 
-  ctx.effect(() => () => { offRead(); offSearch() }, 'zcd-tool-documents: deferred registrations')
+  const offOpen = ctx.deferredTools.register(defineTool({
+    name: 'open_document',
+    description:
+      "Open a workspace document in the document viewer. The file must stay inside the "
+      + 'session working directory. Use read_document when you need the text.',
+    parameters: {
+      path: { type: 'string', required: true, description: 'Workspace-relative or absolute path.' },
+    },
+    output: {
+      schema: {
+        type: 'object',
+        additionalProperties: false,
+        properties: { path: { type: 'string', required: true } },
+      },
+      render: (_args, value) => [{ type: 'text', text: `Opened ${value.path} in the document viewer.` }],
+    },
+    async execute(args, exec) {
+      const cwd = exec.agent?.session.header.cwd
+      if (cwd === undefined) throw new Error('open_document requires a session working directory')
+      return { path: inside(cwd, args.path) }
+    },
+  }), { group: 'documents', keywords: ['open', 'viewer', 'document'] })
+
+  const offShow = ctx.deferredTools.register(defineTool({
+    name: 'show_in_viewer',
+    description:
+      'Open a workspace document and reveal a location. Supports a line anchor (#l:12) for text '
+      + 'and Markdown; other formats open at the beginning.',
+    parameters: {
+      path: { type: 'string', required: true },
+      anchor: { type: 'string', required: true, description: 'Anchor such as #l:12, #p:3, #page:2.' },
+    },
+    output: {
+      schema: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          path: { type: 'string', required: true },
+          line: { type: 'integer' },
+        },
+      },
+      render: (_args, value) => [{
+        type: 'text',
+        text: `Opened ${value.path}${value.line === undefined ? '' : ` at line ${value.line}`}.`,
+      }],
+    },
+    async execute(args, exec) {
+      const cwd = exec.agent?.session.header.cwd
+      if (cwd === undefined) throw new Error('show_in_viewer requires a session working directory')
+      const path = inside(cwd, args.path)
+      const line = /^#l:(\d+)$/.exec(args.anchor.trim())?.[1]
+      return {
+        path,
+        ...(line === undefined ? {} : { line: Number(line) }),
+      }
+    },
+  }), { group: 'documents', keywords: ['reveal', 'anchor', 'line', 'viewer'] })
+
+  ctx.effect(() => () => { offRead(); offSearch(); offOpen(); offShow() }, 'zcd-tool-documents: deferred registrations')
 }

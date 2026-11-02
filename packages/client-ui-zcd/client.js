@@ -55,6 +55,27 @@ window.__ModuleLoader__.load({
       })
     }
 
+    /** Open-on-mount row for open_document / show_in_viewer. */
+    function OpenDocumentRow(props) {
+      const path = props.block?.args?.text?.('path') ?? ''
+      const anchor = props.block?.args?.text?.('anchor') ?? ''
+      const line = /^#l:(\d+)$/.exec(anchor)?.[1]
+      React.useEffect(() => {
+        if (path === '') return
+        try {
+          Promise.resolve(props.openFile?.(path, line === undefined ? undefined : { line: Number(line) })).catch(() => {})
+        } catch {
+          // The host reports its own open failure; the row still shows the path.
+        }
+      }, [path, line])
+      if (path === '') return null
+      return jsx('div', {
+        'data-tool': 'open_document',
+        style: rowStyle,
+        children: jsx('span', { style: { fontFamily: 'var(--font-mono, monospace)' }, children: path }),
+      })
+    }
+
     /** Workflow row: run id and live status from the host route. */
     function WorkflowRow(props) {
       const content = Array.isArray(props.block?.content) ? props.block.content : []
@@ -93,6 +114,8 @@ window.__ModuleLoader__.load({
       }, component))
       register('read_document', DocumentRow)
       register('search_document', DocumentRow)
+      register('open_document', OpenDocumentRow)
+      register('show_in_viewer', OpenDocumentRow)
       register('workflow_run', WorkflowRow)
     }
 
