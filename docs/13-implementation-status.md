@@ -7,7 +7,7 @@
 
 ## 0. 一句话
 
-**P0 已通过，P1/P2/P4 部分落地**：product profile 在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**34 个** ZCD 工具激活，**33 个技能**可用（26 个文件技能 + 7 个 dsh 原生 Office；覆盖 34/39 项 ZCode 技能），**87 个单测（16 个文件）**、命名门禁、docs 链接、运行时 doctor 与启动 smoke 全部通过。设置页已能在真实浏览器里列出、添加、删除**用户记忆**；workflow run 面板与文档卡已可用。
+**P0 已通过，P1/P2/P4 部分落地**：product profile 在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**34 个** ZCD 工具激活，**33 个技能**可用（26 个文件技能 + 7 个 dsh 原生 Office；覆盖 34/39 项 ZCode 技能），**88 个单测（16 个文件）**、命名门禁、docs 链接、运行时 doctor 与启动 smoke 全部通过。设置页已能在真实浏览器里列出、添加、删除**用户记忆**；workflow run 面板与文档卡已可用。
 
 ---
 
@@ -89,7 +89,7 @@
 
 ```sh
 pnpm typecheck     # 全部 workspace 包通过
-pnpm test          # 16 个文件 / 87 个用例通过
+pnpm test          # 17 个文件 / 88 个用例通过
 pnpm verify        # verify-naming: 33 ZCD tools, 32 reserved names；docs 链接 0 问题
 pnpm mcp:check     # pinned MCP server: initialize + tools/list
 pnpm build         # 所有包 emit 到 lib/
@@ -120,7 +120,7 @@ P0 已通过；P1（"ZCode 工具语义对齐"）**还没有全部验收**，巡
 
 | 项 | 状态 |
 |---|---|
-| ToolSearch 可观测性 | 已有服务级测试：加载前 `when=false`，加载后 `when=true` |
+| ToolSearch 可观测性 | 已有服务级测试：加载前 `when=false`，加载后 `when=true`；可见 schema 预算测试 < 8k tokens（chars/4 估算） |
 | OffPeak 恢复 | 已有持久化测试：pending 恢复、running→interrupted、空闲执行 |
 | 只读策略集成 | 已有分类器/决策单测 + Cordis waterfall 集成测试（deny write / allow read / bash classify / inactive） |
 | skill gate | 已实现并通过纯函数测试；尚未在真实模型会话里观察拒绝 |

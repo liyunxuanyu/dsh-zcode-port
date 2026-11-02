@@ -2,7 +2,7 @@
 
 > 目标：在 **DeepSeek Harness（dsh）** 之上，用 **overlay 插件** 的方式，复刻 ZCode 最好用的产品能力与技能，同时保留 dsh 的插件化内核。
 >
-> 状态：**P0 已验收，P1/P2 核心能力与 P4 部分 UI 已落地**（34 个工具、33 个技能、87 个单测；product profile 可启动，设置页用户记忆增删与 workflow 面板已通过真实浏览器视觉验收）。进度见 [`docs/13-implementation-status.md`](docs/13-implementation-status.md)。日期：2026-11-03。
+> 状态：**P0 已验收，P1/P2 核心能力与 P4 部分 UI 已落地**（34 个工具、33 个技能、88 个单测；product profile 可启动，设置页用户记忆增删与 workflow 面板已通过真实浏览器视觉验收）。进度见 [`docs/13-implementation-status.md`](docs/13-implementation-status.md)。日期：2026-11-03。
 > 参考基线：`archive/`（ZCode 60 个文件 + dsh 38 个文件）。
 
 ---
