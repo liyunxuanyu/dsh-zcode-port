@@ -3,4 +3,6 @@
 # Empty in the P0 skeleton. Gen UI, workflow panes, and the ZCD settings page
 # add their `ui-*` rows here as those work packages land; keeping the file
 # present means the profile composition stays stable.
-- insert: []
+- insert:
+    - id: zcd-client-ui-genui
+      name: '@zcd/client-ui-genui'

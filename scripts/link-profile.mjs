@@ -17,6 +17,7 @@ const home = resolve(process.env.ZCD_DSH_HOME ?? join(root, '.dsh-home'))
 const profileDir = join(home, 'profiles', 'product')
 const directories = {
   '@zcd/deferred-tools': 'packages/deferred-tools',
+  '@zcd/client-ui-genui': 'packages/client-ui-genui',
   '@zcd/bundle-base': 'packages/bundle-base',
   '@zcd/bundle-web-app': 'packages/bundle-web-app',
   '@zcd/policy-plan-readonly': 'packages/policy-plan-readonly',

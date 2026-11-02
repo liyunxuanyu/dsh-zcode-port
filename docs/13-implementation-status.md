@@ -46,6 +46,7 @@
 | `@zcd/tool-workflow` | `workflow_run/get_run/list_runs/resume/cancel/amend/answer_hole` | 激活成功 | — |
 | `@zcd/tool-documents` | `read_document` / `search_document`：text/docx/xlsx/pdf，带位置锚点 | 激活成功 | 2 个单测 |
 | `@zcd/genui-host` | `/zcd/genui/...` 沙箱路由：严格 CSP + sandbox + no-store | 激活成功 | smoke 探测 200 + CSP |
+| `@zcd/client-ui-genui` | 手写 lazy-CJS client bundle：`visualize` 结果渲染为沙箱 iframe | 进入 boot graph，bundle 200 | smoke 检查 |
 | `@zcd/tool-visualize` | `visualize`：写自包含 HTML，返回沙箱 URL（deferred） | 激活成功 | — |
 | `skills/superpowers`（14） | ZCode 工程方法技能，工具名已映射为 dsh | 已安装到 `$DSH_HOME/skills` | `install-skills.mjs` |
 | `skills/dsh-guide`（6） | 自诊断技能改写为 dsh：profile/bundle/patch、MCP、hooks、skills、commands | 已安装 | `install-skills.mjs` |
@@ -97,7 +98,7 @@ node scripts/smoke-profile.mjs
 | 8.5 | **其余技能** | 已完成 20/39（superpowers 14 + dsh-guide 6）；office/browser/CUA 随对应 WP |
 | 9 | **Workflow 完整版** | parallel/pipeline、hole、amend、run 面板、通知 |
 | 10 | **Browser / CUA**（WP-10/11） | `js` code-act + 浏览器 provider + 面板 |
-| 11 | **UI**（WP-12/13/14） | Gen UI 宿主 + 文档 read/search 已通；客户端卡片、open/viewer、设置页待做 |
+| 11 | **UI**（WP-12/13/14） | Gen UI 工具/路由/客户端卡片已通；open/viewer、设置页、视觉验收待做 |
 
 ## 2.5 P1 尚未全部通过的验收
 

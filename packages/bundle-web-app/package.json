@@ -7,5 +7,8 @@
     "bundle": {
       "patch": "./cordis.patch.yml"
     }
+  },
+  "dependencies": {
+    "@zcd/client-ui-genui": "workspace:*"
   }
 }

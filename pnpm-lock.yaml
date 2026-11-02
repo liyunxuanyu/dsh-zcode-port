@@ -78,7 +78,17 @@ importers:
         specifier: workspace:*
         version: link:../workflow-store
 
-  packages/bundle-web-app: {}
+  packages/bundle-web-app:
+    dependencies:
+      '@zcd/client-ui-genui':
+        specifier: workspace:*
+        version: link:../client-ui-genui
+
+  packages/client-ui-genui:
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: 4.0.6-alpha.1
+        version: 4.0.6-alpha.1(@deepseek-ai/cordis-plugin-include@1.0.11-alpha.1)(@deepseek-ai/cordis-plugin-loader@1.0.7-alpha.1)
 
   packages/deferred-tools:
     dependencies:
@@ -425,6 +435,9 @@ importers:
       '@zcd/bundle-web-app':
         specifier: workspace:*
         version: link:../../packages/bundle-web-app
+      '@zcd/client-ui-genui':
+        specifier: workspace:*
+        version: link:../../packages/client-ui-genui
       '@zcd/deferred-tools':
         specifier: workspace:*
         version: link:../../packages/deferred-tools
