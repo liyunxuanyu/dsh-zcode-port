@@ -1,13 +1,13 @@
 # 13 · 实现状态
 
-> 最后更新：2026-11-03（P0 提交 `7afcdd8` 之后）。
+> 最后更新：2026-11-03（提交 `e816fbd`）。
 > 本文是**唯一**的实现进度入口；`docs/10-roadmap.md` 只描述计划，状态以此为准。
 
 ---
 
 ## 0. 一句话
 
-**P0 已通过，P1 进行中**：product profile 能在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**二十个** ZCD 工具激活（deferred-tools / tool-search / todo-read / plan-mode / plan-policy / offpeak / tool-offpeak / memory / tool-memory / tool-models / tool-session），并安装 14 个技能，单测与命名门禁通过。
+**P0 已通过，P1/P2 进行中**：product profile 能在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**二十个** ZCD 工具激活（tool_search / todo_read / enter_plan_mode / offpeak_* / memory_* / list_models / session_handoff / workflow_* / visualize / plan policy），并安装 **20 个技能**，63 个单测、命名门禁、docs 链接与启动 smoke 全部通过。
 
 ---
 
