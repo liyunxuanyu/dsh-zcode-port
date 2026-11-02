@@ -2,7 +2,7 @@
 
 > 目标：在 **DeepSeek Harness（dsh）** 之上，用 **overlay 插件** 的方式，复刻 ZCode 最好用的产品能力与技能，同时保留 dsh 的插件化内核。
 >
-> 状态：**P0 已验收，P1/P2 核心能力与 P4 部分 UI 已落地**（33 个工具、33 个技能、74 个单测；product profile 可启动，设置页用户记忆增删与 workflow 面板已通过真实浏览器视觉验收）。进度见 [`docs/13-implementation-status.md`](docs/13-implementation-status.md)。日期：2026-11-03。
+> 状态：**P0 已验收，P1/P2 核心能力与 P4 部分 UI 已落地**（33 个工具、33 个技能、76 个单测；product profile 可启动，设置页用户记忆增删与 workflow 面板已通过真实浏览器视觉验收）。进度见 [`docs/13-implementation-status.md`](docs/13-implementation-status.md)。日期：2026-11-03。
 > 参考基线：`archive/`（ZCode 60 个文件 + dsh 38 个文件）。
 
 ---
@@ -115,7 +115,7 @@
 | Memory | ✅ | 条目/索引/dream/路径约束/secret 拒绝；per-agent prompt section |
 | Durable Workflow MVP | ✅ | 文件 store、`agent()`/`parallel()`/`pipeline()`/`hole()`、resume 重放、amend、通知 |
 | 文档 | ✅ 5/5 + 生成 | read/search/open/show/get_view；docx/xlsx/pdf/text 锚点；create_document 基础生成 |
-| Gen UI | ✅ 工具 + 路由 + 卡片 | `visualize` + `/zcd/genui` CSP 沙箱 + lazy-CJS iframe 卡片 |
+| Gen UI | ✅ 工具 + 路由 + 卡片 | `visualize` + `/zcd/genui` CSP 沙箱 + lazy-CJS iframe 卡片；路由渲染[截图](docs/assets/zcd-genui-render.png)，会话内卡片待模型会话验收 |
 | Workflow 面板 | ✅ 视觉验收 | 右侧栏 run 列表 + 节点展开 + journal 事件 + 运行中 run 取消（[截图](docs/assets/workflow-panel-events.png)） |
 | ZCD 设置页 | ✅ 视觉验收 | 运行环境 + 最近 runs + 用户记忆增删（`/zcd/memory`，[截图](docs/assets/zcd-settings-memory.png)） |
 | 技能 | ✅ 33 个（覆盖 34/39） | superpowers 14 + dsh-guide 6 + zcd 6（office-viewer/browser-use/visualize/dynamic-workflows/skill-creator/plugin-creator）+ dsh 原生 Office 7 |

@@ -7,7 +7,7 @@
 
 ## 0. 一句话
 
-**P0 已通过，P1/P2/P4 部分落地**：product profile 在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**33 个** ZCD 工具激活，**33 个技能**可用（26 个文件技能 + 7 个 dsh 原生 Office；覆盖 34/39 项 ZCode 技能），**74 个单测（12 个文件）**、命名门禁、docs 链接、运行时 doctor 与启动 smoke 全部通过。设置页已能在真实浏览器里列出、添加、删除**用户记忆**；workflow run 面板与文档卡已可用。
+**P0 已通过，P1/P2/P4 部分落地**：product profile 在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**33 个** ZCD 工具激活，**33 个技能**可用（26 个文件技能 + 7 个 dsh 原生 Office；覆盖 34/39 项 ZCode 技能），**76 个单测（13 个文件）**、命名门禁、docs 链接、运行时 doctor 与启动 smoke 全部通过。设置页已能在真实浏览器里列出、添加、删除**用户记忆**；workflow run 面板与文档卡已可用。
 
 ---
 
@@ -51,15 +51,15 @@
 | `@zcd/tool-office` | `create_document`：docx/xlsx/pdf，heading/paragraph/bullet/table | 激活成功 | 3 个单测 |
 | `@zcd/document-view` | `ctx.documentView`：每会话最近打开文档与锚点 | 激活成功 | smoke 往返 |
 | `@zcd/documents-ui-host` | `POST/GET /zcd/documents/view` | 激活成功 | smoke 往返 |
-| `@zcd/genui-host` | `/zcd/genui/...` 沙箱路由：严格 CSP + sandbox + no-store | 激活成功 | smoke 检查 200 + CSP |
-| `@zcd/client-ui-genui` | lazy-CJS：`visualize` 结果渲染为沙箱 iframe | 进入 boot graph | smoke 检查 |
+| `@zcd/genui-host` | `/zcd/genui/...` 沙箱路由：严格 CSP + sandbox + no-store | 激活成功 | smoke 200 + CSP；[路由渲染截图](assets/zcd-genui-render.png) |
+| `@zcd/client-ui-genui` | lazy-CJS：`visualize` 结果渲染为沙箱 iframe | 进入 boot graph | smoke 检查；会话内卡片待模型会话验收 |
 | `@zcd/status-host` | `/zcd/status`：Node/dsh/uptime/最近 runs | 激活成功 | smoke 200 |
 | `@zcd/workflow-ui-host` | `/zcd/workflow/runs` 列表、`/<id>` JSON、`/<id>/nodes`、`/<id>/events`、`POST /<id>/cancel` | 激活成功 | smoke：fixture 列表/节点/事件 + 404 契约 |
 | `@zcd/memory-ui-host` | `GET/POST /zcd/memory`、`DELETE /zcd/memory/<id>`（仅 user scope） | 激活成功 | smoke 增删查往返 |
 | `@zcd/client-ui-settings-zcd` | `settings.section` 的 ZCD 页：运行环境、最近 runs、**用户记忆增删** | **视觉验收通过** | [截图](assets/zcd-settings-memory.png) + smoke |
 | `@zcd/client-ui-workflow` | 右侧栏 workflow tab：3s 轮询 + 节点展开 + 最近 12 条 journal 事件 + 运行中 run 取消 | **视觉验收通过** | [截图](assets/workflow-panel-events.png) + smoke |
 | `@zcd/client-ui-zcd` | 文档卡 Open/自动打开、workflow 卡片轮询 + 取消 | 进入 boot graph | smoke 检查 |
-| `@zcd/tool-visualize` | `visualize`：写自包含 HTML，返回沙箱 URL（deferred） | 激活成功 | — |
+| `@zcd/tool-visualize` | `visualize`：写自包含 HTML，返回沙箱 URL（deferred） | 激活成功 | 2 个单测（落盘/URL、限额/高度） |
 | `@zcd/browser` | `ctx.browser`：headless Chrome、每会话隔离 context/page、截图落盘、URL 白名单 | 激活成功 | 3 个单测（URL/Chrome 探测/真实导航） |
 | `@zcd/tool-browser` | `browser_open/snapshot/click/type/screenshot/close`（deferred） | 激活成功 | 1 个真实 Chrome 工具链测试 |
 | `skills/superpowers`（14） | ZCode 工程方法技能，工具名已映射为 dsh | 已安装 | `install-skills.mjs` |
@@ -87,7 +87,7 @@
 
 ```sh
 pnpm typecheck     # 全部 workspace 包通过
-pnpm test          # 12 个文件 / 74 个用例通过
+pnpm test          # 13 个文件 / 76 个用例通过
 pnpm verify        # verify-naming: 33 ZCD tools, 32 reserved names；docs 链接 0 问题
 pnpm build         # 所有包 emit 到 lib/
 node scripts/link-profile.mjs
@@ -103,7 +103,7 @@ smoke 覆盖：Web 启动、无 `did not activate`、Gen UI CSP、文档视图 P
 
 | 顺序 | 工作 | 说明 |
 |---|---|---|
-| 1 | Gen UI 卡片视觉验收 | 需要一次真实 `visualize` 结果会话，确认 iframe 卡片在会话内渲染 |
+| 1 | Gen UI 会话内卡片验收 | 沙箱路由已渲染验收；仍需要一次真实 `visualize` 结果会话确认 iframe 卡片 |
 | 2 | CUA（WP-11） | dsh 原生 provider 仅 macOS；Windows 需另找 CUA 驱动 |
 | 3 | 浏览器 v2 | `js` code-act、tab/用户浏览器、可视面板 |
 | 4 | 设置页继续写入 | workflow 配置、只读策略开关；用户记忆已经可用 |
