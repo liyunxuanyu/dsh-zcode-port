@@ -7,7 +7,7 @@
 
 ## 0. 一句话
 
-**P0 已通过，P1/P2 进行中**：product profile 能在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**二十六个** ZCD 工具激活（tool_search / todo_read / enter_plan_mode / offpeak_* / memory_* / list_models / session_handoff / workflow_* / visualize / read_document / search_document / plan policy），并安装 **20 个技能**，66 个单测、命名门禁、docs 链接与启动 smoke 全部通过。
+**P0 已通过，P1/P2 进行中**：product profile 能在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**二十六个** ZCD 工具激活（tool_search / todo_read / enter_plan_mode / offpeak_* / memory_* / list_models / session_handoff / workflow_* / visualize / read_document / search_document / open_document / show_in_viewer / get_view / plan policy），并安装 **20 个技能**，66 个单测、命名门禁、docs 链接与启动 smoke 全部通过。
 
 ---
 
