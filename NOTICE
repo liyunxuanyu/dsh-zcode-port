@@ -1,0 +1,39 @@
+ZCD — ZCode-on-dsh architecture documents
+==========================================
+
+This repository contains original architecture documents (MIT, see LICENSE)
+and reference documentation copied from two upstream projects.
+
+Third-party documentation
+-------------------------
+
+1. ZCode
+   Project: https://github.com/zai-org/ZCode
+   License: Apache License 2.0
+   Copyright: Zhipu AI / Z.ai and contributors
+   Location: archive/zcode/
+   License text: archive/zcode/LICENSE
+
+   The files under archive/zcode/ are unmodified copies of documentation
+   (Markdown specs, READMEs, and skill files) from the ZCode repository,
+   retained for reference. They are redistributed under the Apache License,
+   Version 2.0. No ZCode TypeScript source code is included.
+
+2. DeepSeek Harness (dsh)
+   Project: https://github.com/deepseek-ai/deepseek-harness
+   License: MIT
+   Copyright: DeepSeek AI and contributors
+   Location: archive/dsh/
+   License text: archive/dsh/LICENSE
+
+   The files under archive/dsh/ are unmodified copies of documentation
+   (architecture docs, subsystem docs, cookbooks, and package READMEs) from
+   the DeepSeek Harness repository, retained for reference under the MIT
+   License. No dsh TypeScript source code is included.
+
+Trademarks
+----------
+
+"ZCode", "DeepSeek", and "DeepSeek Harness" are names of their respective
+projects. This repository is an independent design document and is not
+endorsed by or affiliated with Zhipu AI, Z.ai, or DeepSeek AI.
