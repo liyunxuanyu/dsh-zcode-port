@@ -25,6 +25,8 @@
     "@zcd/workflow-store": "workspace:*",
     "@zcd/genui-host": "workspace:*",
     "@zcd/tool-visualize": "workspace:*",
-    "@zcd/tool-documents": "workspace:*"
+    "@zcd/tool-documents": "workspace:*",
+    "@zcd/document-view": "workspace:*",
+    "@zcd/documents-ui-host": "workspace:*"
   }
 }

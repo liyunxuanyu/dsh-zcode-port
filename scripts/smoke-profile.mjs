@@ -80,6 +80,18 @@ try {
     throw new Error(`genui route failed: ${genui.status} csp=${csp}`)
   }
 
+  const recorded = await fetch(`http://127.0.0.1:${port}/zcd/documents/view`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ sessionId: 'smoke', path: '/work/notes.md', anchor: '#l:3' }),
+  })
+  if (recorded.status !== 204) throw new Error(`document view POST failed: ${recorded.status}`)
+  const view = await fetch(`http://127.0.0.1:${port}/zcd/documents/view?sessionId=smoke`)
+  const viewBody = await view.json().catch(() => undefined)
+  if (view.status !== 200 || viewBody?.path !== '/work/notes.md' || viewBody?.anchor !== '#l:3') {
+    throw new Error(`document view GET failed: ${view.status}`)
+  }
+
   const status = await fetch(`http://127.0.0.1:${port}/zcd/status`)
   const statusBody = await status.json().catch(() => undefined)
   if (status.status !== 200 || statusBody?.product !== 'ZCD') {

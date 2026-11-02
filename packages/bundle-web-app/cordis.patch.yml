@@ -4,6 +4,9 @@
 # add their `ui-*` rows here as those work packages land; keeping the file
 # present means the profile composition stays stable.
 - insert:
+    - id: zcd-documents-ui-host
+      name: '@zcd/documents-ui-host'
+
     - id: zcd-status-host
       name: '@zcd/status-host'
 

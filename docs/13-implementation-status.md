@@ -7,7 +7,7 @@
 
 ## 0. 一句话
 
-**P0 已通过，P1/P2 进行中**：product profile 能在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**二十五个** ZCD 工具激活（tool_search / todo_read / enter_plan_mode / offpeak_* / memory_* / list_models / session_handoff / workflow_* / visualize / read_document / search_document / plan policy），并安装 **20 个技能**，66 个单测、命名门禁、docs 链接与启动 smoke 全部通过。
+**P0 已通过，P1/P2 进行中**：product profile 能在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**二十六个** ZCD 工具激活（tool_search / todo_read / enter_plan_mode / offpeak_* / memory_* / list_models / session_handoff / workflow_* / visualize / read_document / search_document / plan policy），并安装 **20 个技能**，66 个单测、命名门禁、docs 链接与启动 smoke 全部通过。
 
 ---
 
@@ -44,7 +44,9 @@
 | `@zcd/workflow-store` | 文件型 run 存储：run.json + nodes + events.jsonl，原子写 | 已编译 | 3 个单测 |
 | `@zcd/durable-workflow` | `ctx.durableWorkflow`：脚本执行、`agent()`/`parallel()`/`pipeline()`、`hole()`、节点缓存、resume、cancel、amend、完成/留白通知 | 激活成功 | 6 个单测（运行/重放/并行/留白/失败/修订） |
 | `@zcd/tool-workflow` | `workflow_run/get_run/list_runs/resume/cancel/amend/answer_hole` | 激活成功 | — |
-| `@zcd/tool-documents` | `read_document` / `search_document` / `open_document` / `show_in_viewer`：text/docx/xlsx/pdf，带锚点；文本锚点可定位行 | 激活成功 | 2 个单测 |
+| `@zcd/tool-documents` | `read_document` / `search_document` / `open_document` / `show_in_viewer` / `get_view`：text/docx/xlsx/pdf，带锚点 | 激活成功 | 2 个单测 |
+| `@zcd/document-view` | `ctx.documentView`：每会话最近打开文档与锚点（进程内、有界） | 激活成功 | smoke 往返 |
+| `@zcd/documents-ui-host` | `POST/GET /zcd/documents/view` | 激活成功 | smoke 往返 |
 | `@zcd/genui-host` | `/zcd/genui/...` 沙箱路由：严格 CSP + sandbox + no-store | 激活成功 | smoke 探测 200 + CSP |
 | `@zcd/client-ui-genui` | 手写 lazy-CJS client bundle：`visualize` 结果渲染为沙箱 iframe | 进入 boot graph，bundle 200 | smoke 检查 |
 | `@zcd/status-host` | `/zcd/status` 只读 JSON：Node/dsh/uptime/最近 runs | 激活成功 | smoke 探测 200 |
@@ -103,7 +105,7 @@ node scripts/smoke-profile.mjs
 | 8.5 | **其余技能** | 已完成 20/39（superpowers 14 + dsh-guide 6）；office/browser/CUA 随对应 WP |
 | 9 | **Workflow 完整版** | parallel/pipeline、hole、amend、run 面板、通知 |
 | 10 | **Browser / CUA**（WP-10/11） | `js` code-act + 浏览器 provider + 面板 |
-| 11 | **UI**（WP-12/13/14） | Gen UI 卡片、文档卡/自动打开、workflow 卡片/取消、只读设置页、workflow run 面板已通；设置页与 run 面板视觉验收通过（[设置](assets/zcd-settings.png) / [面板](assets/workflow-panel.png)）；设置写入、`get_view` 待做 |
+| 11 | **UI**（WP-12/13/14） | Gen UI 卡片、文档 5 工具、workflow 卡片/取消、只读设置页、workflow run 面板已通；设置页与 run 面板视觉验收通过（[设置](assets/zcd-settings.png) / [面板](assets/workflow-panel.png)）；设置写入待做 |
 
 ## 2.5 P1 尚未全部通过的验收
 

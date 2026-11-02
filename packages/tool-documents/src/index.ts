@@ -12,10 +12,11 @@ import { resolve, sep } from 'node:path'
 import type { Context } from '@deepseek-ai/cordis'
 import { defineTool } from '@deepseek-ai/dsh-tools'
 import type {} from '@zcd/deferred-tools'
+import type {} from '@zcd/document-view'
 import { extractDocument, type DocUnit } from './extract.js'
 
 export const name = 'zcd-tool-documents'
-export const inject = ['tools', 'deferredTools']
+export const inject = ['tools', 'deferredTools', 'documentView']
 
 const unitSchema = {
   type: 'object',
@@ -148,9 +149,12 @@ export function apply(ctx: Context): void {
       render: (_args, value) => [{ type: 'text', text: `Opened ${value.path} in the document viewer.` }],
     },
     async execute(args, exec) {
-      const cwd = exec.agent?.session.header.cwd
-      if (cwd === undefined) throw new Error('open_document requires a session working directory')
-      return { path: inside(cwd, args.path) }
+      const agent = exec.agent
+      const cwd = agent?.session.header.cwd
+      if (agent === undefined || cwd === undefined) throw new Error('open_document requires a session working directory')
+      const path = inside(cwd, args.path)
+      ctx.documentView.record(String(agent.session.id), { path })
+      return { path }
     },
   }), { group: 'documents', keywords: ['open', 'viewer', 'document'] })
 
@@ -178,10 +182,12 @@ export function apply(ctx: Context): void {
       }],
     },
     async execute(args, exec) {
-      const cwd = exec.agent?.session.header.cwd
-      if (cwd === undefined) throw new Error('show_in_viewer requires a session working directory')
+      const agent = exec.agent
+      const cwd = agent?.session.header.cwd
+      if (agent === undefined || cwd === undefined) throw new Error('show_in_viewer requires a session working directory')
       const path = inside(cwd, args.path)
       const line = /^#l:(\d+)$/.exec(args.anchor.trim())?.[1]
+      ctx.documentView.record(String(agent.session.id), { path, anchor: args.anchor })
       return {
         path,
         ...(line === undefined ? {} : { line: Number(line) }),
@@ -189,5 +195,37 @@ export function apply(ctx: Context): void {
     },
   }), { group: 'documents', keywords: ['reveal', 'anchor', 'line', 'viewer'] })
 
-  ctx.effect(() => () => { offRead(); offSearch(); offOpen(); offShow() }, 'zcd-tool-documents: deferred registrations')
+  const offGet = ctx.deferredTools.register(defineTool({
+    name: 'get_view',
+    description:
+      'Read the document the user most recently opened in this session, with its anchor when one '
+      + 'was requested. Returns not-found when no document was opened.',
+    parameters: {},
+    output: {
+      schema: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          path: { type: 'string', required: true },
+          anchor: { type: 'string' },
+        },
+      },
+      render: (_args, value) => [{
+        type: 'text',
+        text: `Current document: ${value.path}${value.anchor === undefined ? '' : ` (${value.anchor})`}`,
+      }],
+    },
+    async execute(_args, exec) {
+      const agent = exec.agent
+      if (agent === undefined) throw new Error('get_view requires an owning agent session')
+      const view = ctx.documentView.get(String(agent.session.id))
+      if (view === undefined) throw new Error('no document has been opened in this session')
+      return {
+        path: view.path,
+        ...(view.anchor === undefined ? {} : { anchor: view.anchor }),
+      }
+    },
+  }), { group: 'documents', keywords: ['view', 'current', 'document', 'opened'] })
+
+  ctx.effect(() => () => { offRead(); offSearch(); offOpen(); offShow(); offGet() }, 'zcd-tool-documents: deferred registrations')
 }

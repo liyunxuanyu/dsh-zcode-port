@@ -5,8 +5,15 @@
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
-  "exports": { ".": { "types": "./lib/index.d.ts", "default": "./lib/index.js" } },
-  "files": ["lib"],
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    }
+  },
+  "files": [
+    "lib"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit"
@@ -17,8 +24,13 @@
     "@zcd/deferred-tools": "workspace:*",
     "exceljs": "^4.4.0",
     "mammoth": "^1.9.0",
-    "pdfjs-dist": "^5.4.0"
+    "pdfjs-dist": "^5.4.0",
+    "@zcd/document-view": "workspace:*"
   },
-  "peerDependencies": { "@deepseek-ai/cordis": "~4.0.6-alpha.1" },
-  "devDependencies": { "@deepseek-ai/cordis": "4.0.6-alpha.1" }
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "~4.0.6-alpha.1"
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "4.0.6-alpha.1"
+  }
 }
