@@ -7,7 +7,7 @@ window.__ModuleLoader__.load({
   id: '@zcd/client-ui-settings-zcd',
   factory: (require) => {
     const React = require('react')
-    const { jsx } = require('react/jsx-runtime')
+    const { jsx, jsxs } = require('react/jsx-runtime')
 
     const cell = { padding: '4px 0', fontSize: '12px', color: 'var(--text-secondary, #555)' }
     const mono = { fontFamily: 'var(--font-mono, monospace)' }
@@ -31,38 +31,51 @@ window.__ModuleLoader__.load({
         return jsx('div', { style: cell, children: 'Loading ZCD status…' })
       }
       const runs = Array.isArray(status.runs) ? status.runs : []
-      return jsx('div', { style: { display: 'grid', gap: '10px' } }, [
-        jsx('div', { key: 'identity', style: cell, children: [
-          jsx('div', { key: 'p', children: `Product: ${status.product}` }),
-          jsx('div', { key: 'n', children: `Node ${status.node} · dsh ${status.dsh}` }),
-          jsx('div', { key: 'u', children: `Uptime ${status.uptimeSeconds}s` }),
-        ] }),
-        jsx('div', { key: 'runs', children: [
-          jsx('div', { key: 'h', style: { fontWeight: 600, fontSize: '13px', marginBottom: '4px' }, children: 'Recent workflow runs' }),
-          runs.length === 0
-            ? jsx('div', { key: 'empty', style: cell, children: 'No runs yet.' })
-            : jsx('div', { key: 'list', style: { display: 'grid', gap: '4px' } }, runs.map((run) => jsx('div', {
-              key: run.id,
-              style: cell,
-              children: jsx('span', { style: mono, children: `${run.id} [${run.status}] ${run.name} · ${run.nodeCount} nodes` }),
-            }))),
-        ] }),
-      ])
+      const identity = jsxs('div', { style: cell, children: [
+        jsx('div', { children: `Product: ${status.product}` }),
+        jsx('div', { children: `Node ${status.node} · dsh ${status.dsh}` }),
+        jsx('div', { children: `Uptime ${status.uptimeSeconds}s` }),
+      ] })
+      const runRows = runs.map((run) => jsx('div', {
+        key: run.id,
+        style: cell,
+        children: jsx('span', {
+          style: mono,
+          children: `${run.id} [${run.status}] ${run.name} · ${run.nodeCount} nodes`,
+        }),
+      }))
+      const runsBlock = jsxs('div', { children: [
+        jsx('div', {
+          style: { fontWeight: 600, fontSize: '13px', marginBottom: '4px' },
+          children: 'Recent workflow runs',
+        }),
+        runs.length === 0
+          ? jsx('div', { style: cell, children: 'No runs yet.' })
+          : jsxs('div', { style: { display: 'grid', gap: '4px' }, children: runRows }),
+      ] })
+      return jsxs('div', { style: { display: 'grid', gap: '10px' }, children: [identity, runsBlock] })
     }
 
     /** Register the settings section. */
     function apply(ctx) {
+      const NS = 'zcd.settings'
+      ctx.effect(() => ctx.locale.register(NS, {
+        zh: { nav: 'ZCD' },
+        en: { nav: 'ZCD' },
+      }), 'zcd-settings: dictionary')
+      const t = ctx.locale.bind(NS)
       ctx.slots.inject('settings.section', () => ctx.slots.register({
         name: 'settings.section',
         id: 'zcd',
         order: 30,
-        label: () => 'ZCD',
+        locale: NS,
+        label: () => t('nav'),
       }, ZcdSettings))
     }
 
     const module = { exports: {} }
     module.exports.apply = apply
-    module.exports.inject = ['slots']
+    module.exports.inject = ['slots', 'locale']
     return module.exports
   },
 })
