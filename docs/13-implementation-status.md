@@ -124,7 +124,7 @@ P0 已通过；P1（"ZCode 工具语义对齐"）**还没有全部验收**，巡
 | OffPeak 恢复 | 已有持久化测试：pending 恢复、running→interrupted、空闲执行 |
 | 只读策略集成 | 已有分类器/决策单测 + Cordis waterfall 集成测试（deny write / allow read / bash classify / inactive） |
 | skill gate | 已实现并通过纯函数测试；尚未在真实模型会话里观察拒绝 |
-| S1 工具对齐 | 已确认由 `schedule_edit`、`list_agents`/`interrupt_agent` 覆盖，不新增工具 |
+| S1 工具对齐 | 删除由 dsh 原生 `schedule_delete` 覆盖；**`schedule_pause` 未实现**（dsh 的 schedule 只有 delete/update，没有 active 开关）；`list_agents`/`interrupt_agent` 覆盖 subagent 查询/停止 |
 | 技能 | 33 个技能可用，覆盖 34/39（26 个移植/改写 + 7 个 dsh 原生 Office） |
 | 设置页写入 | 用户记忆已通；其余配置项未做 |
 

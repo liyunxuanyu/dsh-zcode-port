@@ -31,7 +31,7 @@
 | 13 | `Skill` | `handlers/skill.ts:101` | `skill`（provider 分层） | S1 | 直接用 | WP-14 | XS | 低 |
 | 14 | `js`（持久 REPL + `agent.browsers`/CUA） | `handlers/node-repl.ts:297-340` | `run_code`（PTC，fresh/REPL 模式）+ browser/CUA provider | S2 | 新增 `js` 工具：PTC REPL 模式 + browser/CUA bindings | WP-09/10 | L | 高（安全/状态） |
 | 15 | `ToolSearch` / `DeferredToolCall` | `tool-search.ts:20-52`、`deferred-tool-call.ts:11-45` | 无；但 `tools.register` 支持 `when` | S2 | `tool_search` + `ctx.deferredTools` + `when` 条件（ADR-04） | WP-03 | M | 中 |
-| 16 | `CronCreate/List/Update/Delete/PauseSelf` | `handlers/cron.ts:227-435` | `schedule_create/edit/list/view`；`edit` 支持 `action: delete` 与 `active: false` | S1 | 直接映射；不新增工具 | WP-06 | S | 低 |
+| 16 | `CronCreate/List/Update/Delete/PauseSelf` | `handlers/cron.ts:227-435` | `schedule_create/list/update/delete`；无 pause（只有 delete/update） | S1 | 直接映射 delete；pause 暂不实现 | WP-06 | S | 低 |
 | 17 | `OffPeakCreate` / `OffPeakList` | `handlers/off-peak.ts:187,239` | 无 | S2 | 新 `ctx.offpeak` + `offpeak_create/list/cancel` | WP-06 | M | 中 |
 | 18 | `ReadSessionContext` | `read-session-context.ts:160-190` | `session_*` 五件套（experimental） | S2 | 新增 `session_handoff` 工具；topic 附件不移植 | WP-05 | M | 中（授权） |
 | 19 | `ListModels` | `handlers/list-models.ts` | `list_subagent_models` | S1 | 技能里映射；不新增工具 | WP-02 | XS | 低 |
@@ -163,7 +163,7 @@
 
 | 洞 | 补法 | 优先级 |
 |---|---|---|
-| `schedule_delete` / `schedule_pause` | 在 `@zcd/tool-cron` 里包一层 `ctx.schedule` | P1 |
+| `schedule_delete` / `schedule_pause` | delete 由 dsh 原生提供；pause 需要 dsh schedule 暴露 active 开关，暂缺 | 部分完成 |
 | `todo_read` | 读 `todo/write` 投影 | P1 |
 | `enter_plan_mode` | 程序化执行 `/plan`；若 commands 不支持，需上游加 `enter()`（S3） | P1 |
 | `subagent_output` / `subagent_stop` | 包 `ctx.subagents` 的 child session 摘要 | P2 |
