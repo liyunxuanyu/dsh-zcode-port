@@ -91,6 +91,7 @@ pnpm typecheck     # 全部 workspace 包通过
 pnpm test          # 14 个文件 / 81 个用例通过
 pnpm verify        # verify-naming: 33 ZCD tools, 32 reserved names；docs 链接 0 问题
 pnpm build         # 所有包 emit 到 lib/
+node scripts/pack-product.mjs   # dist/zcd-product-<version>.tgz（相对路径，Windows 也可用）
 node scripts/link-profile.mjs
 npx -y node@24 scripts/smoke-profile.mjs
 # ✓ product profile boots on :<port>; HTTP 303; all plugins and client cards active

@@ -16,7 +16,8 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const version = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).version ?? '0.0.0'
 const outDir = join(root, 'dist')
 const suffix = process.env.ZCD_PACK_NODE_MODULES === '1' ? '-offline' : ''
-const out = join(outDir, `zcd-product-${version}${suffix}.tgz`)
+const outName = `zcd-product-${version}${suffix}.tgz`
+const out = join(outDir, outName)
 
 execFileSync('pnpm', ['build'], { cwd: root, stdio: 'inherit', shell: true })
 mkdirSync(outDir, { recursive: true })
@@ -30,13 +31,15 @@ const paths = [
 ].filter(path => existsSync(join(root, path)))
 
 console.log(`→ tar ${out}`)
+// Keep the archive path and all inputs relative: GNU tar treats `D:` in an
+// absolute Windows path as a remote host. cwd already points at the repo.
 const result = spawnSync('tar', [
-  '-czf', out,
+  '-czf', join('dist', outName),
   ...includeDependencies ? [] : ['--exclude=node_modules', '--exclude=*/node_modules'],
   '--exclude=.git',
-  '-C', root,
+  '-C', '.',
   ...paths,
-], { stdio: 'inherit', shell: true })
+], { cwd: root, stdio: 'inherit' })
 if (result.status !== 0) {
   console.error('✖ tar failed; ensure `tar` is on PATH (Windows 10+ ships bsdtar).')
   process.exit(result.status ?? 1)
