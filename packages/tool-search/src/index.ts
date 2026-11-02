@@ -1,46 +1,27 @@
 /**
- * `tool_search` — load a deferred tool by name or intent.
+ * `tool_search` — find and load a deferred tool.
  *
- * The mechanism relies on dsh's per-step tool admission: every tool is
- * registered, and a step sees only the definitions its `resolve()` admits.
- * This plugin owns the "loaded" set as a session projection, so a load
- * survives resume and fork. The actual deferred registrations belong to the
- * plugin that owns the tool; this package supplies the search surface.
+ * The catalog is owned by `ctx.deferredTools`: each tool registers itself with
+ * a group and keywords, and the seam keeps it out of model steps until the
+ * owning session loads it. This plugin adds only the model-facing search
+ * surface and the durable load event.
  *
  * @module @zcd/tool-search
  */
 
 import type { Context } from '@deepseek-ai/cordis'
 import { defineTool } from '@deepseek-ai/dsh-tools'
-import type {} from '@deepseek-ai/dsh-session-projection'
-import { z as zod } from 'zod'
-import '@zcd/shared/events'
-import { rankEntries, type CatalogEntry } from './score.js'
+import type {} from '@zcd/deferred-tools'
+import { rankEntries } from './score.js'
 
 export const name = 'zcd-tool-search'
-export const inject = ['tools', 'sessionProjections']
+export const inject = ['tools', 'deferredTools']
 
 /** Deployment configuration. */
 export interface Config {
-  /** Tool names that participate in search. Empty means no catalog. */
-  deferred: string[]
-  /** Optional display group per tool name. */
-  groups?: Record<string, string>
   /** Maximum matches per call. */
   maxResults: number
 }
-
-/** Projection key holding the names this session has loaded. */
-const LOADED_KEY = 'zcdDeferredTools'
-
-declare module '@deepseek-ai/dsh-session-projection/types' {
-  interface SessionProjectionMap {
-    /** Deferred tool names admitted for the owning session. */
-    zcdDeferredTools: string[]
-  }
-}
-
-const loadedSchema = zod.array(zod.string())
 
 const outputSchema = {
   type: 'object',
@@ -56,43 +37,22 @@ const outputSchema = {
           name: { type: 'string', required: true },
           group: { type: 'string', required: true },
           description: { type: 'string', required: true },
-          alreadyLoaded: { type: 'boolean', required: true },
         },
       },
     },
-    total: { type: 'integer', required: true },
+    pending: { type: 'integer', required: true },
   },
 } as const
 
-/** Default group label when the deployment supplies none. */
-const DEFAULT_GROUP = 'general'
-
 /**
- * Register the projection and the `tool_search` tool.
- * @param ctx - context carrying the tool and projection registries.
- * @param config - deployment catalog configuration.
+ * Register the `tool_search` tool.
+ * @param ctx - context carrying the tool registry and the deferred seam.
+ * @param config - deployment limits.
  */
-export async function apply(ctx: Context, config: Config): Promise<void> {
-  const deferred = new Set(config.deferred)
-  const groups = config.groups ?? {}
+export function apply(ctx: Context, config: Config): void {
   const maxResults = Math.max(1, Math.min(25, config.maxResults))
-  const tools = ctx.tools
 
-  await ctx.sessionProjections.register<'zcdDeferredTools', string[]>({
-    key: LOADED_KEY,
-    stateSchema: loadedSchema,
-    init: () => [],
-    apply: (state, event) => {
-      if (event.type !== 'deferred-tool/loaded') return state
-      const next = event.data.name
-      if (state.includes(next)) return state
-      return [...state, next]
-    },
-    wire: { viewSchema: loadedSchema, view: state => state, summary: false },
-    stateVersion: 1,
-  })
-
-  tools.register(defineTool({
+  ctx.tools.register(defineTool({
     name: 'tool_search',
     description:
       'Search the deferred tool catalog and load a tool for the next step. Call this when you '
@@ -112,14 +72,16 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
         if (value.matches.length === 0) {
           return [{
             type: 'text',
-            text: 'No deferred tool matched. Try a broader query, or use a tool already in your list.',
+            text: value.pending === 0
+              ? 'No deferred tools are registered in this deployment.'
+              : `No match among ${value.pending} deferred tools. Try a broader query or a different term.`,
           }]
         }
         const lines = value.matches.map(match =>
-          `- ${match.name} [${match.group}]${match.alreadyLoaded ? ' (already loaded)' : ''}: ${match.description}`)
+          `- ${match.name} [${match.group}]: ${match.description}`)
         return [{
           type: 'text',
-          text: `Loaded for the next step (${value.matches.length}/${value.total} matches):\n${lines.join('\n')}`,
+          text: `Loaded for the next step:\n${lines.join('\n')}`,
         }]
       },
     },
@@ -128,40 +90,18 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
       if (agent === undefined) {
         throw new Error('tool_search requires an owning agent session')
       }
-      const snapshot = ctx.sessionProjections.snapshot(agent.session, [LOADED_KEY])
-      const loaded = new Set(snapshot.values.zcdDeferredTools ?? [])
-      const definitions = tools.definitions(agent)
-      const entries: CatalogEntry[] = []
-      const alreadyLoaded = new Set<string>()
-      for (const definition of definitions) {
-        if (!deferred.has(definition.name)) continue
-        if (loaded.has(definition.name)) {
-          alreadyLoaded.add(definition.name)
-          continue
-        }
-        entries.push({
-          name: definition.name,
-          group: groups[definition.name] ?? DEFAULT_GROUP,
-          description: definition.description ?? '',
-          keywords: [definition.name.replaceAll('_', ' ')],
-        })
-      }
+      const entries = ctx.deferredTools.entries(agent).filter(entry => !entry.loaded)
       const matches = rankEntries(entries, args.query, maxResults)
       for (const match of matches) {
-        agent.session.append('deferred-tool/loaded', {
-          name: match.entry.name,
-          query: args.query,
-          at: Date.now(),
-        })
+        ctx.deferredTools.markLoaded(agent.session, match.entry.name, args.query)
       }
       return {
         matches: matches.map(match => ({
           name: match.entry.name,
           group: match.entry.group,
           description: match.entry.description,
-          alreadyLoaded: alreadyLoaded.has(match.entry.name),
         })),
-        total: entries.length,
+        pending: entries.length,
       }
     },
   }))

@@ -16,9 +16,11 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const home = resolve(process.env.ZCD_DSH_HOME ?? join(root, '.dsh-home'))
 const profileDir = join(home, 'profiles', 'product')
 const directories = {
+  '@zcd/deferred-tools': 'packages/deferred-tools',
   '@zcd/bundle-base': 'packages/bundle-base',
   '@zcd/bundle-web-app': 'packages/bundle-web-app',
   '@zcd/policy-plan-readonly': 'packages/policy-plan-readonly',
+  '@zcd/tool-plan-mode': 'packages/tool-plan-mode',
   '@zcd/tool-search': 'packages/tool-search',
   '@zcd/tool-todo-read': 'packages/tool-todo-read',
 }

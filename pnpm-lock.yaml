@@ -10,7 +10,7 @@ importers:
     devDependencies:
       '@deepseek-ai/dsh':
         specifier: 0.2.2-alpha.2
-        version: 0.2.2-alpha.2(fed8692c537f57f4628a03ac48754da2)
+        version: 0.2.2-alpha.2(3fb334aac0928da8469b48454cb30a49)
       '@types/node':
         specifier: ^24.0.0
         version: 24.19.2
@@ -26,9 +26,15 @@ importers:
 
   packages/bundle-base:
     dependencies:
+      '@zcd/deferred-tools':
+        specifier: workspace:*
+        version: link:../deferred-tools
       '@zcd/policy-plan-readonly':
         specifier: workspace:*
         version: link:../policy-plan-readonly
+      '@zcd/tool-plan-mode':
+        specifier: workspace:*
+        version: link:../tool-plan-mode
       '@zcd/tool-search':
         specifier: workspace:*
         version: link:../tool-search
@@ -37,6 +43,31 @@ importers:
         version: link:../tool-todo-read
 
   packages/bundle-web-app: {}
+
+  packages/deferred-tools:
+    dependencies:
+      '@deepseek-ai/dsh-agent':
+        specifier: 0.2.2-alpha.2
+        version: 0.2.2-alpha.2(c09e321863b8ebb6167f522cda8f63dc)
+      '@deepseek-ai/dsh-session':
+        specifier: 0.2.2-alpha.2
+        version: 0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1)(@deepseek-ai/dsh-scope@0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1))
+      '@deepseek-ai/dsh-session-projection':
+        specifier: 0.2.2-alpha.2
+        version: 0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1)(@deepseek-ai/dsh-session@0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1)(@deepseek-ai/dsh-scope@0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1)))
+      '@deepseek-ai/dsh-tools':
+        specifier: 0.2.2-alpha.2
+        version: 0.2.2-alpha.2(d570a50fd9051dfa7084c71da173b036)
+      '@zcd/shared':
+        specifier: workspace:*
+        version: link:../shared
+      zod:
+        specifier: 4.4.3
+        version: 4.4.3
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: 4.0.6-alpha.1
+        version: 4.0.6-alpha.1(@deepseek-ai/cordis-plugin-include@1.0.11-alpha.1)(@deepseek-ai/cordis-plugin-loader@1.0.7-alpha.1)
 
   packages/policy-plan-readonly:
     dependencies:
@@ -66,26 +97,36 @@ importers:
         specifier: 0.2.2-alpha.2
         version: 0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1)(@deepseek-ai/dsh-scope@0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1))
 
+  packages/tool-plan-mode:
+    dependencies:
+      '@deepseek-ai/dsh-agent':
+        specifier: 0.2.2-alpha.2
+        version: 0.2.2-alpha.2(c09e321863b8ebb6167f522cda8f63dc)
+      '@deepseek-ai/dsh-commands':
+        specifier: 0.2.2-alpha.2
+        version: 0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1)(@deepseek-ai/dsh-agent@0.2.2-alpha.2(c09e321863b8ebb6167f522cda8f63dc))(@deepseek-ai/dsh-attachment@0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1)(@deepseek-ai/dsh-brand@0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1)))(@deepseek-ai/dsh-brand@0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1))(@deepseek-ai/dsh-llm@0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1))(@deepseek-ai/dsh-scope@0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1))(@deepseek-ai/dsh-session@0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1)(@deepseek-ai/dsh-scope@0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1)))(@deepseek-ai/dsh-typert-protocol@0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1))
+      '@deepseek-ai/dsh-tools':
+        specifier: 0.2.2-alpha.2
+        version: 0.2.2-alpha.2(d570a50fd9051dfa7084c71da173b036)
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: 4.0.6-alpha.1
+        version: 4.0.6-alpha.1(@deepseek-ai/cordis-plugin-include@1.0.11-alpha.1)(@deepseek-ai/cordis-plugin-loader@1.0.7-alpha.1)
+
   packages/tool-search:
     dependencies:
       '@deepseek-ai/dsh-agent':
         specifier: 0.2.2-alpha.2
         version: 0.2.2-alpha.2(c09e321863b8ebb6167f522cda8f63dc)
-      '@deepseek-ai/dsh-session':
-        specifier: 0.2.2-alpha.2
-        version: 0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1)(@deepseek-ai/dsh-scope@0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1))
-      '@deepseek-ai/dsh-session-projection':
-        specifier: 0.2.2-alpha.2
-        version: 0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1)(@deepseek-ai/dsh-session@0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1)(@deepseek-ai/dsh-scope@0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1)))
       '@deepseek-ai/dsh-tools':
         specifier: 0.2.2-alpha.2
         version: 0.2.2-alpha.2(d570a50fd9051dfa7084c71da173b036)
+      '@zcd/deferred-tools':
+        specifier: workspace:*
+        version: link:../deferred-tools
       '@zcd/shared':
         specifier: workspace:*
         version: link:../shared
-      zod:
-        specifier: 4.4.3
-        version: 4.4.3
     devDependencies:
       '@deepseek-ai/cordis':
         specifier: 4.0.6-alpha.1
@@ -105,6 +146,9 @@ importers:
       '@deepseek-ai/dsh-tools':
         specifier: 0.2.2-alpha.2
         version: 0.2.2-alpha.2(d570a50fd9051dfa7084c71da173b036)
+      '@zcd/deferred-tools':
+        specifier: workspace:*
+        version: link:../deferred-tools
     devDependencies:
       '@deepseek-ai/cordis':
         specifier: 4.0.6-alpha.1
@@ -112,15 +156,27 @@ importers:
 
   profiles/product:
     dependencies:
+      '@deepseek-ai/dsh-base':
+        specifier: 0.2.2-alpha.2
+        version: 0.2.2-alpha.2(aba01a7332d6b81000d9f0ec3ed17623)
+      '@deepseek-ai/dsh-web-app':
+        specifier: 0.2.2-alpha.2
+        version: 0.2.2-alpha.2(17b2e48b78ef39fb520c787ba13e6ea3)
       '@zcd/bundle-base':
         specifier: workspace:*
         version: link:../../packages/bundle-base
       '@zcd/bundle-web-app':
         specifier: workspace:*
         version: link:../../packages/bundle-web-app
+      '@zcd/deferred-tools':
+        specifier: workspace:*
+        version: link:../../packages/deferred-tools
       '@zcd/policy-plan-readonly':
         specifier: workspace:*
         version: link:../../packages/policy-plan-readonly
+      '@zcd/tool-plan-mode':
+        specifier: workspace:*
+        version: link:../../packages/tool-plan-mode
       '@zcd/tool-search':
         specifier: workspace:*
         version: link:../../packages/tool-search
@@ -4926,7 +4982,7 @@ snapshots:
       '@aws-sdk/types': 3.975.0
       '@smithy/core': 3.38.1
       '@smithy/fetch-http-handler': 5.8.0
-      '@smithy/node-http-handler': 4.12.1
+      '@smithy/node-http-handler': 4.14.1
       '@smithy/types': 4.19.0
       tslib: 2.9.1
 
@@ -8542,7 +8598,7 @@ snapshots:
       '@deepseek-ai/dsh-typert-protocol': 0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1)
       zod: 4.4.3
 
-  '@deepseek-ai/dsh@0.2.2-alpha.2(fed8692c537f57f4628a03ac48754da2)':
+  '@deepseek-ai/dsh@0.2.2-alpha.2(3fb334aac0928da8469b48454cb30a49)':
     dependencies:
       '@deepseek-ai/cordis': 4.0.6-alpha.1(@deepseek-ai/cordis-plugin-include@1.0.11-alpha.1)(@deepseek-ai/cordis-plugin-loader@1.0.7-alpha.1)
       '@deepseek-ai/cordis-plugin-include': 1.0.11-alpha.1(@deepseek-ai/cordis-plugin-loader@1.0.7-alpha.1)(@deepseek-ai/cordis@4.0.6-alpha.1)

@@ -6,6 +6,10 @@
 # off without dropping the whole product layer.
 
 - insert:
+    # Deferred-tool seam: keeps rare tools out of every step until loaded.
+    - id: zcd-deferred-tools
+      name: '@zcd/deferred-tools'
+
     # Deferred-tool catalog. `deferred` is deployment-owned: it lists the tool
     # names the model may load; empty means no catalog yet.
     - id: zcd-tool-search
@@ -13,6 +17,10 @@
       config:
         deferred: []
         maxResults: 8
+
+    # Tool-shaped entry into plan mode (dsh exposes only the exit tool).
+    - id: zcd-tool-plan-mode
+      name: '@zcd/tool-plan-mode'
 
     # Read the current todo list without changing it.
     - id: zcd-tool-todo-read

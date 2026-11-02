@@ -11,6 +11,8 @@
   "dependencies": {
     "@zcd/policy-plan-readonly": "workspace:*",
     "@zcd/tool-search": "workspace:*",
-    "@zcd/tool-todo-read": "workspace:*"
+    "@zcd/tool-todo-read": "workspace:*",
+    "@zcd/deferred-tools": "workspace:*",
+    "@zcd/tool-plan-mode": "workspace:*"
   }
 }

@@ -9,12 +9,13 @@
  */
 
 import type { Context } from '@deepseek-ai/cordis'
+import type {} from '@zcd/deferred-tools'
 import { defineTool } from '@deepseek-ai/dsh-tools'
 import type {} from '@deepseek-ai/dsh-session-projection'
 import type {} from '@deepseek-ai/dsh-tool-todo'
 
 export const name = 'zcd-tool-todo-read'
-export const inject = ['tools', 'sessionProjections']
+export const inject = ['tools', 'sessionProjections', 'deferredTools']
 
 interface TodoItemLike {
   content: string
@@ -59,7 +60,7 @@ const outputSchema = {
  * @param ctx - context carrying the tool and projection registries.
  */
 export function apply(ctx: Context): void {
-  ctx.tools.register(defineTool({
+  const off = ctx.deferredTools.register(defineTool({
     name: 'todo_read',
     description:
       'Read the current todo list for this session. Use it to recover the plan after a long '
@@ -100,5 +101,9 @@ export function apply(ctx: Context): void {
         counts: { pending, inProgress, completed },
       }
     },
-  }))
+  }), {
+    group: 'planning',
+    keywords: ['todo', 'task', 'plan', 'progress', 'checklist'],
+  })
+  ctx.effect(() => off, 'zcd-tool-todo-read: deferred registration')
 }

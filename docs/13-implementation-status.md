@@ -7,7 +7,7 @@
 
 ## 0. 一句话
 
-**P0 已通过**：product profile 能在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，两个 ZCD 插件激活，单测与命名门禁通过。P1 已开始（`todo_read`、`tool_search`、`policy-plan-readonly` 三个插件可编译、可加载）。
+**P0 已通过，P1 进行中**：product profile 能在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**五个** ZCD 插件激活（deferred-tools / tool-search / todo-read / plan-mode / plan-policy），单测与命名门禁通过。
 
 ---
 
@@ -31,8 +31,10 @@
 | 包 | 工具/能力 | 状态 | 测试 |
 |---|---|---|---|
 | `@zcd/shared` | 事件声明合并（`deferred-tool/loaded`、`offpeak/*`、`memory/*`、`workflow/*`）、branded id | 已编译 | — |
-| `@zcd/tool-search` | `tool_search`：按名称/关键词搜索 deferred 目录，加载结果写入 `zcdDeferredTools` 投影 | 激活成功 | 5 个单测（排序/分词/限额） |
-| `@zcd/tool-todo-read` | `todo_read`：读 `todos` 投影，不修改列表 | 激活成功 | — |
+| `@zcd/deferred-tools` | `ctx.deferredTools`：工具注册时带 `when`，按会话投影决定是否进入 step | 激活成功 | — |
+| `@zcd/tool-search` | `tool_search`：搜 `ctx.deferredTools` 目录，命中后写 `deferred-tool/loaded` | 激活成功 | 5 个单测（排序/分词/限额） |
+| `@zcd/tool-todo-read` | `todo_read`：**deferred** 工具，读 `todos` 投影 | 激活成功 | — |
+| `@zcd/tool-plan-mode` | `enter_plan_mode`：程序化执行 `/plan`，不拥有 plan 状态 | 激活成功 | — |
 | `@zcd/policy-plan-readonly` | plan mode 严格只读：deny 写工具与非只读 bash | 编译通过；bundle 中默认 `disabled: true` | 35 个分类器单测 |
 | `@zcd/bundle-base` | 三行 insert（tool-search / todo-read / plan policy） | 已组合 | dump-config |
 | `@zcd/bundle-web-app` | 空 insert（为 UI 工作包预留） | 已组合 | dump-config |
@@ -70,8 +72,8 @@ node scripts/smoke-profile.mjs
 
 | 顺序 | 工作 | 说明 |
 |---|---|---|
-| 1 | **把 `todo_read` 真正接入 deferred 机制** | 目前 `tool_search` 的 `deferred` 为空；需要把 `todo_read` 注册为 `when: loaded`，并在 `tool_search` 命中后下一步可见 |
-| 2 | **`enter_plan_mode`** | `PlanModeController` 没有公开 enter API；先验证 `commands` 能否程序化执行 `/plan`，否则提上游 PR |
+| 1 | ~~`todo_read` 接入 deferred~~ | 已完成：`@zcd/deferred-tools` + `when` 策略；`tool_search` 命中后下一步可见 |
+| 2 | ~~`enter_plan_mode`~~ | 已完成：通过 `ctx.commands.execute(agent, '/plan', ...)`，不碰 plan 私有状态 |
 | 3 | **`session_handoff`** | 包 `ctx.sessionQuery`，实现 ZCode 的跨会话 handoff |
 | 4 | **`list_models`** | 映射 `list_subagent_models` 或 `ctx.llm` 目录 |
 | 5 | **OffPeak**（WP-05） | `ctx.offpeak` 服务 + 3 个工具 + 空闲判定；这是 P1 的大件 |
@@ -82,7 +84,7 @@ node scripts/smoke-profile.mjs
 
 | 缺口 | 影响 | 计划 |
 |---|---|---|
-| `tool_search` 的 `deferred` 为空 | 工具能加载但暂时搜不到条目 | 下一步接 `todo_read` 做首个 deferred 工具 |
+| 暂无 `session_handoff` / `list_models` | 跨会话上下文与模型目录仍靠 dsh 原生工具 | 下一步实现 |
 | `policy-plan-readonly` 默认关闭 | 默认行为与 dsh 一致；ZCode 式严格模式需显式开 | 在 bundle 文档与设置页里提供开关（WP-14） |
 | 未实现 `enter_plan_mode` | 模型只能用 `/plan` 命令进入计划模式 | 先验证 command 执行 API |
 | 无 `skills/` 目录 | 技能尚未移植 | WP-15 |
