@@ -24,11 +24,24 @@ importers:
         specifier: ^3.2.4
         version: 3.2.7(@types/node@24.19.2)(yaml@2.9.1)
 
+  packages/browser:
+    dependencies:
+      playwright-core:
+        specifier: 1.64.1
+        version: 1.64.1
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: 4.0.6-alpha.1
+        version: 4.0.6-alpha.1(@deepseek-ai/cordis-plugin-include@1.0.11-alpha.1)(@deepseek-ai/cordis-plugin-loader@1.0.7-alpha.1)
+
   packages/bundle-base:
     dependencies:
       '@deepseek-ai/dsh-skill-office':
         specifier: 0.2.2-alpha.2
         version: 0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1)(@deepseek-ai/dsh-skill@0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1)(@deepseek-ai/dsh-llm@0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1))(@deepseek-ai/dsh-scope@0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1)))
+      '@zcd/browser':
+        specifier: workspace:*
+        version: link:../browser
       '@zcd/deferred-tools':
         specifier: workspace:*
         version: link:../deferred-tools
@@ -53,6 +66,9 @@ importers:
       '@zcd/policy-plan-readonly':
         specifier: workspace:*
         version: link:../policy-plan-readonly
+      '@zcd/tool-browser':
+        specifier: workspace:*
+        version: link:../tool-browser
       '@zcd/tool-documents':
         specifier: workspace:*
         version: link:../tool-documents
@@ -318,6 +334,25 @@ importers:
         specifier: 4.0.6-alpha.1
         version: 4.0.6-alpha.1(@deepseek-ai/cordis-plugin-include@1.0.11-alpha.1)(@deepseek-ai/cordis-plugin-loader@1.0.7-alpha.1)
 
+  packages/tool-browser:
+    dependencies:
+      '@deepseek-ai/dsh-agent':
+        specifier: 0.2.2-alpha.2
+        version: 0.2.2-alpha.2(c09e321863b8ebb6167f522cda8f63dc)
+      '@deepseek-ai/dsh-tools':
+        specifier: 0.2.2-alpha.2
+        version: 0.2.2-alpha.2(d570a50fd9051dfa7084c71da173b036)
+      '@zcd/browser':
+        specifier: workspace:*
+        version: link:../browser
+      '@zcd/deferred-tools':
+        specifier: workspace:*
+        version: link:../deferred-tools
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: 4.0.6-alpha.1
+        version: 4.0.6-alpha.1(@deepseek-ai/cordis-plugin-include@1.0.11-alpha.1)(@deepseek-ai/cordis-plugin-loader@1.0.7-alpha.1)
+
   packages/tool-documents:
     dependencies:
       '@deepseek-ai/dsh-agent':
@@ -575,6 +610,9 @@ importers:
       '@deepseek-ai/dsh-web-app':
         specifier: 0.2.2-alpha.2
         version: 0.2.2-alpha.2(17b2e48b78ef39fb520c787ba13e6ea3)
+      '@zcd/browser':
+        specifier: workspace:*
+        version: link:../../packages/browser
       '@zcd/bundle-base':
         specifier: workspace:*
         version: link:../../packages/bundle-base
@@ -623,6 +661,9 @@ importers:
       '@zcd/status-host':
         specifier: workspace:*
         version: link:../../packages/status-host
+      '@zcd/tool-browser':
+        specifier: workspace:*
+        version: link:../../packages/tool-browser
       '@zcd/tool-documents':
         specifier: workspace:*
         version: link:../../packages/tool-documents
@@ -5669,6 +5710,11 @@ packages:
   pkce-challenge@5.0.1:
     resolution: {integrity: sha512-wQ0b/W4Fr01qtpHlqSqspcj3EhBvimsdh0KlHhH8HRZnMsEa0ea2fTULOXOS9ccQr3om+GcGRk4e+isrZWV8qQ==}
     engines: {node: '>=16.20.0'}
+
+  playwright-core@1.64.1:
+    resolution: {integrity: sha512-BC4s8y6SEVA6Q1rSxZTto8hI1KUI3xXlHGZgvGqP4IqPdI/a6FX9H29IDNz7vKo9l21b6LfYosScPL6M3xxyDQ==}
+    engines: {node: '>=20'}
+    hasBin: true
 
   png-js@1.1.0:
     resolution: {integrity: sha512-PM/uYGzGdNSzqeOgly68+6wKQDL1SY0a/N+OEa/+br6LnHWOAJB0Npiamnodfq3jd2LS/i2fMeOKSAILjA+m5Q==}
@@ -12133,6 +12179,8 @@ snapshots:
   picomatch@4.0.7: {}
 
   pkce-challenge@5.0.1: {}
+
+  playwright-core@1.64.1: {}
 
   png-js@1.1.0:
     dependencies:

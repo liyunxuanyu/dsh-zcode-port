@@ -32,6 +32,8 @@ const directories = {
   '@zcd/tool-visualize': 'packages/tool-visualize',
   '@zcd/memory': 'packages/memory',
   '@zcd/memory-ui-host': 'packages/memory-ui-host',
+  '@zcd/browser': 'packages/browser',
+  '@zcd/tool-browser': 'packages/tool-browser',
   '@zcd/durable-workflow': 'packages/durable-workflow',
   '@zcd/workflow-store': 'packages/workflow-store',
   '@zcd/tool-workflow': 'packages/tool-workflow',
@@ -56,6 +58,20 @@ const dependencies = Object.fromEntries(
       : `link:${join(root, directory).split('\\').join('/')}`]
   }),
 )
+
+// Linked packages resolve their own third-party imports from the profile tree
+// at runtime. Copy concrete versions from each linked package so a clean
+// install (and an offline pack) does not depend on the workspace root.
+for (const directory of Object.values(directories)) {
+  const manifestPath = join(root, directory, 'package.json')
+  if (!existsSync(manifestPath)) continue
+  const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'))
+  for (const [name, version] of Object.entries(manifest.dependencies ?? {})) {
+    if (name.startsWith('@zcd/') || name.startsWith('@deepseek-ai/')) continue
+    if (typeof version !== 'string' || version.startsWith('workspace:')) continue
+    dependencies[name] = version
+  }
+}
 
 const manifest = {
   ...sourceProfile,

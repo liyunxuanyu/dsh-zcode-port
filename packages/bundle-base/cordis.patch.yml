@@ -38,6 +38,16 @@
     - id: zcd-skill-office
       name: '@deepseek-ai/dsh-skill-office'
 
+    # Browser automation v1: one headless Chrome, one page per session.
+    - id: zcd-browser
+      name: '@zcd/browser'
+      config:
+        headless: true
+        timeoutMs: 15000
+
+    - id: zcd-tool-browser
+      name: '@zcd/tool-browser'
+
     # Session-owned document view state (get_view).
     - id: zcd-document-view
       name: '@zcd/document-view'

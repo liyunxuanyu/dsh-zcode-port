@@ -66,9 +66,14 @@ package.json / pnpm-lock.yaml / pnpm-workspace.yaml / tsconfig.base.json
 | 工具 | 必要性 | 缺失时 |
 |---|---|---|
 | `git` | 必需 | `ensure-runtime` 失败 |
+| `chrome` | 可选 | `browser_*` 工具返回 "Chrome not found"；profile 仍可启动 |
 | `libreoffice` | 可选 | 文档查看器回退为下载/系统打开 |
 | `rg` | 可选 | dsh 的 `glob`/`grep` 用自带 ripgrep |
 | `python` | 可选 | PTC Python / Python MCP 不可用 |
+
+浏览器使用本机 Chrome/Chromium/Edge，不下载浏览器二进制：自动探测
+Windows/macOS/Linux 标准路径，`ZCD_CHROME_PATH` 或 `browser.executablePath`
+可覆盖；默认 headless，每会话一个隔离 page。
 
 ## 5. 接入外部 dsh 插件
 

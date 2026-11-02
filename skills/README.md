@@ -13,13 +13,14 @@ links each bundle into `$DSH_HOME/skills/<name>`.
 | `superpowers/` (14) | ZCode `superpowers-plugin` (Apache-2.0) | Ported; tool names adapted to dsh (`subagent`, `todo_write`, `enter_plan_mode`, lowercase file/shell tools) |
 | `dsh-guide/` (6) | ZCode `zcode-guide-plugin` (Apache-2.0) | Rewritten for dsh: profile/bundle/patch, MCP, hooks, skills, commands |
 | `zcd/office-viewer` (1) | ZCode documents/spreadsheets/pdf/presentations viewer skills (Apache-2.0) | Rewritten for `read_document`/`search_document`/`open_document`/`show_in_viewer`/`get_view` |
+| `zcd/browser-use` (1) | ZCode browser-use skills (Apache-2.0) | Rewritten for `browser_open`/`browser_snapshot`/`browser_click`/`browser_type`/`browser_screenshot`/`browser_close` |
 
 Office authoring is **not** forked from ZCode: the profile mounts dsh's
 `@deepseek-ai/dsh-skill-office` (7 skills: office router, docx, pptx, xlsx,
 render, recalculate, export-pdf), and `zcd/office-viewer` covers viewing.
 
-Planned categories (see `docs/08-skills-catalog.md`): browser (2),
-computer-use (1), visualize (1), creators (2).
+Planned categories (see `docs/08-skills-catalog.md`): computer-use (1),
+visualize (1), creators (2).
 
 ## Porting rules
 

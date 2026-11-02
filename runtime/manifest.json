@@ -7,12 +7,28 @@
   "cordis": "4.0.6-alpha.1",
   "systemTools": {
     "required": [
-      { "name": "git", "why": "workspace changes, worktrees, session lineage" }
+      {
+        "name": "git",
+        "why": "workspace changes, worktrees, session lineage"
+      }
     ],
     "optional": [
-      { "name": "libreoffice", "why": "Office to PDF conversion for the document viewer" },
-      { "name": "rg", "why": "host ripgrep fallback; dsh ships its own ripgrep for glob/grep" },
-      { "name": "python", "why": "experimental PTC Python runtime and Python-based MCP servers" }
+      {
+        "name": "chrome",
+        "why": "headless browser for browser_* tools; set ZCD_CHROME_PATH or install Chrome/Chromium/Edge"
+      },
+      {
+        "name": "libreoffice",
+        "why": "Office to PDF conversion for the document viewer"
+      },
+      {
+        "name": "rg",
+        "why": "host ripgrep fallback; dsh ships its own ripgrep for glob/grep"
+      },
+      {
+        "name": "python",
+        "why": "experimental PTC Python runtime and Python-based MCP servers"
+      }
     ]
   },
   "python": {

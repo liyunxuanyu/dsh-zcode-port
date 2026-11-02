@@ -1,6 +1,6 @@
 # 08 · 技能迁移目录
 
-> **进度（2026-11-03）**：**28/39 可用** —— `skills/superpowers/` 14 个 + `skills/dsh-guide/` 6 个 + `skills/zcd/office-viewer/` 1 个，另挂载 dsh 原生 `@deepseek-ai/dsh-skill-office` 的 7 个 Office 技能；文件技能通过命名门禁，安装脚本 `scripts/install-skills.mjs`。其余按下方分类推进。
+> **进度（2026-11-03）**：**29/39 可用** —— `skills/superpowers/` 14 个 + `skills/dsh-guide/` 6 个 + `skills/zcd/office-viewer/` 1 个 + `skills/zcd/browser-use/` 1 个，另挂载 dsh 原生 `@deepseek-ai/dsh-skill-office` 的 7 个 Office 技能；文件技能通过命名门禁，安装脚本 `scripts/install-skills.mjs`。其余按下方分类推进。
 
 > ZCode 共 **39 个 SKILL.md**（38 个产品技能 + `dynamic-workflows`）。本文逐条给出：用途、依赖工具、dsh 对应能力、处理方式、改动点、优先级。
 >
@@ -68,8 +68,8 @@
 
 | 技能 | 用途 | 依赖 | 处理 | 改动 | 优先级 |
 |---|---|---|---|---|---|
-| `control-browser` | 浏览器自动化：打开、点击、填表、快照、多 tab | `js`（12 次）、`nodeRepl`（8 次） | **改名 + 轻改** | `Read`→`read`；"fresh kernel"说明保留；`agent.browsers` API 按 `06-browser-cua.md` §4 实现 | P3（WP-10） |
-| `web-gui-tester` | 黑盒 GUI 测试：点击、输入、截图验证 | `Read` | **改名** | 小改 | P3 |
+| `control-browser` | 浏览器自动化：打开、点击、填表、快照、多 tab | `js`（12 次）、`nodeRepl`（8 次） | **重写为 `browser-use`** | v1 用 `browser_*` 6 个工具（无 `js`/多 tab）；workflow 与安全规则保留 | ✅ 已安装 |
+| `web-gui-tester` | 黑盒 GUI 测试：点击、输入、截图验证 | `Read` | **合并进 `browser-use`** | 同一套 `browser_*` 工具即可完成；不单独建技能 | ✅ 覆盖 |
 
 ---
 

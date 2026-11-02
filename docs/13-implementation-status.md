@@ -7,7 +7,7 @@
 
 ## 0. 一句话
 
-**P0 已通过，P1/P2/P4 部分落地**：product profile 在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**27 个** ZCD 工具激活，**28 个技能**可用（21 个文件技能 + 7 个 dsh 原生 Office），**70 个单测（10 个文件）**、命名门禁、docs 链接、运行时 doctor 与启动 smoke 全部通过。设置页已能在真实浏览器里列出、添加、删除**用户记忆**；workflow run 面板与文档卡已可用。
+**P0 已通过，P1/P2/P4 部分落地**：product profile 在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**33 个** ZCD 工具激活，**29 个技能**可用（22 个文件技能 + 7 个 dsh 原生 Office），**74 个单测（12 个文件）**、命名门禁、docs 链接、运行时 doctor 与启动 smoke 全部通过。设置页已能在真实浏览器里列出、添加、删除**用户记忆**；workflow run 面板与文档卡已可用。
 
 ---
 
@@ -26,7 +26,7 @@
 | 命名门禁 / 文档门禁 / 插件 doctor | `scripts/verify-naming.mjs`、`check-docs.cjs`、`doctor-plugins.mjs` |
 | CI | `.github/workflows/ci.yml`（typecheck/test/verify/build/pack/doctor/smoke） |
 
-当前 workspace 共 **30 个包**：2 个 bundle、4 个 client bundle、5 个 Web host、其余为服务与工具包。
+当前 workspace 共 **32 个包**：2 个 bundle、4 个 client bundle、5 个 Web host、其余为服务与工具包。
 
 ### 1.2 插件与工具
 
@@ -60,11 +60,14 @@
 | `@zcd/client-ui-workflow` | 右侧栏 workflow tab：3s 轮询 + 节点展开 + 最近 12 条 journal 事件 | **视觉验收通过** | [截图](assets/workflow-panel-events.png) + smoke |
 | `@zcd/client-ui-zcd` | 文档卡 Open/自动打开、workflow 卡片轮询 + 取消 | 进入 boot graph | smoke 检查 |
 | `@zcd/tool-visualize` | `visualize`：写自包含 HTML，返回沙箱 URL（deferred） | 激活成功 | — |
+| `@zcd/browser` | `ctx.browser`：headless Chrome、每会话隔离 context/page、截图落盘、URL 白名单 | 激活成功 | 3 个单测（URL/Chrome 探测/真实导航） |
+| `@zcd/tool-browser` | `browser_open/snapshot/click/type/screenshot/close`（deferred） | 激活成功 | 1 个真实 Chrome 工具链测试 |
 | `skills/superpowers`（14） | ZCode 工程方法技能，工具名已映射为 dsh | 已安装 | `install-skills.mjs` |
 | `skills/dsh-guide`（6） | dsh 自诊断：profile/bundle/patch、插件、MCP、skills | 已安装 | `install-skills.mjs` |
 | `skills/zcd/office-viewer`（1） | Word/Excel/PDF/文本的 read/search/open/show/get_view 与锚点语义 | 已安装 | `install-skills.mjs` + verify-naming |
+| `skills/zcd/browser-use`（1） | browser_* 工具的工作流、selector 纪律与安全边界 | 已安装 | `install-skills.mjs` + verify-naming |
 | `@deepseek-ai/dsh-skill-office`（7） | office 路由 + docx/pptx/xlsx/render/recalculate/export-pdf | 已挂载 | 启动 smoke；LibreOffice kit 由 dsh 依赖提供 |
-| `@zcd/bundle-base` | 基础能力行（tool-search / todo-read / deferred / offpeak / memory / workflow / documents / genui …） | 已组合 | dump-config |
+| `@zcd/bundle-base` | 基础能力行（tool-search / todo-read / deferred / offpeak / memory / workflow / documents / genui / browser …） | 已组合 | dump-config |
 | `@zcd/bundle-web-app` | 5 个 host 行 + 4 个 client bundle 行 | 已组合 | dump-config |
 | `profiles/product` | bundles = dsh-base → zcd-base → dsh-web-app → zcd-web-app | 已组合 | dump-config + smoke |
 
@@ -80,8 +83,8 @@
 
 ```sh
 pnpm typecheck     # 全部 workspace 包通过
-pnpm test          # 10 个文件 / 70 个用例通过
-pnpm verify        # verify-naming: 27 ZCD tools, 32 reserved names；docs 链接 0 问题
+pnpm test          # 12 个文件 / 74 个用例通过
+pnpm verify        # verify-naming: 33 ZCD tools, 32 reserved names；docs 链接 0 问题
 pnpm build         # 所有包 emit 到 lib/
 node scripts/link-profile.mjs
 npx -y node@24 scripts/smoke-profile.mjs
@@ -97,10 +100,11 @@ smoke 覆盖：Web 启动、无 `did not activate`、Gen UI CSP、文档视图 P
 | 顺序 | 工作 | 说明 |
 |---|---|---|
 | 1 | Gen UI 卡片视觉验收 | 需要一次真实 `visualize` 结果会话，确认 iframe 卡片在会话内渲染 |
-| 2 | Browser / CUA（WP-10/11） | `js` code-act + 浏览器 provider + 面板；技能已归档，能力未实现 |
-| 3 | 设置页继续写入 | workflow 配置、只读策略开关；用户记忆已经可用 |
-| 4 | Workflow run 详情 | 面板内 resume/amend、耗时/模型列、失败重试入口 |
-| 5 | 剩余技能 | 28/39（浏览器 2、CUA 1、创作类等）；按 `docs/08-skills-catalog.md` 推进 |
+| 2 | CUA（WP-11） | dsh 原生 provider 仅 macOS；Windows 需另找 CUA 驱动 |
+| 3 | 浏览器 v2 | `js` code-act、tab/用户浏览器、可视面板 |
+| 4 | 设置页继续写入 | workflow 配置、只读策略开关；用户记忆已经可用 |
+| 5 | Workflow run 详情 | 面板内 resume/amend、耗时/模型列、失败重试入口 |
+| 6 | 剩余技能 | 29/39（CUA 1、创作类等）；按 `docs/08-skills-catalog.md` 推进 |
 
 ## 2.5 P1 尚未全部通过的验收
 
@@ -112,14 +116,15 @@ P0 已通过；P1（"ZCode 工具语义对齐"）**还没有全部验收**，巡
 | OffPeak 恢复 | 已有持久化测试：pending 恢复、running→interrupted、空闲执行 |
 | 只读策略集成 | 已有分类器/决策单测；端到端 dsh 夹具仍待补 |
 | S1 工具对齐 | 已确认由 `schedule_edit`、`list_agents`/`interrupt_agent` 覆盖，不新增工具 |
-| 技能 | 39 个中 28 个可用（21 个移植/改写 + 7 个 dsh 原生 Office） |
+| 技能 | 39 个中 29 个可用（22 个移植/改写 + 7 个 dsh 原生 Office） |
 | 设置页写入 | 用户记忆已通；其余配置项未做 |
 
 ## 3. 已知缺口
 
 | 缺口 | 影响 | 计划 |
 |---|---|---|
-| 无 Browser/CUA 工具 | 无法做浏览器/桌面自动化 | WP-10/11 |
+| 无 CUA 工具 | Windows 上无法做桌面自动化 | 等待可用驱动；macOS 可挂 dsh 原生 provider |
+| 浏览器只有 6 个工具 | 无 tab、无用户浏览器、无 `js` 持久内核、无可视面板 | 浏览器 v2 |
 | 设置页只写用户记忆 | Memory 配置、只读策略开关仍不可改 | 复用 `configForms` |
 | workflow 面板缺操作 | 只能查看，cancel/resume/amend 需回到工具调用 | 面板加操作按钮 |
 | policy-plan-readonly 默认关闭 | 默认行为与 dsh 一致；严格模式需显式开 | 设置页开关 |
