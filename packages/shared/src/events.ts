@@ -9,6 +9,14 @@
  */
 
 import type {} from '@deepseek-ai/dsh-session/types'
+import type {} from '@deepseek-ai/dsh-llm'
+
+declare module '@deepseek-ai/dsh-llm' {
+  interface MessageSourceMap {
+    /** A durable-workflow completion or hole notice injected into the parent. */
+    'zcd-workflow': { kind: 'zcd-workflow' }
+  }
+}
 
 declare module '@deepseek-ai/dsh-session/types' {
   interface SessionEventMap {

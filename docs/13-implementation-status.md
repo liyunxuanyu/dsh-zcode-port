@@ -42,7 +42,7 @@
 | `@zcd/memory` | `ctx.memory`：项目/用户 Markdown 条目、索引重建、路径约束、secret 拒绝 | 激活成功 | 6 个单测（slug/parse/secret） |
 | `@zcd/tool-memory` | `memory_search/read/write/remove/dream`（deferred） | 激活成功 | — |
 | `@zcd/workflow-store` | 文件型 run 存储：run.json + nodes + events.jsonl，原子写 | 已编译 | 3 个单测 |
-| `@zcd/durable-workflow` | `ctx.durableWorkflow`：脚本执行、`agent()`/`parallel()`/`pipeline()`、`hole()`、节点缓存、resume、cancel | 激活成功 | 5 个单测（运行/重放/并行/留白/失败） |
+| `@zcd/durable-workflow` | `ctx.durableWorkflow`：脚本执行、`agent()`/`parallel()`/`pipeline()`、`hole()`、节点缓存、resume、cancel、完成/留白通知 | 激活成功 | 5 个单测（运行/重放/并行/留白/失败） |
 | `@zcd/tool-workflow` | `workflow_run/get_run/list_runs/resume/cancel/answer_hole` | 激活成功 | — |
 | `@zcd/genui-host` | `/zcd/genui/...` 沙箱路由：严格 CSP + sandbox + no-store | 激活成功 | smoke 探测 200 + CSP |
 | `@zcd/tool-visualize` | `visualize`：写自包含 HTML，返回沙箱 URL（deferred） | 激活成功 | — |
@@ -91,7 +91,7 @@ node scripts/smoke-profile.mjs
 | 4 | ~~`list_models`~~ | 已完成：`ctx.llm.listProviders()` + `listModels()`，deferred |
 | 5 | ~~OffPeak~~ | 已完成：`ctx.offpeak` + 3 个 deferred 工具；空闲 10 分钟启动，用户输入即 taken-over |
 | 6 | ~~Memory~~（WP-06） | 已完成：条目/索引/路径/secret/软删除 + 确定性 dream + 每 agent 的索引 prompt section |
-| 7 | ~~Durable Workflow MVP~~ | 已完成：文件 store + `agent()`/`parallel()`/`pipeline()` + 稳定 key + resume + `hole()`/answer + 6 工具；amend/UI 待做 |
+| 7 | ~~Durable Workflow MVP~~ | 已完成：文件 store + `agent()`/`parallel()`/`pipeline()` + 稳定 key + resume + `hole()`/answer + 6 工具 + 完成/留白通知（`agent.inject`）；amend/UI 待做 |
 | 8 | ~~Memory dream + prompt index~~ | 已完成：确定性整理 + `zcd:memory:index` section（子代理跳过） |
 | 8.5 | **其余技能** | 已完成 20/39（superpowers 14 + dsh-guide 6）；office/browser/CUA 随对应 WP |
 | 9 | **Workflow 完整版** | parallel/pipeline、hole、amend、run 面板、通知 |

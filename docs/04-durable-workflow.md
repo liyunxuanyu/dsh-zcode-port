@@ -1,6 +1,6 @@
 # 04 · Durable Workflow（新 seam 规格）
 
-> **实现状态（2026-11-03）**：MVP 已落地于 `@zcd/durable-workflow` + `@zcd/workflow-store` + `@zcd/tool-workflow`。当前支持 `agent()`、`parallel()`、`pipeline()`、`hole()`、节点缓存、resume、cancel、6 个工具；`amend`、run 面板、通知仍按本文后续章节实现。
+> **实现状态（2026-11-03）**：MVP 已落地于 `@zcd/durable-workflow` + `@zcd/workflow-store` + `@zcd/tool-workflow`。当前支持 `agent()`、`parallel()`、`pipeline()`、`hole()`、节点缓存、resume、cancel、6 个工具、完成/留白通知；`amend` 与 run 面板仍按本文后续章节实现。
 
 > 这是本项目**唯一新增的 seam**。目标：把 ZCode 动态工作流的 journal/resume/留白/amend/live-retune 带到 dsh，同时不改 dsh 的 `workflow`。
 >

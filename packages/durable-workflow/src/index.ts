@@ -20,6 +20,7 @@ import type { Agent } from '@deepseek-ai/dsh-agent'
 import type {} from '@deepseek-ai/dsh-agent-default-model'
 import { createUserMessage } from '@deepseek-ai/dsh-llm'
 import type { SessionId } from '@deepseek-ai/dsh-session'
+import type {} from '@zcd/shared/events'
 import { FileWorkflowStore, type HoleRecord, type NodeRecord, type RunRecord } from '@zcd/workflow-store'
 import type { WorkflowRunView, WorkflowStartRequest } from './types.js'
 
@@ -207,6 +208,35 @@ export class DurableWorkflowService extends Service {
     return record
   }
 
+  /**
+   * Tell the parent agent that a run needs attention. Uses `inject` so the
+   * notice is durable context for the next step instead of waking a turn.
+   * @param parent - owning agent.
+   * @param record - run summary at settlement.
+   */
+  private notify(parent: Agent, record: RunRecord): void {
+    const lines = [`Workflow ${record.id} (${record.name}) is ${record.status}.`]
+    if (record.status === 'waiting-hole') {
+      const hole = this.store.listHoles(record.id).find(item => item.answer === undefined)
+      if (hole !== undefined) {
+        lines.push(`Hole ${hole.holeId}: ${hole.prompt}`)
+        lines.push('Call workflow_answer_hole with run_id, hole_id, and answer to continue.')
+      }
+    } else if (record.status === 'failed' && record.error !== undefined) {
+      lines.push(`${record.error.code}: ${record.error.message}`)
+    } else if (record.status === 'succeeded') {
+      lines.push(`Nodes: ${record.nodeCount}`)
+    }
+    try {
+      parent.inject(createUserMessage({
+        content: [{ type: 'text', text: lines.join('\n') }],
+        source: { kind: 'zcd-workflow' },
+      }))
+    } catch (error: unknown) {
+      this.ctx.logger.warn('zcd-workflow: failed to notify parent %s: %o', record.id, error)
+    }
+  }
+
   /** Project the store record onto the public view. */
   private view(record: RunRecord): WorkflowRunView {
     return {
@@ -303,20 +333,24 @@ export class DurableWorkflowService extends Service {
       const value = await pending
       if (signal.aborted) throw new Error('workflow cancelled')
       const result = value === undefined ? null : JSON.parse(JSON.stringify(value)) as unknown
-      this.store.updateRun(record.id, { status: 'succeeded', result, error: undefined })
+      const finished = this.store.updateRun(record.id, { status: 'succeeded', result, error: undefined })
       this.store.appendEvent(record.id, { at: Date.now(), type: 'run/finished', data: { status: 'succeeded' } })
+      this.notify(parent, finished)
     } catch (error: unknown) {
       if (error instanceof HolePause) {
-        this.store.updateRun(record.id, { status: 'waiting-hole', error: undefined })
+        const paused = this.store.updateRun(record.id, { status: 'waiting-hole', error: undefined })
+        this.notify(parent, paused)
         return
       }
       if (signal.aborted) {
-        this.store.updateRun(record.id, { status: 'cancelled', error: { code: 'WORKFLOW_CANCELLED', message: 'cancelled' } })
+        const cancelled = this.store.updateRun(record.id, { status: 'cancelled', error: { code: 'WORKFLOW_CANCELLED', message: 'cancelled' } })
+        this.notify(parent, cancelled)
         return
       }
       const message = error instanceof Error ? error.message : String(error)
-      this.store.updateRun(record.id, { status: 'failed', error: { code: 'WORKFLOW_FAILED', message } })
+      const failed = this.store.updateRun(record.id, { status: 'failed', error: { code: 'WORKFLOW_FAILED', message } })
       this.store.appendEvent(record.id, { at: Date.now(), type: 'run/finished', data: { status: 'failed', message } })
+      this.notify(parent, failed)
     }
   }
 

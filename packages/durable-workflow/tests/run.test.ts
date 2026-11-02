@@ -45,18 +45,25 @@ async function harness() {
     nodeTimeoutMs: 5_000,
   })
   const service = ctx.get('durableWorkflow') as DurableWorkflowService
-  const parent = { session: { id: 'parent', header: { cwd: '/work' } } } as never
-  return { ctx, service, parent, created }
+  const injected: string[] = []
+  const parent = {
+    session: { id: 'parent', header: { cwd: '/work' } },
+    inject(message: { content: Array<{ type: string; text?: string }> }) {
+      injected.push(message.content.map(block => block.text ?? '').join(''))
+    },
+  } as never
+  return { ctx, service, parent, created, injected }
 }
 
 describe('durable workflow', () => {
   it('runs a script and returns its value', async () => {
-    const { ctx, service, parent } = await harness()
+    const { ctx, service, parent, injected } = await harness()
     const view = service.start({ script: 'const a = await agent("hi"); return a' }, parent)
     const done = await service.wait(view.id, 5_000)
     expect(done.status).toBe('succeeded')
     expect(done.result).toMatch(/^answer:session-/)
     expect(done.nodeCount).toBe(1)
+    expect(injected.some(text => text.includes('is succeeded'))).toBe(true)
     await ctx.dispose?.()
   })
 
@@ -89,10 +96,11 @@ describe('durable workflow', () => {
   })
 
   it('pauses at a hole and continues after an answer', async () => {
-    const { ctx, service, parent } = await harness()
+    const { ctx, service, parent, injected } = await harness()
     const view = service.start({ script: 'const code = await hole("need code"); return code' }, parent)
     const paused = await service.wait(view.id, 5_000)
     expect(paused.status).toBe('waiting-hole')
+    expect(injected.some(text => text.includes('Hole'))).toBe(true)
     expect(paused.holes?.[0]?.prompt).toBe('need code')
     const holeId = paused.holes?.[0]?.id
     expect(holeId).toBeDefined()
