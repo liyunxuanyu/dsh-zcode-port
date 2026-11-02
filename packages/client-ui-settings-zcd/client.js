@@ -61,6 +61,18 @@ window.__ModuleLoader__.load({
           .catch((reason) => setMessage(String(reason?.message ?? reason)))
           .finally(() => setBusy(false))
       }
+      const dream = () => {
+        setBusy(true)
+        fetch('/zcd/memory/dream', { method: 'POST' })
+          .then((response) => response.ok ? response.json() : Promise.reject(new Error(String(response.status))))
+          .then((value) => {
+            const report = value.report ?? {}
+            setMessage(`Tidied: scanned ${report.scanned ?? 0}, removed ${report.removed ?? 0}, kept ${report.kept ?? 0}.`)
+            loadMemory()
+          })
+          .catch((reason) => setMessage(String(reason?.message ?? reason)))
+          .finally(() => setBusy(false))
+      }
       const remove = (id) => {
         setBusy(true)
         fetch(`/zcd/memory/${id}`, { method: 'DELETE' })
@@ -135,13 +147,22 @@ window.__ModuleLoader__.load({
           rows: 3,
           style: { ...inputStyle, resize: 'vertical' },
         }),
-        jsx('button', {
-          type: 'button',
-          style: buttonStyle,
-          disabled: busy,
-          onClick: submit,
-          children: busy ? 'Saving…' : 'Add memory',
-        }),
+        jsxs('div', { style: { display: 'flex', gap: '8px' }, children: [
+          jsx('button', {
+            type: 'button',
+            style: buttonStyle,
+            disabled: busy,
+            onClick: submit,
+            children: busy ? 'Saving…' : 'Add memory',
+          }),
+          jsx('button', {
+            type: 'button',
+            style: buttonStyle,
+            disabled: busy,
+            onClick: dream,
+            children: 'Tidy memory',
+          }),
+        ] }),
         message === undefined ? null : jsx('div', { style: cell, children: message }),
       ] })
       return jsxs('div', { style: { display: 'grid', gap: '14px' }, children: [identity, runsBlock, memoryBlock] })

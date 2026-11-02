@@ -223,6 +223,11 @@ try {
   if (!Array.isArray(afterCreateBody?.entries) || !afterCreateBody.entries.some(entry => entry.id === createdBody.entry.id)) {
     throw new Error(`memory create was not persisted: ${afterCreate.status}`)
   }
+  const dreamed = await fetch(`http://127.0.0.1:${port}/zcd/memory/dream`, { method: 'POST' })
+  const dreamedBody = await dreamed.json().catch(() => undefined)
+  if (dreamed.status !== 200 || dreamedBody?.report?.scanned < 1 || dreamedBody?.report?.kept < 1) {
+    throw new Error(`memory dream failed: ${dreamed.status} ${JSON.stringify(dreamedBody)}`)
+  }
   const removed = await fetch(`http://127.0.0.1:${port}/zcd/memory/${createdBody.entry.id}`, { method: 'DELETE' })
   if (removed.status !== 200) throw new Error(`memory delete route failed: ${removed.status}`)
   const afterDelete = await fetch(`http://127.0.0.1:${port}/zcd/memory`)

@@ -118,7 +118,7 @@
 | 文档 | ✅ 5/5 + 生成 | read/search/open/show/get_view；docx/xlsx/pdf/text 锚点；create_document 基础生成 |
 | Gen UI | ✅ 工具 + 路由 + 卡片 | `visualize` + `/zcd/genui` CSP 沙箱 + lazy-CJS iframe 卡片；路由渲染[截图](docs/assets/zcd-genui-render.png)，会话内卡片待模型会话验收 |
 | Workflow 面板 | ✅ 视觉验收 | 右侧栏 run 列表 + 节点展开 + journal 事件 + 取消/恢复（[截图](docs/assets/workflow-panel-resume.png)） |
-| ZCD 设置页 | ✅ 视觉验收 | 运行环境 + 最近 runs + 用户记忆增删（`/zcd/memory`，[截图](docs/assets/zcd-settings-memory.png)） |
+| ZCD 设置页 | ✅ 视觉验收 | 运行环境 + 最近 runs + 用户记忆增删/整理（`/zcd/memory`，[截图](docs/assets/zcd-settings-memory.png)） |
 | 技能 | ✅ 33 个（覆盖 34/39） | superpowers 14 + dsh-guide 6 + zcd 6（office-viewer/browser-use/visualize/dynamic-workflows/skill-creator/plugin-creator）+ dsh 原生 Office 7 |
 | 浏览器 v1 | ✅ | `@zcd/browser`（headless Chrome）+ 7 个 deferred 工具；每会话一页，真实 Chrome 集成测试 |
 | 外部插件接入 | ✅ doctor | `pnpm doctor` 检查依赖/engines/重复版本/bundle manifest |

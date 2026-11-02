@@ -57,8 +57,8 @@
 | `@zcd/client-ui-genui` | lazy-CJS：`visualize` 结果渲染为沙箱 iframe | 进入 boot graph | smoke 检查；会话内卡片待模型会话验收 |
 | `@zcd/status-host` | `/zcd/status`：Node/dsh/uptime/最近 runs | 激活成功 | smoke 200 |
 | `@zcd/workflow-ui-host` | `/zcd/workflow/runs` 列表、`/<id>` JSON、`/<id>/nodes`、`/<id>/events`、`POST /<id>/cancel`、`POST /<id>/resume` | 激活成功 | smoke：fixture 列表/节点/事件/cancel + resume 409 契约 |
-| `@zcd/memory-ui-host` | `GET/POST /zcd/memory`、`DELETE /zcd/memory/<id>`（仅 user scope） | 激活成功 | smoke 增删查往返 |
-| `@zcd/client-ui-settings-zcd` | `settings.section` 的 ZCD 页：运行环境、最近 runs、**用户记忆增删** | **视觉验收通过** | [截图](assets/zcd-settings-memory.png) + smoke |
+| `@zcd/memory-ui-host` | `GET/POST /zcd/memory`、`DELETE /zcd/memory/<id>`、`POST /zcd/memory/dream`（仅 user scope） | 激活成功 | smoke 增删查 + dream 往返 |
+| `@zcd/client-ui-settings-zcd` | `settings.section` 的 ZCD 页：运行环境、最近 runs、**用户记忆增删/整理** | **视觉验收通过** | [截图](assets/zcd-settings-memory.png) + smoke |
 | `@zcd/client-ui-workflow` | 右侧栏 workflow tab：3s 轮询 + 节点展开 + 最近 12 条 journal 事件 + 取消/恢复 | **视觉验收通过** | [截图](assets/workflow-panel-resume.png) + smoke |
 | `@zcd/client-ui-zcd` | 文档卡 Open/自动打开、workflow 卡片轮询 + 取消 | 进入 boot graph | smoke 检查 |
 | `@zcd/tool-visualize` | `visualize`：写自包含 HTML，返回沙箱 URL（deferred） | 激活成功 | 2 个单测（落盘/URL、限额/高度） |
@@ -82,7 +82,7 @@
 - 新增 `@zcd/memory-ui-host`，只暴露 **user scope**：全局设置页不需要 workspace 就能管理条目；project scope 继续由会话内的 `memory_*` 工具读写。
 - `GET /zcd/memory` 返回 `{ entries }`；`POST` 接收 `{name, description, type, body}`，`type` 限定 `fact/preference/decision/reference`；`DELETE /zcd/memory/<id>` 删除。
 - 请求体上限 128 KB；错误以 `{ error }` 返回 400/404；响应带 `no-store` 与 `nosniff`。
-- 设置页表单支持选择类型、保存后立即刷新列表、删除后回到空态；视觉验收截图见 `docs/assets/zcd-settings-memory.png`。
+- 设置页表单支持选择类型、保存后立即刷新列表、删除后回到空态、`Tidy memory` 调 `dream` 并展示 scanned/removed/kept；视觉验收截图见 `docs/assets/zcd-settings-memory.png`。
 - `ZCD_USER_MEMORY_HOME` 可覆盖用户记忆根目录，smoke 用它指向一次性目录，避免污染真实的 `~/.zcd/memory`。
 
 ### 1.4 验证证据（可复跑）

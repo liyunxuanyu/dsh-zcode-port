@@ -97,6 +97,20 @@ export function apply(ctx: Context): void {
         return
       }
 
+      if (url.pathname === '/zcd/memory/dream') {
+        if (req.method !== 'POST') {
+          res.writeHead(405, { allow: 'POST' })
+          res.end()
+          return
+        }
+        try {
+          json(res, 200, { report: ctx.memory.dream('user', undefined) })
+        } catch (error: unknown) {
+          json(res, 500, { error: error instanceof Error ? error.message : 'dream-failed' })
+        }
+        return
+      }
+
       const id = /^\/zcd\/memory\/([A-Za-z0-9_-]+)$/.exec(url.pathname)?.[1]
       if (id !== undefined && req.method === 'DELETE') {
         try {

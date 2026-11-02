@@ -205,7 +205,7 @@ get_view({ path? })
 
 - 一个包 `@zcd/client-ui-settings-zcd` 注册一个 `ZCD` section，页内分三块：运行环境、最近 workflow runs、用户记忆；其余导航复用 dsh 已有页面。
 - section 必须 `inject: ['slots','locale']` 并调用 `ctx.locale.register(NS, { zh, en })`，否则导航项有、正文为空（已踩坑）。
-- 用户记忆编辑器直接调 `@zcd/memory-ui-host` 注册的 `/zcd/memory`：`GET` 列表、`POST` 新增、`DELETE /<id>` 删除；只操作 **user scope**，避免全局设置页伪造 workspace。
+- 用户记忆编辑器直接调 `@zcd/memory-ui-host` 注册的 `/zcd/memory`：`GET` 列表、`POST` 新增、`DELETE /<id>` 删除、`POST /dream` 整理；只操作 **user scope**，避免全局设置页伪造 workspace。
 - 后续 section（Agents / Tools / Workflow 配置）走 `ctx.configForms.get('<entry-id>')`，不直接改文件；表单优先复用 dsh 的 `SettingsForm`。
 - 文案走 locale 字典（en/zh），不硬编码；`buttons/input` 用宿主 CSS 变量，深浅色都能读。
 
