@@ -1,5 +1,6 @@
+import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { assertNoSecrets, parseEntry, renderEntry, slugify } from '../src/index.js'
+import { assertNoSecrets, parseEntry, renderEntry, resolveUserRoot, slugify } from '../src/index.js'
 
 describe('slugify', () => {
   it('normalizes names to filesystem-safe ids', () => {
@@ -25,6 +26,15 @@ describe('parseEntry / renderEntry', () => {
   it('rejects malformed frontmatter', () => {
     expect(parseEntry('project', 'x', 'no frontmatter')).toBeUndefined()
     expect(parseEntry('project', 'x', '---\nname: x\n---\nbody')).toBeUndefined()
+  })
+})
+
+describe('resolveUserRoot', () => {
+  it('defaults to the home directory and honors the override', () => {
+    expect(resolveUserRoot('.zcd/memory', {})).toMatch(/[\\/]\.zcd[\\/]memory$/)
+    expect(resolveUserRoot('.zcd/memory', { ZCD_USER_MEMORY_HOME: 'user-memory-test' }))
+      .toBe(resolve('user-memory-test'))
+    expect(resolveUserRoot('.zcd/memory', { ZCD_USER_MEMORY_HOME: '  ' })).toMatch(/[\\/]\.zcd[\\/]memory$/)
   })
 })
 

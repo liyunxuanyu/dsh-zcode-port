@@ -107,6 +107,9 @@ importers:
       '@zcd/documents-ui-host':
         specifier: workspace:*
         version: link:../documents-ui-host
+      '@zcd/memory-ui-host':
+        specifier: workspace:*
+        version: link:../memory-ui-host
       '@zcd/status-host':
         specifier: workspace:*
         version: link:../status-host
@@ -231,6 +234,19 @@ importers:
       zod:
         specifier: 4.4.3
         version: 4.4.3
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: 4.0.6-alpha.1
+        version: 4.0.6-alpha.1(@deepseek-ai/cordis-plugin-include@1.0.11-alpha.1)(@deepseek-ai/cordis-plugin-loader@1.0.7-alpha.1)
+
+  packages/memory-ui-host:
+    dependencies:
+      '@deepseek-ai/dsh-host-webserver':
+        specifier: 0.2.2-alpha.2
+        version: 0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1)
+      '@zcd/memory':
+        specifier: workspace:*
+        version: link:../memory
     devDependencies:
       '@deepseek-ai/cordis':
         specifier: 4.0.6-alpha.1
@@ -589,6 +605,9 @@ importers:
       '@zcd/memory':
         specifier: workspace:*
         version: link:../../packages/memory
+      '@zcd/memory-ui-host':
+        specifier: workspace:*
+        version: link:../../packages/memory-ui-host
       '@zcd/offpeak':
         specifier: workspace:*
         version: link:../../packages/offpeak

@@ -304,6 +304,14 @@ export interface MemoryService {
 | `memory_write` | 写单条；只允许 memory 目录；写入前 secret 扫描 |
 | `memory_remove` | 删除；需确认（`ask_user_question` 或审批） |
 
+### 3.4.1 设置页入口（已实现）
+
+- `@zcd/memory-ui-host` 注册 `/zcd/memory`：`GET` 列表、`POST {name, description, type, body}`、`DELETE /<id>`。
+- 只开放 **user scope**（`~/.zcd/memory`）：全局设置页没有 workspace，伪造 cwd 会让条目落错位置；项目记忆继续由会话内的 `memory_*` 工具处理。
+- `ZCD_USER_MEMORY_HOME` 覆盖用户记忆根目录；smoke 指向一次性目录，避免污染真实用户目录。
+- 写入仍走 `MemoryService.write`，因此 slug、secret 扫描、大小/条数上限与文件布局完全一致；设置页不是第二条写入路径。
+- 前端在 `@zcd/client-ui-settings-zcd` 的 `ZCD` section 内，保存/删除后立即重新拉取列表。
+
 ### 3.5 上下文注入
 
 - system prompt section `zcd:memory:index`：项目索引前 20 条 + 用户索引前 10 条（可配）。

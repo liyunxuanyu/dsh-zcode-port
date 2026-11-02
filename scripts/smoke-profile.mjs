@@ -8,7 +8,7 @@
  * dsh's own bundles and load every ZCD plugin.
  */
 import { spawn } from 'node:child_process'
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -17,6 +17,7 @@ const bin = join(root, 'node_modules/@deepseek-ai/dsh/lib/bin.js')
 const home = process.env.ZCD_DSH_HOME ?? join(root, '.dsh-home')
 const profile = join(home, 'profiles/product')
 const genuiDir = join(home, 'storages', 'zcd-genui', '__smoke__')
+const memoryHome = join(home, 'memory-smoke')
 
 if (!existsSync(bin)) {
   console.error('✖ dsh is not installed; run `pnpm install` first.')
@@ -28,11 +29,12 @@ if (!existsSync(profile)) {
 }
 
 mkdirSync(genuiDir, { recursive: true })
+rmSync(memoryHome, { recursive: true, force: true })
 writeFileSync(join(genuiDir, 'probe.html'), '<!doctype html><h1>zcd genui smoke</h1>')
 
 const child = spawn(process.execPath, [bin, '--profile', 'product', '--no-open', '--port', '0'], {
   cwd: root,
-  env: { ...process.env, DSH_HOME: home },
+  env: { ...process.env, DSH_HOME: home, ZCD_USER_MEMORY_HOME: memoryHome },
   stdio: ['ignore', 'pipe', 'pipe'],
 })
 
@@ -113,6 +115,40 @@ try {
   if (cancel.status !== 404) throw new Error(`workflow cancel route failed: ${cancel.status}`)
   const nodes = await fetch(`http://127.0.0.1:${port}/zcd/workflow/runs/not-a-run/nodes`)
   if (nodes.status !== 404) throw new Error(`workflow nodes route failed: ${nodes.status}`)
+
+  // User memory: list → create → list → delete → list. The smoke home is a
+  // throwaway directory, so "empty" is a meaningful assertion.
+  const memoryList = await fetch(`http://127.0.0.1:${port}/zcd/memory`)
+  const memoryListBody = await memoryList.json().catch(() => undefined)
+  if (memoryList.status !== 200 || !Array.isArray(memoryListBody?.entries) || memoryListBody.entries.length !== 0) {
+    throw new Error(`memory list route failed: ${memoryList.status}`)
+  }
+  const created = await fetch(`http://127.0.0.1:${port}/zcd/memory`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      name: 'Smoke memory probe',
+      description: 'Written by the product-profile smoke test.',
+      type: 'fact',
+      body: 'User memory can be written from the settings surface.',
+    }),
+  })
+  const createdBody = await created.json().catch(() => undefined)
+  if (created.status !== 201 || typeof createdBody?.entry?.id !== 'string') {
+    throw new Error(`memory create route failed: ${created.status} ${JSON.stringify(createdBody)}`)
+  }
+  const afterCreate = await fetch(`http://127.0.0.1:${port}/zcd/memory`)
+  const afterCreateBody = await afterCreate.json().catch(() => undefined)
+  if (!Array.isArray(afterCreateBody?.entries) || !afterCreateBody.entries.some(entry => entry.id === createdBody.entry.id)) {
+    throw new Error(`memory create was not persisted: ${afterCreate.status}`)
+  }
+  const removed = await fetch(`http://127.0.0.1:${port}/zcd/memory/${createdBody.entry.id}`, { method: 'DELETE' })
+  if (removed.status !== 200) throw new Error(`memory delete route failed: ${removed.status}`)
+  const afterDelete = await fetch(`http://127.0.0.1:${port}/zcd/memory`)
+  const afterDeleteBody = await afterDelete.json().catch(() => undefined)
+  if (!Array.isArray(afterDeleteBody?.entries) || afterDeleteBody.entries.length !== 0) {
+    throw new Error(`memory delete did not remove the entry: ${afterDelete.status}`)
+  }
 
   // Client cards must be in the browser boot graph and their bundles served.
   const login = await fetch(`http://127.0.0.1:${port}/?token=${token}`, { redirect: 'manual' })

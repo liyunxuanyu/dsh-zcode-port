@@ -92,6 +92,20 @@ export function renderEntry(entry: MemoryEntry): string {
   ].join('\n')
 }
 
+/**
+ * Resolve the user-scope root.
+ *
+ * `ZCD_USER_MEMORY_HOME` exists for tests and for deployments that keep the
+ * whole product state in one directory; the default stays ZCode-compatible
+ * (`~/.zcd/memory`).
+ */
+export function resolveUserRoot(directoryName: string, env: NodeJS.ProcessEnv = process.env): string {
+  const override = env.ZCD_USER_MEMORY_HOME
+  return override === undefined || override.trim().length === 0
+    ? join(homedir(), directoryName)
+    : resolve(override)
+}
+
 /** Reject content that looks like a credential. */
 export function assertNoSecrets(text: string): void {
   for (const pattern of SECRET_PATTERNS) {
@@ -141,7 +155,7 @@ Use memory_search and memory_read before asking the user to repeat a preference,
    * @returns absolute root.
    */
   root(scope: MemoryScope, cwd: string | undefined): string {
-    if (scope === 'user') return join(homedir(), this.config.directoryName)
+    if (scope === 'user') return resolveUserRoot(this.config.directoryName)
     if (cwd === undefined) throw new Error('project memory requires a session working directory')
     return join(cwd, this.config.directoryName)
   }

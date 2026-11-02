@@ -31,6 +31,7 @@ const directories = {
   '@zcd/genui-host': 'packages/genui-host',
   '@zcd/tool-visualize': 'packages/tool-visualize',
   '@zcd/memory': 'packages/memory',
+  '@zcd/memory-ui-host': 'packages/memory-ui-host',
   '@zcd/durable-workflow': 'packages/durable-workflow',
   '@zcd/workflow-store': 'packages/workflow-store',
   '@zcd/tool-workflow': 'packages/tool-workflow',

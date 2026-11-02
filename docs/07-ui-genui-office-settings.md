@@ -1,6 +1,6 @@
 # 07 · UI：Gen UI / Office / 设置页
 
-> **实现状态（2026-11-03）**：`visualize` 工具 + `/zcd/genui` 沙箱路由已落地；`read_document` / `search_document` 已支持 text/docx/xlsx/pdf 并输出位置锚点。Gen UI 卡片、文档卡、workflow 实时卡片已实现（手写 lazy-CJS）；文档卡用 `openFile` 打开内置预览，workflow 卡片轮询 `/zcd/workflow/runs/<id>` 并可 `POST .../cancel`。`open_document` / `show_in_viewer` 已实现（文本 `#l:n` 可定位行，其他格式打开文件）；右侧栏 `Workflows` run 面板已实现并通过视觉验收（[截图](assets/workflow-panel.png)），点击 run 可展开节点。`get_view` 已实现（会话级最近打开文档）；`create_document` 支持 docx/xlsx/pdf 的基础块（heading/paragraph/bullet/table）。设置页写入与 Office 富格式技能仍待做。只读 ZCD 设置页已通过真实浏览器视觉验收（[截图](assets/zcd-settings.png)）。
+> **实现状态（2026-11-03）**：`visualize` 工具 + `/zcd/genui` 沙箱路由已落地；`read_document` / `search_document` 已支持 text/docx/xlsx/pdf 并输出位置锚点。Gen UI 卡片、文档卡、workflow 实时卡片已实现（手写 lazy-CJS）；文档卡用 `openFile` 打开内置预览，workflow 卡片轮询 `/zcd/workflow/runs/<id>` 并可 `POST .../cancel`。`open_document` / `show_in_viewer` 已实现（文本 `#l:n` 可定位行，其他格式打开文件）；右侧栏 `Workflows` run 面板已实现并通过视觉验收（[截图](assets/workflow-panel.png)），点击 run 可展开节点。`get_view` 已实现（会话级最近打开文档）；`create_document` 支持 docx/xlsx/pdf 的基础块（heading/paragraph/bullet/table）。ZCD 设置页已通过真实浏览器视觉验收，并可在页内**增删用户记忆**（`/zcd/memory`，[截图](assets/zcd-settings-memory.png)）；Office 富格式技能与 workflow 配置写入仍待做。
 
 > 目标：在 dsh Web 客户端上，用 client 插件补齐 ZCode 的三类 UI 体验，不重建组件库。
 >
@@ -191,7 +191,7 @@ get_view({ path? })
 
 | ZCode 导航 | dsh 落点 | 实现 |
 |---|---|---|
-| Memory | `settings.section` "Memory" | 读写 `@zcd/memory` Config + 条目管理 |
+| Memory | `settings.section` "ZCD" → User memory | ✅ 列出/新增/删除用户记忆（`/zcd/memory`）；项目记忆仍走会话工具 |
 | 子智能体 | `settings.section` "Agents" | 读 preset 列表 + Markdown profile 管理（WP-07） |
 | 插件 | 已有 Plugins 页 | 复用；加 ZCode 式 scope 选择器（v2） |
 | MCP | 已有 MCP 设置 | 复用 |
@@ -203,17 +203,18 @@ get_view({ path? })
 
 ### 3.3 实现
 
-- 一个包 `@zcd/client-ui-settings-zcd`，注册 3–4 个 `settings.section`（Memory / Agents / Tools / Workflow），其余复用 dsh 已有页面。
-- 每个 section 用 `ctx.configForms.get('<entry-id>')` 读写；不直接改文件。
-- 表单复用 dsh 的 `SettingsForm`/`SettingsFormModel`（`ui-primitives`），不自建控件。
-- 文案走 locale 字典（en/zh），不硬编码。
+- 一个包 `@zcd/client-ui-settings-zcd` 注册一个 `ZCD` section，页内分三块：运行环境、最近 workflow runs、用户记忆；其余导航复用 dsh 已有页面。
+- section 必须 `inject: ['slots','locale']` 并调用 `ctx.locale.register(NS, { zh, en })`，否则导航项有、正文为空（已踩坑）。
+- 用户记忆编辑器直接调 `@zcd/memory-ui-host` 注册的 `/zcd/memory`：`GET` 列表、`POST` 新增、`DELETE /<id>` 删除；只操作 **user scope**，避免全局设置页伪造 workspace。
+- 后续 section（Agents / Tools / Workflow 配置）走 `ctx.configForms.get('<entry-id>')`，不直接改文件；表单优先复用 dsh 的 `SettingsForm`。
+- 文案走 locale 字典（en/zh），不硬编码；`buttons/input` 用宿主 CSS 变量，深浅色都能读。
 
 ### 3.4 验收
 
-1. 每个 section 能读/写，保存后下一个操作生效（volatile）。
-2. 非法值被 Host 拒绝，UI 保留草稿并显示错误。
-3. 390px 无横向溢出；键盘可达。
-4. 不绕过 plugin_manager 的审批。
+1. 用户记忆：真实浏览器里新增 → 列表出现 → 删除 → 空态；smoke 另跑一次 HTTP 往返。
+2. 非法请求体返回 400；删除不存在的 id 返回 404；请求体超过 128 KB 被拒。
+3. 视觉：`docs/assets/zcd-settings-memory.png`（1280×720，深色主题）；窄屏与键盘可达仍待补。
+4. 不绕过 plugin_manager 的审批；后续配置写入继续走 `configForms`，不直接改文件。
 
 ### 3.5 风险
 

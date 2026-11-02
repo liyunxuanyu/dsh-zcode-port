@@ -43,6 +43,7 @@
     "@zcd/client-ui-workflow": "workspace:*",
     "@zcd/document-view": "workspace:*",
     "@zcd/documents-ui-host": "workspace:*",
-    "@zcd/tool-office": "workspace:*"
+    "@zcd/tool-office": "workspace:*",
+    "@zcd/memory-ui-host": "workspace:*"
   }
 }

@@ -10,6 +10,9 @@
     - id: zcd-status-host
       name: '@zcd/status-host'
 
+    - id: zcd-memory-ui-host
+      name: '@zcd/memory-ui-host'
+
     - id: zcd-client-ui-settings-zcd
       name: '@zcd/client-ui-settings-zcd'
 
