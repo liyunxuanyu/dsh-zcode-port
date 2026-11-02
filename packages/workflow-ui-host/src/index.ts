@@ -25,6 +25,27 @@ export function apply(ctx: Context): void {
     path: '/zcd/workflow/runs',
     handler(req, res) {
       const url = new URL(req.url ?? '/', 'http://localhost')
+      if (url.pathname === '/zcd/workflow/runs') {
+        if (req.method !== 'GET') {
+          res.writeHead(405, { allow: 'GET' })
+          res.end()
+          return
+        }
+        const runs = ctx.durableWorkflow.list(50).map(run => ({
+          id: run.id,
+          name: run.name,
+          status: run.status,
+          nodeCount: run.nodeCount,
+          updatedAt: run.updatedAt,
+        }))
+        res.writeHead(200, {
+          'content-type': 'application/json; charset=utf-8',
+          'cache-control': 'no-store',
+          'x-content-type-options': 'nosniff',
+        })
+        res.end(JSON.stringify({ runs }))
+        return
+      }
       const match = /^\/zcd\/workflow\/runs\/([A-Za-z0-9_-]+)(\/cancel)?$/.exec(url.pathname)
       const id = match?.[1]
       const cancel = match?.[2] !== undefined

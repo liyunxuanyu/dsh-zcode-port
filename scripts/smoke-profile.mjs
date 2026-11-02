@@ -86,6 +86,12 @@ try {
     throw new Error(`status route failed: ${status.status}`)
   }
 
+  const runList = await fetch(`http://127.0.0.1:${port}/zcd/workflow/runs`)
+  const runListBody = await runList.json().catch(() => undefined)
+  if (runList.status !== 200 || !Array.isArray(runListBody?.runs)) {
+    throw new Error(`workflow list route failed: ${runList.status}`)
+  }
+
   const workflow = await fetch(`http://127.0.0.1:${port}/zcd/workflow/runs/not-a-run`)
   const workflowBody = await workflow.text()
   if (workflow.status !== 404 || !workflowBody.includes('not-found')) {
@@ -103,6 +109,7 @@ try {
     ['@zcd/client-ui-genui', 'tool.call.toolview'],
     ['@zcd/client-ui-zcd', 'read_document'],
     ['@zcd/client-ui-settings-zcd', 'settings.section'],
+    ['@zcd/client-ui-workflow', 'sidebar.right.pane.tab'],
   ]) {
     const prefix = `${id}/client.js&rev=`
     const at = html.indexOf(prefix)

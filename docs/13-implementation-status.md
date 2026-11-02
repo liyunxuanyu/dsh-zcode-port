@@ -50,6 +50,7 @@
 | `@zcd/status-host` | `/zcd/status` 只读 JSON：Node/dsh/uptime/最近 runs | 激活成功 | smoke 探测 200 |
 | `@zcd/workflow-ui-host` | `/zcd/workflow/runs/<id>` JSON + `POST .../cancel` | 激活成功 | smoke 探测 404 契约 |
 | `@zcd/client-ui-settings-zcd` | `settings.section` 的 ZCD 页：运行环境 + 最近 runs | **视觉验收通过** | [截图](assets/zcd-settings.png) + smoke |
+| `@zcd/client-ui-workflow` | 右侧栏 `Workflows` tab：run 列表，3s 轮询 | **视觉验收通过** | [截图](assets/workflow-panel.png) + smoke |
 | `@zcd/client-ui-zcd` | 文档卡 Open/自动打开、workflow 卡片轮询 + 取消按钮 | 进入 boot graph，bundle 200 | smoke 检查 |
 | `@zcd/tool-visualize` | `visualize`：写自包含 HTML，返回沙箱 URL（deferred） | 激活成功 | — |
 | `skills/superpowers`（14） | ZCode 工程方法技能，工具名已映射为 dsh | 已安装到 `$DSH_HOME/skills` | `install-skills.mjs` |
@@ -102,7 +103,7 @@ node scripts/smoke-profile.mjs
 | 8.5 | **其余技能** | 已完成 20/39（superpowers 14 + dsh-guide 6）；office/browser/CUA 随对应 WP |
 | 9 | **Workflow 完整版** | parallel/pipeline、hole、amend、run 面板、通知 |
 | 10 | **Browser / CUA**（WP-10/11） | `js` code-act + 浏览器 provider + 面板 |
-| 11 | **UI**（WP-12/13/14） | Gen UI 卡片、文档卡/自动打开、workflow 实时卡片、只读 ZCD 设置页已通；设置页视觉验收通过（[截图](assets/zcd-settings.png)）；run 面板、设置写入待做 |
+| 11 | **UI**（WP-12/13/14） | Gen UI 卡片、文档卡/自动打开、workflow 卡片/取消、只读设置页、workflow run 面板已通；设置页与 run 面板视觉验收通过（[设置](assets/zcd-settings.png) / [面板](assets/workflow-panel.png)）；设置写入、`get_view` 待做 |
 
 ## 2.5 P1 尚未全部通过的验收
 

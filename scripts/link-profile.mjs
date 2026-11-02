@@ -20,6 +20,7 @@ const directories = {
   '@zcd/status-host': 'packages/status-host',
   '@zcd/client-ui-settings-zcd': 'packages/client-ui-settings-zcd',
   '@zcd/workflow-ui-host': 'packages/workflow-ui-host',
+  '@zcd/client-ui-workflow': 'packages/client-ui-workflow',
   '@zcd/client-ui-zcd': 'packages/client-ui-zcd',
   '@zcd/client-ui-genui': 'packages/client-ui-genui',
   '@zcd/bundle-base': 'packages/bundle-base',

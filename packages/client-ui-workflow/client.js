@@ -1,0 +1,80 @@
+/**
+ * Workflow run panel in the right Sidebar.
+ *
+ * Registers one page tab (`kind: 'zcd-workflow'`) whose body polls the host's
+ * read-only run list. Opening the tab is a navigation action, so the panel
+ * never starts a run by itself.
+ */
+window.__ModuleLoader__.load({
+  id: '@zcd/client-ui-workflow',
+  factory: (require) => {
+    const React = require('react')
+    const { jsx, jsxs } = require('react/jsx-runtime')
+
+    const ID = '@zcd/client-ui-workflow'
+    const KIND = 'zcd-workflow'
+    const NS = 'zcd.workflow'
+
+    const cell = { padding: '4px 0', fontSize: '12px', color: 'var(--text-secondary, #555)' }
+    const mono = { fontFamily: 'var(--font-mono, monospace)' }
+
+    /** Panel body: recent runs, refreshed every 3s. */
+    function WorkflowPanel() {
+      const [runs, setRuns] = React.useState([])
+      const [error, setError] = React.useState(undefined)
+      React.useEffect(() => {
+        let alive = true
+        const read = () => {
+          fetch('/zcd/workflow/runs')
+            .then((response) => response.ok ? response.json() : Promise.reject(new Error(String(response.status))))
+            .then((value) => { if (alive) { setRuns(Array.isArray(value.runs) ? value.runs : []); setError(undefined) } })
+            .catch((reason) => { if (alive) setError(String(reason?.message ?? reason)) })
+        }
+        read()
+        const timer = setInterval(read, 3000)
+        return () => { alive = false; clearInterval(timer) }
+      }, [])
+      if (error !== undefined) {
+        return jsx('div', { style: { padding: '12px' }, children: `Workflow runs unavailable (${error}).` })
+      }
+      if (runs.length === 0) {
+        return jsx('div', { style: { padding: '12px' }, children: 'No workflow runs yet.' })
+      }
+      return jsxs('div', { style: { display: 'grid', gap: '6px', padding: '12px' }, children: [
+        jsx('div', { style: { fontWeight: 600, fontSize: '13px' }, children: 'Workflow runs' }),
+        ...runs.map((run) => jsxs('div', {
+          key: run.id,
+          style: cell,
+          children: [
+            jsx('div', { style: mono, children: `${run.id} [${run.status}]` }),
+            jsx('div', { children: `${run.name} · ${run.nodeCount} nodes` }),
+          ],
+        })),
+      ] })
+    }
+
+    /** Register the tab type, its dictionary, and its body. */
+    function apply(ctx) {
+      ctx.effect(() => ctx.locale.register(NS, {
+        zh: { title: '工作流' },
+        en: { title: 'Workflows' },
+      }), 'zcd-workflow: dictionary')
+      const t = ctx.locale.bind(NS)
+      ctx.effect(() => ctx.sidebarRightTabs.register({
+        id: ID,
+        kind: KIND,
+        title: () => t('title'),
+      }), 'zcd-workflow: tab type')
+      ctx.effect(() => ctx.slots.inject('sidebar.right.pane.tab', () => ctx.slots.register({
+        name: 'sidebar.right.pane.tab',
+        key: ID,
+        locale: NS,
+      }, WorkflowPanel)), 'zcd-workflow: tab body')
+    }
+
+    const module = { exports: {} }
+    module.exports.apply = apply
+    module.exports.inject = ['slots', 'locale', 'sidebarRightTabs']
+    return module.exports
+  },
+})

@@ -86,6 +86,9 @@ importers:
       '@zcd/client-ui-settings-zcd':
         specifier: workspace:*
         version: link:../client-ui-settings-zcd
+      '@zcd/client-ui-workflow':
+        specifier: workspace:*
+        version: link:../client-ui-workflow
       '@zcd/client-ui-zcd':
         specifier: workspace:*
         version: link:../client-ui-zcd
@@ -103,6 +106,12 @@ importers:
         version: 4.0.6-alpha.1(@deepseek-ai/cordis-plugin-include@1.0.11-alpha.1)(@deepseek-ai/cordis-plugin-loader@1.0.7-alpha.1)
 
   packages/client-ui-settings-zcd:
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: 4.0.6-alpha.1
+        version: 4.0.6-alpha.1(@deepseek-ai/cordis-plugin-include@1.0.11-alpha.1)(@deepseek-ai/cordis-plugin-loader@1.0.7-alpha.1)
+
+  packages/client-ui-workflow:
     devDependencies:
       '@deepseek-ai/cordis':
         specifier: 4.0.6-alpha.1
@@ -491,6 +500,9 @@ importers:
       '@zcd/client-ui-settings-zcd':
         specifier: workspace:*
         version: link:../../packages/client-ui-settings-zcd
+      '@zcd/client-ui-workflow':
+        specifier: workspace:*
+        version: link:../../packages/client-ui-workflow
       '@zcd/client-ui-zcd':
         specifier: workspace:*
         version: link:../../packages/client-ui-zcd

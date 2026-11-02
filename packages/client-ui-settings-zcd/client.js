@@ -13,7 +13,7 @@ window.__ModuleLoader__.load({
     const mono = { fontFamily: 'var(--font-mono, monospace)' }
 
     /** Section body. */
-    function ZcdSettings() {
+    function ZcdSettings(props) {
       const [status, setStatus] = React.useState(undefined)
       const [error, setError] = React.useState(undefined)
       React.useEffect(() => {
@@ -35,6 +35,12 @@ window.__ModuleLoader__.load({
         jsx('div', { children: `Product: ${status.product}` }),
         jsx('div', { children: `Node ${status.node} · dsh ${status.dsh}` }),
         jsx('div', { children: `Uptime ${status.uptimeSeconds}s` }),
+        props.openPanel === undefined ? null : jsx('button', {
+          type: 'button',
+          style: { marginTop: '6px', border: '1px solid var(--border, #ccc)', background: 'transparent', color: 'inherit', borderRadius: '6px', padding: '2px 8px', cursor: 'pointer', fontSize: '12px' },
+          onClick: () => props.openPanel(),
+          children: 'Open workflow panel',
+        }),
       ] })
       const runRows = runs.map((run) => jsx('div', {
         key: run.id,
@@ -64,18 +70,19 @@ window.__ModuleLoader__.load({
         en: { nav: 'ZCD' },
       }), 'zcd-settings: dictionary')
       const t = ctx.locale.bind(NS)
+      const Body = (props) => ZcdSettings({ ...props, openPanel: () => ctx.sidebarRight.openTab('zcd-workflow') })
       ctx.slots.inject('settings.section', () => ctx.slots.register({
         name: 'settings.section',
         id: 'zcd',
         order: 30,
         locale: NS,
         label: () => t('nav'),
-      }, ZcdSettings))
+      }, Body))
     }
 
     const module = { exports: {} }
     module.exports.apply = apply
-    module.exports.inject = ['slots', 'locale']
+    module.exports.inject = ['slots', 'locale', 'sidebarRight']
     return module.exports
   },
 })

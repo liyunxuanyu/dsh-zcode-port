@@ -13,6 +13,9 @@
     - id: zcd-workflow-ui-host
       name: '@zcd/workflow-ui-host'
 
+    - id: zcd-client-ui-workflow
+      name: '@zcd/client-ui-workflow'
+
     - id: zcd-client-ui-zcd
       name: '@zcd/client-ui-zcd'
 

@@ -106,6 +106,15 @@ window.__ModuleLoader__.load({
         style: rowStyle,
         children: [
           jsx('span', { key: 'label', children: current === undefined ? text : `${id} [${current}]` }),
+          props.openPanel !== undefined
+            ? jsx('button', {
+              key: 'runs',
+              type: 'button',
+              style: buttonStyle,
+              onClick: () => props.openPanel(),
+              children: 'Runs',
+            })
+            : null,
           cancellable
             ? jsx('button', {
               key: 'cancel',
@@ -133,12 +142,13 @@ window.__ModuleLoader__.load({
       register('search_document', DocumentRow)
       register('open_document', OpenDocumentRow)
       register('show_in_viewer', OpenDocumentRow)
-      register('workflow_run', WorkflowRow)
+      const WorkflowCard = (props) => WorkflowRow({ ...props, openPanel: () => ctx.sidebarRight.openTab('zcd-workflow') })
+      register('workflow_run', WorkflowCard)
     }
 
     const module = { exports: {} }
     module.exports.apply = apply
-    module.exports.inject = ['slots']
+    module.exports.inject = ['slots', 'sidebarRight']
     return module.exports
   },
 })

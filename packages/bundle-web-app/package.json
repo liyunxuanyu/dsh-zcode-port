@@ -13,6 +13,7 @@
     "@zcd/client-ui-zcd": "workspace:*",
     "@zcd/workflow-ui-host": "workspace:*",
     "@zcd/status-host": "workspace:*",
-    "@zcd/client-ui-settings-zcd": "workspace:*"
+    "@zcd/client-ui-settings-zcd": "workspace:*",
+    "@zcd/client-ui-workflow": "workspace:*"
   }
 }
