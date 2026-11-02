@@ -10,6 +10,9 @@
  */
 
 import { randomUUID } from 'node:crypto'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { homedir } from 'node:os'
+import { dirname, join } from 'node:path'
 import { Service } from '@deepseek-ai/cordis'
 import type { Context } from '@deepseek-ai/cordis'
 import { createUserMessage } from '@deepseek-ai/dsh-llm'
@@ -29,6 +32,8 @@ export interface Config {
   pollIntervalMs: number
   /** Maximum tasks running at once across the process. */
   maxConcurrentTasks: number
+  /** Durable task file; defaults to `$DSH_HOME/storages/zcd-offpeak/tasks.json`. */
+  statePath?: string
 }
 
 declare module '@deepseek-ai/cordis' {
@@ -51,12 +56,16 @@ export class OffPeakService extends Service {
   private timer: ReturnType<typeof setInterval> | undefined
   private lastActivityAt = Date.now()
   private running = 0
+  private readonly statePath: string
 
   constructor(ctx: Context, private readonly config: Config) {
     super(ctx, 'offpeak')
+    this.statePath = config.statePath
+      ?? join(process.env.DSH_HOME ?? join(homedir(), '.dsh'), 'storages', 'zcd-offpeak', 'tasks.json')
   }
 
   protected [Service.init](): void {
+    this.restore()
     this.timer = setInterval(() => { void this.tick() }, this.config.pollIntervalMs)
     this.ctx.effect(() => () => {
       if (this.timer !== undefined) clearInterval(this.timer)
@@ -89,6 +98,7 @@ export class OffPeakService extends Service {
       cwd: input.cwd ?? opts.cwd,
     }
     this.tasks.set(id, task)
+    this.persist()
     return task
   }
 
@@ -115,6 +125,7 @@ export class OffPeakService extends Service {
       this.ctx.agents.get(task.sessionId as SessionId)?.cancel({ kind: 'user' })
     }
     this.tasks.set(id, { ...task, status: 'cancelled', endedAt: Date.now(), summary: reason })
+    this.persist()
   }
 
   /**
@@ -134,6 +145,38 @@ export class OffPeakService extends Service {
         endedAt: Date.now(),
         summary: 'a user message arrived in this workspace',
       })
+    }
+    this.persist()
+  }
+
+  /**
+   * Load durable tasks; a run that was live when the process stopped becomes
+   * `interrupted` and is never replayed automatically (it may have side
+   * effects), while `pending` stays queued for the next idle window.
+   */
+  private restore(): void {
+    if (!existsSync(this.statePath)) return
+    try {
+      const parsed = JSON.parse(readFileSync(this.statePath, 'utf8')) as { tasks?: StoredTask[] }
+      for (const task of parsed.tasks ?? []) {
+        this.tasks.set(task.id, task.status === 'running'
+          ? { ...task, status: 'interrupted', endedAt: Date.now(), summary: 'process restarted while running' }
+          : task)
+      }
+      this.persist()
+    } catch (error: unknown) {
+      this.ctx.logger.warn('zcd-offpeak: ignored unreadable state file %s: %o', this.statePath, error)
+    }
+  }
+
+  /** Write the complete task list; failure is logged, never fatal. */
+  private persist(): void {
+    try {
+      mkdirSync(dirname(this.statePath), { recursive: true })
+      writeFileSync(this.statePath, `${JSON.stringify({ tasks: [...this.tasks.values()] }, null, 2)}
+`)
+    } catch (error: unknown) {
+      this.ctx.logger.warn('zcd-offpeak: failed to persist state: %o', error)
     }
   }
 
@@ -172,6 +215,7 @@ export class OffPeakService extends Service {
   private async runTask(task: StoredTask): Promise<void> {
     const sessionId = `session-${randomUUID()}` as SessionId
     this.tasks.set(task.id, { ...task, status: 'running', startedAt: Date.now() })
+    this.persist()
     try {
       const selection = this.ctx.get('agentDefaultModel')?.currentSelection()
       const handle = await this.ctx.agents.create({
@@ -193,6 +237,7 @@ export class OffPeakService extends Service {
         endedAt: Date.now(),
         summary: 'task completed',
       })
+      this.persist()
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error)
       this.tasks.set(task.id, {
@@ -201,6 +246,7 @@ export class OffPeakService extends Service {
         endedAt: Date.now(),
         error: { code: 'OFFPEAK_RUN_FAILED', message },
       })
+      this.persist()
     }
   }
 }

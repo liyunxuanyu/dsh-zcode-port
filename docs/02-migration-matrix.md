@@ -26,12 +26,12 @@
 | 8 | `EnterPlanMode` / `ExitPlanMode` | `handlers/plan-mode.ts:141,62-110` | 只有 `exit_plan_mode`；进入靠 `/plan` 命令，`PlanModeController` 未暴露 enter API | S2/S3 | 优先程序化执行 `/plan`；不行则上游加 `enter()`，不直接改私有状态 | WP-02 | S–M | 中（状态所有权） |
 | 9 | `Agent` / `Task` | `handlers/agent.ts:236,302` | `subagent` / `subagent_fork` | S1 | 直接用；技能名映射 | WP-02 | XS | 低 |
 | 10 | `SendMessage` / `RespondToCoordinator` | `send-message.ts:81`、`respond-to-coordinator.ts:56` | `send_message` / `list_agents` / `interrupt_agent` | S1 | 直接用；coordinator 语义=发给 parent | WP-02 | XS | 低 |
-| 11 | `TaskOutput` / `TaskStop` | `task-output.ts:92`、`task-stop.ts:105` | `job_output` / `job_kill`（通用 job） | S1 + S2 | bash 后台用 `job_*`；子代理后台需 `subagent_output/stop` 适配 | WP-02 | S | 中（对象不同） |
+| 11 | `TaskOutput` / `TaskStop` | `task-output.ts:92`、`task-stop.ts:105` | `job_output` / `job_kill`；子代理用 `list_agents` / `interrupt_agent` / `send_message` | S1 | 直接映射；不新增 `subagent_output` | WP-02 | S | 低 |
 | 12 | `submit_result` / `escalate` | `submit-result.ts:82`、`escalate.ts:38-60` | 无（dsh workflow 无 actor 终态/升级协议） | S2 | 作为 durable workflow 的 actor 工具实现 | WP-07 | M | 中 |
 | 13 | `Skill` | `handlers/skill.ts:101` | `skill`（provider 分层） | S1 | 直接用 | WP-14 | XS | 低 |
 | 14 | `js`（持久 REPL + `agent.browsers`/CUA） | `handlers/node-repl.ts:297-340` | `run_code`（PTC，fresh/REPL 模式）+ browser/CUA provider | S2 | 新增 `js` 工具：PTC REPL 模式 + browser/CUA bindings | WP-09/10 | L | 高（安全/状态） |
 | 15 | `ToolSearch` / `DeferredToolCall` | `tool-search.ts:20-52`、`deferred-tool-call.ts:11-45` | 无；但 `tools.register` 支持 `when` | S2 | `tool_search` + `ctx.deferredTools` + `when` 条件（ADR-04） | WP-03 | M | 中 |
-| 16 | `CronCreate/List/Update/Delete/PauseSelf` | `handlers/cron.ts:227-435` | `schedule_create/edit/list/view`（无 delete/pause） | S1 + S2 | 用 `schedule_*`；补 `schedule_delete`/`schedule_pause`；CronPauseSelf 用 offpeak/automation 上下文 | WP-06 | M | 中 |
+| 16 | `CronCreate/List/Update/Delete/PauseSelf` | `handlers/cron.ts:227-435` | `schedule_create/edit/list/view`；`edit` 支持 `action: delete` 与 `active: false` | S1 | 直接映射；不新增工具 | WP-06 | S | 低 |
 | 17 | `OffPeakCreate` / `OffPeakList` | `handlers/off-peak.ts:187,239` | 无 | S2 | 新 `ctx.offpeak` + `offpeak_create/list/cancel` | WP-06 | M | 中 |
 | 18 | `ReadSessionContext` | `read-session-context.ts:160-190` | `session_*` 五件套（experimental） | S2 | 新增 `session_handoff` 工具；topic 附件不移植 | WP-05 | M | 中（授权） |
 | 19 | `ListModels` | `handlers/list-models.ts` | `list_subagent_models` | S1 | 技能里映射；不新增工具 | WP-02 | XS | 低 |

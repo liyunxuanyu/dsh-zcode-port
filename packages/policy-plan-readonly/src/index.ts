@@ -71,6 +71,40 @@ function bashCommand(args: unknown): string | undefined {
 }
 
 /**
+ * Pure policy decision for one allowed call.
+ *
+ * @param input - plan state, tool name, parsed command, and policy switches.
+ * @returns a denial when the call must be refused, otherwise undefined.
+ */
+export function decidePlanMode(input: {
+  active: boolean
+  toolName: string
+  command?: string
+  denied: ReadonlySet<string>
+  classifyBash: boolean
+}): { kind: 'deny'; reason: string } | undefined {
+  if (!input.active) return undefined
+  if (input.denied.has(input.toolName)) {
+    return {
+      kind: 'deny',
+      reason: `Plan mode allows read-only work only; "${input.toolName}" can mutate state. `
+        + 'Finish the plan and exit plan mode before changing files.',
+    }
+  }
+  if (!input.classifyBash || input.toolName !== 'bash') return undefined
+  if (input.command === undefined) {
+    return { kind: 'deny', reason: 'Plan mode requires an analysable bash command.' }
+  }
+  const verdict = classifyCommand(input.command)
+  if (verdict.kind === 'read-only') return undefined
+  return {
+    kind: 'deny',
+    reason: `Plan mode denied this bash command: ${verdict.reason}. `
+      + 'Use read-only commands, or exit plan mode to run it.',
+  }
+}
+
+/**
  * Install the plan-mode policy listener.
  * @param ctx - plugin context.
  * @param config - optional policy overrides.
@@ -84,28 +118,12 @@ export function apply(ctx: Context, config: Config = {}): void {
   ): Promise<PreToolDecision> => {
     const decision = await next()
     if (decision.kind !== 'allow') return decision
-    if (!planActive(ctx, exec)) return decision
-    if (denied.has(exec.name)) {
-      return {
-        kind: 'deny',
-        reason: `Plan mode allows read-only work only; "${exec.name}" can mutate state. `
-          + 'Finish the plan and exit plan mode before changing files.',
-      }
-    }
-    if (classifyBash && exec.name === 'bash') {
-      const command = bashCommand(exec.arguments)
-      if (command === undefined) {
-        return { kind: 'deny', reason: 'Plan mode requires an analysable bash command.' }
-      }
-      const verdict = classifyCommand(command)
-      if (verdict.kind !== 'read-only') {
-        return {
-          kind: 'deny',
-          reason: `Plan mode denied this bash command: ${verdict.reason}. `
-            + 'Use read-only commands, or exit plan mode to run it.',
-        }
-      }
-    }
-    return decision
+    return decidePlanMode({
+      active: planActive(ctx, exec),
+      toolName: exec.name,
+      ...(bashCommand(exec.arguments) === undefined ? {} : { command: bashCommand(exec.arguments) }),
+      denied,
+      classifyBash,
+    }) ?? decision
   }, { prepend: true })
 }
