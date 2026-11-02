@@ -2,7 +2,7 @@
 
 > 目标：在 **DeepSeek Harness（dsh）** 之上，用 **overlay 插件** 的方式，复刻 ZCode 最好用的产品能力与技能，同时保留 dsh 的插件化内核。
 >
-> 状态：**P0 已验收，P1/P2 核心能力与 P4 部分 UI 已落地**（27 个工具、20 个技能、70 个单测；product profile 可启动，设置页用户记忆增删与 workflow 面板已通过真实浏览器视觉验收）。进度见 [`docs/13-implementation-status.md`](docs/13-implementation-status.md)。日期：2026-11-03。
+> 状态：**P0 已验收，P1/P2 核心能力与 P4 部分 UI 已落地**（27 个工具、28 个技能、70 个单测；product profile 可启动，设置页用户记忆增删与 workflow 面板已通过真实浏览器视觉验收）。进度见 [`docs/13-implementation-status.md`](docs/13-implementation-status.md)。日期：2026-11-03。
 > 参考基线：`archive/`（ZCode 60 个文件 + dsh 38 个文件）。
 
 ---
@@ -118,7 +118,7 @@
 | Gen UI | ✅ 工具 + 路由 + 卡片 | `visualize` + `/zcd/genui` CSP 沙箱 + lazy-CJS iframe 卡片 |
 | Workflow 面板 | ✅ 视觉验收 | 右侧栏 run 列表 + 节点展开 + journal 事件 + 取消（[截图](docs/assets/workflow-panel-events.png)） |
 | ZCD 设置页 | ✅ 视觉验收 | 运行环境 + 最近 runs + 用户记忆增删（`/zcd/memory`，[截图](docs/assets/zcd-settings-memory.png)） |
-| 技能 | ✅ 20/39 | superpowers 14 + dsh-guide 6；安装到 `$DSH_HOME/skills` |
+| 技能 | ✅ 28/39 | superpowers 14 + dsh-guide 6 + office-viewer 1 + dsh 原生 Office 7；文件技能安装到 `$DSH_HOME/skills` |
 | 外部插件接入 | ✅ doctor | `pnpm doctor` 检查依赖/engines/重复版本/bundle manifest |
 | MCP 运行时 | ✅ pinned | `runtime/mcp` + `pnpm mcp:install` |
 
@@ -126,8 +126,8 @@
 
 1. Gen UI 卡片视觉验收（需要一次 `visualize` 结果会话）。
 2. Browser / CUA：`js` code-act + provider + 面板。
-3. Office 生成技能 8 个。
-4. 设置页其余写入（workflow 配置、只读策略开关）。
-5. Workflow run 详情继续补日志/取消历史。
+3. 设置页其余写入（workflow 配置、只读策略开关）。
+4. Workflow run 详情补 resume/amend、耗时与失败重试。
+5. 剩余 11 个技能（浏览器 2、CUA 1、创作类等）。
 
 **接入外部 dsh 插件**：`pnpm doctor` → `dsh plugin --profile product add <pkg>`，见 `docs/12-runtime-and-packaging.md` §5。

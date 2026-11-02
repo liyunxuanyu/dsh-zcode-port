@@ -33,6 +33,11 @@
     - id: zcd-tool-office
       name: '@zcd/tool-office'
 
+    # dsh-native Office authoring skills (router + docx/pptx/xlsx/render/
+    # recalculate/export-pdf). Uses the pinned LibreOffice kit, not a ZCode fork.
+    - id: zcd-skill-office
+      name: '@deepseek-ai/dsh-skill-office'
+
     # Session-owned document view state (get_view).
     - id: zcd-document-view
       name: '@zcd/document-view'

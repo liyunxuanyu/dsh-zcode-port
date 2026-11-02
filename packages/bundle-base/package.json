@@ -28,6 +28,7 @@
     "@zcd/tool-documents": "workspace:*",
     "@zcd/document-view": "workspace:*",
     "@zcd/documents-ui-host": "workspace:*",
-    "@zcd/tool-office": "workspace:*"
+    "@zcd/tool-office": "workspace:*",
+    "@deepseek-ai/dsh-skill-office": "0.2.2-alpha.2"
   }
 }

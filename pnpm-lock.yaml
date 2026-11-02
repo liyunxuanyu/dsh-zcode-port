@@ -26,6 +26,9 @@ importers:
 
   packages/bundle-base:
     dependencies:
+      '@deepseek-ai/dsh-skill-office':
+        specifier: 0.2.2-alpha.2
+        version: 0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1)(@deepseek-ai/dsh-skill@0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1)(@deepseek-ai/dsh-llm@0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1))(@deepseek-ai/dsh-scope@0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1)))
       '@zcd/deferred-tools':
         specifier: workspace:*
         version: link:../deferred-tools
@@ -566,6 +569,9 @@ importers:
       '@deepseek-ai/dsh-base':
         specifier: 0.2.2-alpha.2
         version: 0.2.2-alpha.2(aba01a7332d6b81000d9f0ec3ed17623)
+      '@deepseek-ai/dsh-skill-office':
+        specifier: 0.2.2-alpha.2
+        version: 0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1)(@deepseek-ai/dsh-skill@0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1)(@deepseek-ai/dsh-llm@0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1))(@deepseek-ai/dsh-scope@0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1)))
       '@deepseek-ai/dsh-web-app':
         specifier: 0.2.2-alpha.2
         version: 0.2.2-alpha.2(17b2e48b78ef39fb520c787ba13e6ea3)

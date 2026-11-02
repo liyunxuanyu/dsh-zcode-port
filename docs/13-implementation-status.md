@@ -7,7 +7,7 @@
 
 ## 0. 一句话
 
-**P0 已通过，P1/P2/P4 部分落地**：product profile 在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**27 个** ZCD 工具激活，**20 个技能**安装完成，**70 个单测（10 个文件）**、命名门禁、docs 链接、运行时 doctor 与启动 smoke 全部通过。设置页已能在真实浏览器里列出、添加、删除**用户记忆**；workflow run 面板与文档卡已可用。
+**P0 已通过，P1/P2/P4 部分落地**：product profile 在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**27 个** ZCD 工具激活，**28 个技能**可用（21 个文件技能 + 7 个 dsh 原生 Office），**70 个单测（10 个文件）**、命名门禁、docs 链接、运行时 doctor 与启动 smoke 全部通过。设置页已能在真实浏览器里列出、添加、删除**用户记忆**；workflow run 面板与文档卡已可用。
 
 ---
 
@@ -62,6 +62,8 @@
 | `@zcd/tool-visualize` | `visualize`：写自包含 HTML，返回沙箱 URL（deferred） | 激活成功 | — |
 | `skills/superpowers`（14） | ZCode 工程方法技能，工具名已映射为 dsh | 已安装 | `install-skills.mjs` |
 | `skills/dsh-guide`（6） | dsh 自诊断：profile/bundle/patch、插件、MCP、skills | 已安装 | `install-skills.mjs` |
+| `skills/zcd/office-viewer`（1） | Word/Excel/PDF/文本的 read/search/open/show/get_view 与锚点语义 | 已安装 | `install-skills.mjs` + verify-naming |
+| `@deepseek-ai/dsh-skill-office`（7） | office 路由 + docx/pptx/xlsx/render/recalculate/export-pdf | 已挂载 | 启动 smoke；LibreOffice kit 由 dsh 依赖提供 |
 | `@zcd/bundle-base` | 基础能力行（tool-search / todo-read / deferred / offpeak / memory / workflow / documents / genui …） | 已组合 | dump-config |
 | `@zcd/bundle-web-app` | 5 个 host 行 + 4 个 client bundle 行 | 已组合 | dump-config |
 | `profiles/product` | bundles = dsh-base → zcd-base → dsh-web-app → zcd-web-app | 已组合 | dump-config + smoke |
@@ -96,10 +98,9 @@ smoke 覆盖：Web 启动、无 `did not activate`、Gen UI CSP、文档视图 P
 |---|---|---|
 | 1 | Gen UI 卡片视觉验收 | 需要一次真实 `visualize` 结果会话，确认 iframe 卡片在会话内渲染 |
 | 2 | Browser / CUA（WP-10/11） | `js` code-act + 浏览器 provider + 面板；技能已归档，能力未实现 |
-| 3 | Office 富格式技能 | 基于 `create_document` 的 8 个文档技能；当前只有基础块 |
-| 4 | 设置页继续写入 | workflow 配置、只读策略开关；用户记忆已经可用 |
-| 5 | Workflow run 详情 | 面板内 resume/amend、耗时/模型列、失败重试入口 |
-| 6 | 剩余技能 | 20/39；按 `docs/08-skills-catalog.md` 推进 |
+| 3 | 设置页继续写入 | workflow 配置、只读策略开关；用户记忆已经可用 |
+| 4 | Workflow run 详情 | 面板内 resume/amend、耗时/模型列、失败重试入口 |
+| 5 | 剩余技能 | 28/39（浏览器 2、CUA 1、创作类等）；按 `docs/08-skills-catalog.md` 推进 |
 
 ## 2.5 P1 尚未全部通过的验收
 
@@ -111,7 +112,7 @@ P0 已通过；P1（"ZCode 工具语义对齐"）**还没有全部验收**，巡
 | OffPeak 恢复 | 已有持久化测试：pending 恢复、running→interrupted、空闲执行 |
 | 只读策略集成 | 已有分类器/决策单测；端到端 dsh 夹具仍待补 |
 | S1 工具对齐 | 已确认由 `schedule_edit`、`list_agents`/`interrupt_agent` 覆盖，不新增工具 |
-| 技能 | 39 个中已移植 20 个 |
+| 技能 | 39 个中 28 个可用（21 个移植/改写 + 7 个 dsh 原生 Office） |
 | 设置页写入 | 用户记忆已通；其余配置项未做 |
 
 ## 3. 已知缺口
@@ -121,7 +122,6 @@ P0 已通过；P1（"ZCode 工具语义对齐"）**还没有全部验收**，巡
 | 无 Browser/CUA 工具 | 无法做浏览器/桌面自动化 | WP-10/11 |
 | 设置页只写用户记忆 | Memory 配置、只读策略开关仍不可改 | 复用 `configForms` |
 | workflow 面板缺操作 | 只能查看，cancel/resume/amend 需回到工具调用 | 面板加操作按钮 |
-| Office 生成只有基础块 | 无图表/样式/模板 | 技能层补齐 |
 | policy-plan-readonly 默认关闭 | 默认行为与 dsh 一致；严格模式需显式开 | 设置页开关 |
 | 外部插件 e2e | doctor 只做静态检查 | 增加一个真实第三方插件 smoke |
 

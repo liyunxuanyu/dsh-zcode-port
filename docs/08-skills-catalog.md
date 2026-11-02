@@ -1,6 +1,6 @@
 # 08 · 技能迁移目录
 
-> **进度（2026-11-03）**：`skills/superpowers/` 14 个 + `skills/dsh-guide/` 6 个已移植（共 20/39），通过命名门禁；安装脚本 `scripts/install-skills.mjs`。其余按下方分类推进。
+> **进度（2026-11-03）**：**28/39 可用** —— `skills/superpowers/` 14 个 + `skills/dsh-guide/` 6 个 + `skills/zcd/office-viewer/` 1 个，另挂载 dsh 原生 `@deepseek-ai/dsh-skill-office` 的 7 个 Office 技能；文件技能通过命名门禁，安装脚本 `scripts/install-skills.mjs`。其余按下方分类推进。
 
 > ZCode 共 **39 个 SKILL.md**（38 个产品技能 + `dynamic-workflows`）。本文逐条给出：用途、依赖工具、dsh 对应能力、处理方式、改动点、优先级。
 >
@@ -94,7 +94,7 @@
 | `xlsx` | 创建/编辑 Excel | `Edit`、`present` | **改名** | — | P4 |
 | `xlsx-viewer` | Excel 查看 | 5 个 viewer 工具 | **改名** | — | P4 |
 
-> dsh 已有 `skill-office` 的 8 个资产（`office`/`office-docx`/`office-pptx`/`office-xlsx`/`office-render`/`office-recalculate`/`office-export-pdf` + `office` 路由）。**先评估能否直接用 dsh 的 office 技能，再决定是否移植 ZCode 版本**——两者功能重叠度高。建议：保留 dsh 的 `office-*` 作为底层，ZCode 的 `docx/pdf/pptx/xlsx` 只作为"用户视角的任务路由"，避免重复。
+> **已决定复用 dsh**：`@deepseek-ai/dsh-skill-office` 提供 `office` 路由 + `office-docx`/`office-pptx`/`office-xlsx`/`office-render`/`office-recalculate`/`office-export-pdf` 共 7 个技能，已挂进 `@zcd/bundle-base`。ZCode 的 4 个 viewer 技能合并改写为一个 `office-viewer`（基于 `@zcd/tool-documents` 的 5 个工具），不再逐个移植；这样 Office 8 项全部覆盖且不重复实现生成库。
 
 ---
 
@@ -174,14 +174,14 @@
 | 丢弃 | 4 | `site-deploy`、`android-dev`、`ios-dev`、`restore-legacy-sessions` |
 | **合计** | **39** | 38 个产品技能 + `dynamic-workflows` |
 
-> Office 8 个技能在表中记为"改名"，但**是否复用 dsh 的 `skill-office` 资产**需要先评估（见 §4 注释）；这不改变计数。
+> Office 8 个技能最终采用"dsh 原生 7 + `office-viewer` 1"覆盖，不再移植 ZCode 的 4 个生成技能与 4 个查看技能；总数仍按 8 计。
 
 ### 10.1 实施顺序
 
 1. **P5-a**：14 个 superpowers（改名为主，1 周）
 2. **P5-b**：6 个 guide（重写，1.5 周）
 3. **P5-c**：创作类 + 浏览器/CUA（随对应 WP）
-4. **P5-d**：Office（先评估复用 dsh `skill-office`）
+4. **P5-d**：Office —— 已用 dsh `skill-office` 7 个 + `office-viewer` 1 个完成
 
 ### 10.2 质量门
 
