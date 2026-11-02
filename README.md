@@ -2,7 +2,7 @@
 
 > 目标：在 **DeepSeek Harness（dsh）** 之上，用 **overlay 插件** 的方式，复刻 ZCode 最好用的产品能力与技能，同时保留 dsh 的插件化内核。
 >
-> 状态：**P0 已实现并跑通**（product profile 在 dsh 0.2.2-alpha.2 上启动 Web，插件全部激活）。进度见 [`docs/13-implementation-status.md`](docs/13-implementation-status.md)。日期：2026-11-03。
+> 状态：**P0 已验收，P1/P2 核心能力与 P4 部分 UI 已落地**（26 个工具、20 个技能、66 个单测；product profile 可启动，设置页与 workflow 面板已通过真实浏览器视觉验收）。进度见 [`docs/13-implementation-status.md`](docs/13-implementation-status.md)。日期：2026-11-03。
 > 参考基线：`archive/`（ZCode 60 个文件 + dsh 38 个文件）。
 
 ---
@@ -104,15 +104,30 @@
 
 ---
 
-## 7. 当前进度与下一步
+## 7. 当前进度（2026-11-03）
 
-**已完成**：WP-01 骨架、`tool_search`/deferred、plan 工具与策略、OffPeak、Memory、session handoff、list_models、durable workflow MVP（resume 重放）、14 个技能。product profile 可启动并接入 dsh 原生 bundle。
+| 能力 | 状态 | 证据 |
+|---|---|---|
+| overlay 骨架 + product profile | ✅ | `dsh --profile product --dump-config` 1243 行；smoke 启动 Web |
+| 工具面 | ✅ 26 个 | `tool_search`、`todo_read`、`enter_plan_mode`、OffPeak 3、Memory 5、`list_models`、`session_handoff`、workflow 7、`visualize`、文档 5 |
+| deferred 工具加载 | ✅ | `@zcd/deferred-tools` + 服务级 admission 测试 |
+| OffPeak | ✅ | `tasks.json` 持久化、pending 恢复、running→interrupted |
+| Memory | ✅ | 条目/索引/dream/路径约束/secret 拒绝；per-agent prompt section |
+| Durable Workflow MVP | ✅ | 文件 store、`agent()`/`parallel()`/`pipeline()`/`hole()`、resume 重放、amend、通知 |
+| 文档 | ✅ 5/5 | read/search/open/show/get_view；docx/xlsx/pdf/text 锚点 |
+| Gen UI | ✅ 工具 + 路由 + 卡片 | `visualize` + `/zcd/genui` CSP 沙箱 + lazy-CJS iframe 卡片 |
+| Workflow 面板 | ✅ 视觉验收 | 右侧栏 run 列表 + 节点展开 + 取消（[截图](docs/assets/workflow-panel.png)） |
+| ZCD 设置页 | ✅ 视觉验收 | 运行环境 + 最近 runs（[截图](docs/assets/zcd-settings.png)） |
+| 技能 | ✅ 20/39 | superpowers 14 + dsh-guide 6；安装到 `$DSH_HOME/skills` |
+| 外部插件接入 | ✅ doctor | `pnpm doctor` 检查依赖/engines/重复版本/bundle manifest |
+| MCP 运行时 | ✅ pinned | `runtime/mcp` + `pnpm mcp:install` |
 
 **下一步**（详见 `docs/13-implementation-status.md` §2）：
 
-1. 把 `todo_read` 接成首个 deferred 工具，让 `tool_search` 有真实条目。
-2. `enter_plan_mode`（先验证 commands 能否程序化执行 `/plan`）。
-3. OffPeak（`ctx.offpeak` + 3 个工具）。
-4. Durable workflow 单独立项。
+1. 设置页写入（Memory / Workflow 配置）。
+2. Gen UI 卡片视觉验收（需要一次 `visualize` 结果会话）。
+3. Browser / CUA：`js` code-act + provider + 面板。
+4. Office 生成技能 8 个。
+5. Workflow run 详情继续补日志/取消历史。
 
-**接入外部 dsh 插件**：`dsh plugin --profile product add <pkg>`，见 `docs/12-runtime-and-packaging.md` §5。
+**接入外部 dsh 插件**：`pnpm doctor` → `dsh plugin --profile product add <pkg>`，见 `docs/12-runtime-and-packaging.md` §5。
