@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "node": "24.14.0",
+  "nodeMinimum": "24.9.0",
+  "pnpm": "10.14.0",
+  "dsh": "0.2.2-alpha.2",
+  "cordis": "4.0.6-alpha.1",
+  "systemTools": {
+    "required": [
+      { "name": "git", "why": "workspace changes, worktrees, session lineage" }
+    ],
+    "optional": [
+      { "name": "libreoffice", "why": "Office to PDF conversion for the document viewer" },
+      { "name": "rg", "why": "host ripgrep fallback; dsh ships its own ripgrep for glob/grep" },
+      { "name": "python", "why": "experimental PTC Python runtime and Python-based MCP servers" }
+    ]
+  },
+  "python": {
+    "requirements": "runtime/python-requirements.txt",
+    "note": "Empty until a shipped MCP server needs Python; keep it pinned when it is not."
+  },
+  "mcp": [],
+  "vendored": {
+    "note": "Binaries are not committed. runtime/vendor/ is the drop point for offline bundles; checksums live beside each file."
+  }
+}

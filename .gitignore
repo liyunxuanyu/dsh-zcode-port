@@ -25,3 +25,7 @@ Thumbs.db
 *.log
 tmp/
 .tmp/
+
+# local harness home and product tarballs
+.dsh-home/
+dist/

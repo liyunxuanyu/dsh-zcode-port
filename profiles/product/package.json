@@ -1,0 +1,25 @@
+{
+  "name": "@zcd/profile-product",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dsh": {
+    "profile": {
+      "bundles": [
+        "@deepseek-ai/dsh-base",
+        "@zcd/bundle-base",
+        "@deepseek-ai/dsh-web-app",
+        "@zcd/bundle-web-app"
+      ]
+    }
+  },
+  "dependencies": {
+    "@zcd/bundle-base": "workspace:*",
+    "@zcd/bundle-web-app": "workspace:*",
+    "@zcd/policy-plan-readonly": "workspace:*",
+    "@zcd/tool-search": "workspace:*",
+    "@zcd/tool-todo-read": "workspace:*",
+    "@deepseek-ai/dsh-base": "0.2.2-alpha.2",
+    "@deepseek-ai/dsh-web-app": "0.2.2-alpha.2"
+  }
+}

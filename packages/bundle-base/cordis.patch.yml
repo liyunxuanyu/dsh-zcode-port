@@ -1,0 +1,28 @@
+# zcd-base: ZCD capability rows over dsh-base.
+#
+# A bundle patch is ONE insert over the profile root; later bundles and the
+# user's own cordis.patch.yml address these rows by id, last write winning.
+# Keep every row individually disableable so an operator can turn one feature
+# off without dropping the whole product layer.
+
+- insert:
+    # Deferred-tool catalog. `deferred` is deployment-owned: it lists the tool
+    # names the model may load; empty means no catalog yet.
+    - id: zcd-tool-search
+      name: '@zcd/tool-search'
+      config:
+        deferred: []
+        maxResults: 8
+
+    # Read the current todo list without changing it.
+    - id: zcd-tool-todo-read
+      name: '@zcd/tool-todo-read'
+
+    # ZCode-style strict plan mode: read-only tools stay available, mutating
+    # tools are denied until the plan is approved. Off by default because dsh's
+    # own plan mode is deliberately non-restrictive; enable per deployment.
+    - id: zcd-policy-plan-readonly
+      name: '@zcd/policy-plan-readonly'
+      disabled: true
+      config:
+        classifyBash: true

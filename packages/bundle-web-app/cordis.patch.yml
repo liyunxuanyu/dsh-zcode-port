@@ -1,0 +1,6 @@
+# zcd-web-app: browser-side rows for the product profile.
+#
+# Empty in the P0 skeleton. Gen UI, workflow panes, and the ZCD settings page
+# add their `ui-*` rows here as those work packages land; keeping the file
+# present means the profile composition stays stable.
+- insert: []

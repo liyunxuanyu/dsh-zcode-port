@@ -1,0 +1,16 @@
+{
+  "name": "@zcd/bundle-base",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "dependencies": {
+    "@zcd/policy-plan-readonly": "workspace:*",
+    "@zcd/tool-search": "workspace:*",
+    "@zcd/tool-todo-read": "workspace:*"
+  }
+}

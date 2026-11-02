@@ -1,0 +1,4 @@
+# Product profile user layer. Empty on purpose: deployment preferences belong
+# here, feature wiring belongs in the bundles. A patch file must be a top-level
+# YAML array, even when empty.
+[]

@@ -1,0 +1,6 @@
+{
+  "repo": "https://github.com/deepseek-ai/deepseek-harness.git",
+  "ref": "v0.2.2-alpha.2",
+  "version": "0.2.2-alpha.2",
+  "note": "Used only for reference/type comparison and optional contract checks; the product depends on the published npm packages at this version."
+}
