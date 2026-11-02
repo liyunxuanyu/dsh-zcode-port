@@ -20,6 +20,8 @@ const directories = {
   '@zcd/bundle-base': 'packages/bundle-base',
   '@zcd/bundle-web-app': 'packages/bundle-web-app',
   '@zcd/policy-plan-readonly': 'packages/policy-plan-readonly',
+  '@zcd/offpeak': 'packages/offpeak',
+  '@zcd/tool-offpeak': 'packages/tool-offpeak',
   '@zcd/tool-plan-mode': 'packages/tool-plan-mode',
   '@zcd/tool-search': 'packages/tool-search',
   '@zcd/tool-todo-read': 'packages/tool-todo-read',

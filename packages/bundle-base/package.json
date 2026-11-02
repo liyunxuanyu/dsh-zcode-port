@@ -13,6 +13,8 @@
     "@zcd/tool-search": "workspace:*",
     "@zcd/tool-todo-read": "workspace:*",
     "@zcd/deferred-tools": "workspace:*",
-    "@zcd/tool-plan-mode": "workspace:*"
+    "@zcd/tool-plan-mode": "workspace:*",
+    "@zcd/offpeak": "workspace:*",
+    "@zcd/tool-offpeak": "workspace:*"
   }
 }

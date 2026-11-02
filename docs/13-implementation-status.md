@@ -7,7 +7,7 @@
 
 ## 0. 一句话
 
-**P0 已通过，P1 进行中**：product profile 能在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**五个** ZCD 插件激活（deferred-tools / tool-search / todo-read / plan-mode / plan-policy），单测与命名门禁通过。
+**P0 已通过，P1 进行中**：product profile 能在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**七个** ZCD 插件激活（deferred-tools / tool-search / todo-read / plan-mode / plan-policy / offpeak / tool-offpeak），单测与命名门禁通过。
 
 ---
 
@@ -35,6 +35,8 @@
 | `@zcd/tool-search` | `tool_search`：搜 `ctx.deferredTools` 目录，命中后写 `deferred-tool/loaded` | 激活成功 | 5 个单测（排序/分词/限额） |
 | `@zcd/tool-todo-read` | `todo_read`：**deferred** 工具，读 `todos` 投影 | 激活成功 | — |
 | `@zcd/tool-plan-mode` | `enter_plan_mode`：程序化执行 `/plan`，不拥有 plan 状态 | 激活成功 | — |
+| `@zcd/offpeak` | `ctx.offpeak`：空闲判定、新会话执行、用户输入即让路 | 激活成功 | — |
+| `@zcd/tool-offpeak` | `offpeak_create/list/cancel`（deferred） | 激活成功 | — |
 | `@zcd/policy-plan-readonly` | plan mode 严格只读：deny 写工具与非只读 bash | 编译通过；bundle 中默认 `disabled: true` | 35 个分类器单测 |
 | `@zcd/bundle-base` | 三行 insert（tool-search / todo-read / plan policy） | 已组合 | dump-config |
 | `@zcd/bundle-web-app` | 空 insert（为 UI 工作包预留） | 已组合 | dump-config |
@@ -76,7 +78,7 @@ node scripts/smoke-profile.mjs
 | 2 | ~~`enter_plan_mode`~~ | 已完成：通过 `ctx.commands.execute(agent, '/plan', ...)`，不碰 plan 私有状态 |
 | 3 | **`session_handoff`** | 包 `ctx.sessionQuery`，实现 ZCode 的跨会话 handoff |
 | 4 | **`list_models`** | 映射 `list_subagent_models` 或 `ctx.llm` 目录 |
-| 5 | **OffPeak**（WP-05） | `ctx.offpeak` 服务 + 3 个工具 + 空闲判定；这是 P1 的大件 |
+| 5 | ~~OffPeak~~ | 已完成：`ctx.offpeak` + 3 个 deferred 工具；空闲 10 分钟启动，用户输入即 taken-over |
 | 6 | **Memory**（WP-06） | 目录、`memory_*` 工具、dream |
 | 7 | **Durable Workflow**（WP-08/09） | 唯一新 seam；单独立项 |
 

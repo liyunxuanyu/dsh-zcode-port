@@ -18,6 +18,17 @@
         deferred: []
         maxResults: 8
 
+    # Idle-time execution: queue a prompt for when the workspace is idle.
+    - id: zcd-offpeak
+      name: '@zcd/offpeak'
+      config:
+        idleMinutes: 10
+        pollIntervalMs: 30000
+        maxConcurrentTasks: 2
+
+    - id: zcd-tool-offpeak
+      name: '@zcd/tool-offpeak'
+
     # Tool-shaped entry into plan mode (dsh exposes only the exit tool).
     - id: zcd-tool-plan-mode
       name: '@zcd/tool-plan-mode'

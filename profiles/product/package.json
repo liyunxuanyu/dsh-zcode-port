@@ -22,6 +22,8 @@
     "@deepseek-ai/dsh-base": "0.2.2-alpha.2",
     "@deepseek-ai/dsh-web-app": "0.2.2-alpha.2",
     "@zcd/deferred-tools": "workspace:*",
-    "@zcd/tool-plan-mode": "workspace:*"
+    "@zcd/tool-plan-mode": "workspace:*",
+    "@zcd/offpeak": "workspace:*",
+    "@zcd/tool-offpeak": "workspace:*"
   }
 }
