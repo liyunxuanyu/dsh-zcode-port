@@ -27,7 +27,7 @@ const runSchema = {
     status: {
       type: 'string',
       required: true,
-      enum: ['queued', 'running', 'succeeded', 'failed', 'cancelled', 'interrupted'],
+      enum: ['queued', 'running', 'waiting-hole', 'succeeded', 'failed', 'cancelled', 'interrupted'],
     },
     nodeCount: { type: 'integer', required: true },
     result: { type: 'string' },
@@ -37,6 +37,18 @@ const runSchema = {
       properties: {
         code: { type: 'string', required: true },
         message: { type: 'string', required: true },
+      },
+    },
+    holes: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          id: { type: 'string', required: true },
+          prompt: { type: 'string', required: true },
+          answer: { type: 'string' },
+        },
       },
     },
   },
@@ -50,8 +62,8 @@ export function apply(ctx: Context): void {
   ctx.tools.register(defineTool({
     name: 'workflow_run',
     description:
-      'Start a durable workflow: a JavaScript body that may call `await agent(prompt)` to delegate '
-      + 'a step and `log(value)`, ending with `return <json>`. Each agent call is persisted by '
+      'Start a durable workflow: a JavaScript body with `await agent(prompt, { key })`, `parallel(items, fn)`, '
+      + '`pipeline(items, ...stages)`, `phase(name)`, `report(value)`, `log(value)`, ending with `return <json>`. Each agent call is persisted by '
       + '(script, ordinal, prompt); resuming the run replays completed steps without calling the '
       + 'model again. Use it for multi-step work that should survive a restart. Returns immediately '
       + 'with a run id unless `wait` is true.',
@@ -150,7 +162,28 @@ export function apply(ctx: Context): void {
     },
   }), { group: 'workflow', keywords: ['cancel', 'stop'] })
 
-  ctx.effect(() => () => { offGet(); offList(); offResume(); offCancel() }, 'zcd-tool-workflow: deferred registrations')
+  const offAnswer = ctx.deferredTools.register(defineTool({
+    name: 'workflow_answer_hole',
+    description:
+      'Answer an open hole and continue the run. The script receives the answer from its hole() call; '
+      + 'completed steps and earlier holes are replayed from the store.',
+    parameters: {
+      run_id: { type: 'string', required: true },
+      hole_id: { type: 'string', required: true },
+      answer: { type: 'string', required: true, description: 'Code or text the script should receive.' },
+    },
+    output: {
+      schema: { type: 'object', additionalProperties: false, properties: { run: { ...runSchema, required: true } } },
+      render: (_args, value) => [{ type: 'text', text: `Answered ${value.run.id}; status ${value.run.status}` }],
+    },
+    async execute(args, exec) {
+      const agent = exec.agent
+      if (agent === undefined) throw new Error('workflow_answer_hole requires an owning agent session')
+      return { run: project(ctx.durableWorkflow.answerHole(args.run_id, args.hole_id, args.answer, agent)) }
+    },
+  }), { group: 'workflow', keywords: ['hole', 'answer', 'resume'] })
+
+  ctx.effect(() => () => { offGet(); offList(); offResume(); offCancel(); offAnswer() }, 'zcd-tool-workflow: deferred registrations')
 }
 
 /** Drop the script from tool-facing rows. */
@@ -162,5 +195,6 @@ function project(run: ReturnType<Context['durableWorkflow']['get']>) {
     nodeCount: run.nodeCount,
     ...(run.result === undefined ? {} : { result: JSON.stringify(run.result) ?? '' }),
     ...(run.error === undefined ? {} : { error: run.error }),
+    ...(run.holes === undefined ? {} : { holes: run.holes.map(hole => ({ ...hole })) }),
   }
 }

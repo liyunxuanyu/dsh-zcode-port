@@ -17,6 +17,7 @@ import { dirname, join } from 'node:path'
 export type RunStatus =
   | 'queued'
   | 'running'
+  | 'waiting-hole'
   | 'succeeded'
   | 'failed'
   | 'cancelled'
@@ -42,12 +43,24 @@ export interface NodeRecord {
   runId: string
   nodeId: string
   index: number
+  /** Explicit stable key supplied by the script (parallel branches). */
+  key?: string
   prompt: string
   status: 'succeeded' | 'failed'
   output?: string
   error?: { code: string; message: string }
   startedAt: number
   endedAt: number
+}
+
+/** One open or answered hole inside a run. */
+export interface HoleRecord {
+  runId: string
+  holeId: string
+  prompt: string
+  answer?: string
+  createdAt: number
+  answeredAt?: number
 }
 
 /** Append-only journal line. */
@@ -124,6 +137,27 @@ export class FileWorkflowStore {
     this.writeJson(join(this.runDir(node.runId), 'nodes', `${node.nodeId}.json`), node)
   }
 
+  /** Persist one hole. */
+  putHole(hole: HoleRecord): void {
+    this.writeJson(join(this.runDir(hole.runId), 'holes', `${hole.holeId}.json`), hole)
+  }
+
+  /** Read one hole. */
+  getHole(runId: string, holeId: string): HoleRecord | undefined {
+    return this.readJson<HoleRecord>(join(this.runDir(runId), 'holes', `${holeId}.json`))
+  }
+
+  /** List holes for one run, oldest first. */
+  listHoles(runId: string): HoleRecord[] {
+    const dir = join(this.runDir(runId), 'holes')
+    if (!existsSync(dir)) return []
+    return readdirSync(dir)
+      .filter(name => name.endsWith('.json'))
+      .map(name => this.readJson<HoleRecord>(join(dir, name)))
+      .filter((hole): hole is HoleRecord => hole !== undefined)
+      .sort((left, right) => left.createdAt - right.createdAt)
+  }
+
   /** Append one journal line. */
   appendEvent(runId: string, event: JournalEvent): void {
     const path = join(this.runDir(runId), 'events.jsonl')
@@ -148,8 +182,15 @@ export class FileWorkflowStore {
     return createHash('sha256').update(script).digest('hex')
   }
 
-  /** Stable node id from script hash, ordinal, and prompt. */
-  static nodeId(scriptHash: string, index: number, prompt: string): string {
-    return createHash('sha256').update(`${scriptHash}\0${index}\0${prompt}`).digest('hex').slice(0, 20)
+  /** Stable node id from script hash, ordinal or explicit key, and prompt. */
+  static nodeId(scriptHash: string, ordinal: number | string, prompt: string): string {
+    return createHash('sha256').update(`${scriptHash}\0${ordinal}\0${prompt}`).digest('hex').slice(0, 20)
+  }
+
+  /** Number of settled node files for one run. */
+  countNodes(runId: string): number {
+    const dir = join(this.runDir(runId), 'nodes')
+    if (!existsSync(dir)) return 0
+    return readdirSync(dir).filter(name => name.endsWith('.json')).length
   }
 }

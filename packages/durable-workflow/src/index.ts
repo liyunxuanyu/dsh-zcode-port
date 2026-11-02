@@ -20,7 +20,7 @@ import type { Agent } from '@deepseek-ai/dsh-agent'
 import type {} from '@deepseek-ai/dsh-agent-default-model'
 import { createUserMessage } from '@deepseek-ai/dsh-llm'
 import type { SessionId } from '@deepseek-ai/dsh-session'
-import { FileWorkflowStore, type NodeRecord, type RunRecord } from '@zcd/workflow-store'
+import { FileWorkflowStore, type HoleRecord, type NodeRecord, type RunRecord } from '@zcd/workflow-store'
 import type { WorkflowRunView, WorkflowStartRequest } from './types.js'
 
 export type * from './types.js'
@@ -38,6 +38,14 @@ export interface Config {
 declare module '@deepseek-ai/cordis' {
   interface Context {
     durableWorkflow: DurableWorkflowService
+  }
+}
+
+/** Internal control flow: the script stopped at a hole. */
+class HolePause extends Error {
+  constructor(readonly hole: HoleRecord) {
+    super('workflow paused at a hole')
+    this.name = 'HolePause'
   }
 }
 
@@ -142,10 +150,36 @@ export class DurableWorkflowService extends Service {
     while (Date.now() < deadline) {
       const record = this.requireRun(runId)
       if (record.status === 'succeeded' || record.status === 'failed'
-        || record.status === 'cancelled') return this.view(record)
+        || record.status === 'cancelled' || record.status === 'waiting-hole') return this.view(record)
       await new Promise(resolve => setTimeout(resolve, 200))
     }
     throw new Error(`workflow ${runId} did not finish within ${timeoutMs}ms`)
+  }
+
+  /**
+   * Answer an open hole and continue the run. The script replays from the top;
+   * completed agent nodes and earlier answered holes are reused.
+   * @param runId - run id.
+   * @param holeId - hole id from the run view.
+   * @param answer - code or text the script receives from `hole()`.
+   * @param parent - agent that owns the run.
+   * @returns the run view after resuming.
+   */
+  answerHole(runId: string, holeId: string, answer: string, parent: Agent): WorkflowRunView {
+    const record = this.requireRun(runId)
+    if (record.status !== 'waiting-hole') {
+      throw new Error(`workflow ${runId} is not waiting for a hole (status ${record.status})`)
+    }
+    const hole = this.store.getHole(runId, holeId)
+    if (hole === undefined) throw new Error(`hole ${holeId} does not exist in ${runId}`)
+    if (hole.answer !== undefined) throw new Error(`hole ${holeId} is already answered`)
+    this.store.putHole({ ...hole, answer, answeredAt: Date.now() })
+    this.store.appendEvent(runId, { at: Date.now(), type: 'run/hole-filled', data: { holeId } })
+    const next = this.store.updateRun(runId, { status: 'queued', error: undefined })
+    const aborter = new AbortController()
+    this.aborters.set(runId, aborter)
+    void this.execute(next, parent, aborter.signal).finally(() => { this.aborters.delete(runId) })
+    return this.view(next)
   }
 
   /**
@@ -186,6 +220,13 @@ export class DurableWorkflowService extends Service {
       nodeCount: record.nodeCount,
       ...(record.result === undefined ? {} : { result: record.result }),
       ...(record.error === undefined ? {} : { error: record.error }),
+      ...(this.store.listHoles(record.id).length === 0 ? {} : {
+        holes: this.store.listHoles(record.id).map(hole => ({
+          id: hole.holeId,
+          prompt: hole.prompt,
+          ...(hole.answer === undefined ? {} : { answer: hole.answer }),
+        })),
+      }),
     }
   }
 
@@ -198,14 +239,57 @@ export class DurableWorkflowService extends Service {
   private async execute(record: RunRecord, parent: Agent, signal: AbortSignal): Promise<void> {
     this.store.updateRun(record.id, { status: 'running' })
     let index = 0
-    const executeAgent = async (prompt: string): Promise<string> => {
+    let holeIndex = 0
+    const executeAgent = async (prompt: string, options?: { key?: string }): Promise<string> => {
       if (signal.aborted) throw new Error('workflow cancelled')
       if (index >= this.maxNodes) throw new Error(`workflow exceeded ${this.maxNodes} agent calls`)
-      const ordinal = index++
-      return this.runAgent(record, ordinal, String(prompt), parent, signal)
+      const key = options?.key
+      const ordinal = key === undefined ? index++ : -1
+      return this.runAgent(record, ordinal, String(prompt), parent, signal, key)
     }
     const sandbox = {
       agent: executeAgent,
+      parallel: async (items: unknown[], fn: (item: unknown, index: number) => Promise<unknown>, options?: { concurrency?: number }) => {
+        const list = [...items]
+        const limit = Math.max(1, Math.min(16, options?.concurrency ?? 4))
+        const results = new Array<unknown>(list.length)
+        let cursor = 0
+        const worker = async (): Promise<void> => {
+          while (true) {
+            const at = cursor++
+            if (at >= list.length) return
+            results[at] = await fn(list[at], at)
+          }
+        }
+        await Promise.all(Array.from({ length: Math.min(limit, list.length) }, worker))
+        return results
+      },
+      pipeline: async (items: unknown[], ...stages: Array<(value: unknown, index: number) => Promise<unknown>>) => {
+        const list = [...items]
+        const results = new Array<unknown>(list.length)
+        for (let i = 0; i < list.length; i++) {
+          let value: unknown = list[i]
+          for (const stage of stages) value = await stage(value, i)
+          results[i] = value
+        }
+        return results
+      },
+      hole: (prompt: unknown): string => {
+        const text = String(prompt)
+        const holeId = FileWorkflowStore.nodeId(record.scriptHash, `hole:${holeIndex++}`, text)
+        const existing = this.store.getHole(record.id, holeId)
+        if (existing?.answer !== undefined) return existing.answer
+        const hole: HoleRecord = { runId: record.id, holeId, prompt: text, createdAt: Date.now() }
+        this.store.putHole(hole)
+        this.store.appendEvent(record.id, { at: Date.now(), type: 'run/hole-opened', data: { holeId, prompt: text } })
+        throw new HolePause(hole)
+      },
+      phase: (name: unknown) => {
+        this.store.appendEvent(record.id, { at: Date.now(), type: 'run/phase', data: { name: String(name) } })
+      },
+      report: (value: unknown) => {
+        this.store.appendEvent(record.id, { at: Date.now(), type: 'run/report', data: { value } })
+      },
       log: (message: unknown) => {
         this.store.appendEvent(record.id, { at: Date.now(), type: 'run/log', data: { message: String(message) } })
       },
@@ -222,6 +306,10 @@ export class DurableWorkflowService extends Service {
       this.store.updateRun(record.id, { status: 'succeeded', result, error: undefined })
       this.store.appendEvent(record.id, { at: Date.now(), type: 'run/finished', data: { status: 'succeeded' } })
     } catch (error: unknown) {
+      if (error instanceof HolePause) {
+        this.store.updateRun(record.id, { status: 'waiting-hole', error: undefined })
+        return
+      }
       if (signal.aborted) {
         this.store.updateRun(record.id, { status: 'cancelled', error: { code: 'WORKFLOW_CANCELLED', message: 'cancelled' } })
         return
@@ -241,8 +329,8 @@ export class DurableWorkflowService extends Service {
    * @param signal - cancellation.
    * @returns the child's final assistant text.
    */
-  private async runAgent(record: RunRecord, index: number, prompt: string, parent: Agent, signal: AbortSignal): Promise<string> {
-    const nodeId = FileWorkflowStore.nodeId(record.scriptHash, index, prompt)
+  private async runAgent(record: RunRecord, index: number, prompt: string, parent: Agent, signal: AbortSignal, key?: string): Promise<string> {
+    const nodeId = FileWorkflowStore.nodeId(record.scriptHash, key ?? index, prompt)
     const existing = this.store.getNode(record.id, nodeId)
     if (existing?.status === 'succeeded') {
       this.store.appendEvent(record.id, { at: Date.now(), type: 'node/replayed', data: { nodeId, index } })
@@ -280,6 +368,7 @@ export class DurableWorkflowService extends Service {
         runId: record.id,
         nodeId,
         index,
+        ...(key === undefined ? {} : { key }),
         prompt,
         status: 'succeeded',
         output: last,
@@ -287,8 +376,7 @@ export class DurableWorkflowService extends Service {
         endedAt: Date.now(),
       }
       this.store.putNode(node)
-      const run = this.requireRun(record.id)
-      this.store.updateRun(record.id, { nodeCount: run.nodeCount + 1 })
+      this.store.updateRun(record.id, { nodeCount: this.store.countNodes(record.id) })
       this.store.appendEvent(record.id, { at: Date.now(), type: 'node/finished', data: { nodeId, index } })
       return last
     } catch (error: unknown) {
@@ -297,6 +385,7 @@ export class DurableWorkflowService extends Service {
         runId: record.id,
         nodeId,
         index,
+        ...(key === undefined ? {} : { key }),
         prompt,
         status: 'failed',
         error: { code: 'NODE_FAILED', message },

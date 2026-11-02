@@ -30,4 +30,10 @@ export interface WorkflowRunView {
   readonly nodeCount: number
   readonly result?: unknown
   readonly error?: { code: string; message: string }
+  /** Open and answered holes; present only when the run used `hole()`. */
+  readonly holes?: readonly {
+    readonly id: string
+    readonly prompt: string
+    readonly answer?: string
+  }[]
 }

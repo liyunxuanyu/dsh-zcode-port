@@ -72,6 +72,37 @@ describe('durable workflow', () => {
     await ctx.dispose?.()
   })
 
+  it('runs parallel branches with stable keys and replays them all', async () => {
+    const { ctx, service, parent, created } = await harness()
+    const view = service.start({
+      script: 'const out = await parallel(["a","b"], async (item, i) => await agent("do " + item, { key: "p" + i })); return out',
+    }, parent)
+    const done = await service.wait(view.id, 5_000)
+    expect(done.status).toBe('succeeded')
+    expect(Array.isArray(done.result)).toBe(true)
+    expect(done.nodeCount).toBe(2)
+    expect(created).toHaveLength(2)
+    service.resume(view.id, parent)
+    await service.wait(view.id, 5_000)
+    expect(created).toHaveLength(2)
+    await ctx.dispose?.()
+  })
+
+  it('pauses at a hole and continues after an answer', async () => {
+    const { ctx, service, parent } = await harness()
+    const view = service.start({ script: 'const code = await hole("need code"); return code' }, parent)
+    const paused = await service.wait(view.id, 5_000)
+    expect(paused.status).toBe('waiting-hole')
+    expect(paused.holes?.[0]?.prompt).toBe('need code')
+    const holeId = paused.holes?.[0]?.id
+    expect(holeId).toBeDefined()
+    service.answerHole(view.id, holeId!, 'return 42', parent)
+    const done = await service.wait(view.id, 5_000)
+    expect(done.status).toBe('succeeded')
+    expect(done.result).toBe('return 42')
+    await ctx.dispose?.()
+  })
+
   it('fails a script with a clear code', async () => {
     const { ctx, service, parent } = await harness()
     const view = service.start({ script: 'throw new Error("boom")' }, parent)
