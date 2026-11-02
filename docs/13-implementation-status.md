@@ -7,7 +7,7 @@
 
 ## 0. 一句话
 
-**P0 已通过，P1/P2/P4 部分落地**：product profile 在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**38 个** ZCD 工具激活，**33 个技能**可用（26 个文件技能 + 7 个 dsh 原生 Office；覆盖 34/39 项 ZCode 技能），**89 个单测（16 个文件）**、命名门禁、docs 链接、运行时 doctor 与启动 smoke 全部通过。设置页已能在真实浏览器里列出、添加、删除**用户记忆**；workflow run 面板与文档卡已可用。
+**P0 已通过，P1/P2/P4 部分落地**：product profile 在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**38 个** ZCD 工具激活，**33 个技能**可用（26 个文件技能 + 7 个 dsh 原生 Office；覆盖 34/39 项 ZCode 技能），**89 个单测（17 个文件）**、命名门禁、docs 链接、运行时 doctor 与启动 smoke 全部通过。设置页已能在真实浏览器里列出、添加、删除**用户记忆**；workflow run 面板与文档卡已可用。
 
 ---
 
@@ -135,7 +135,7 @@ P0 已通过；P1（"ZCode 工具语义对齐"）**还没有全部验收**，巡
 | 无 CUA 工具 | Windows 上无法做桌面自动化 | 等待可用驱动；macOS 可挂 dsh 原生 provider |
 | 浏览器无 Node 级脚本 | 页面级 `browser_evaluate` 可用；无 `agent.browsers`/可视面板/用户浏览器 | 浏览器 v2 |
 | 设置页只写用户记忆 | Memory 配置、只读策略开关仍不可改 | 复用 `configForms` |
-| workflow 面板缺操作 | 只能查看，cancel/resume/amend 需回到工具调用 | 面板加操作按钮 |
+| workflow 面板缺指标 | 无耗时/模型列与失败重试按钮 | 保存在节点上的模型与计时 |
 | policy-plan-readonly 默认关闭 | 默认行为与 dsh 一致；严格模式需显式开 | 设置页开关 |
 | 外部插件 e2e | doctor 只做静态检查 | 增加一个真实第三方插件 smoke |
 
