@@ -7,6 +7,7 @@
 window.__ModuleLoader__.load({
   id: '@zcd/client-ui-zcd',
   factory: (require) => {
+    const React = require('react')
     const { jsx } = require('react/jsx-runtime')
 
     const rowStyle = {
@@ -54,18 +55,33 @@ window.__ModuleLoader__.load({
       })
     }
 
-    /** Workflow row: run id and status from the tool text. */
+    /** Workflow row: run id and live status from the host route. */
     function WorkflowRow(props) {
       const content = Array.isArray(props.block?.content) ? props.block.content : []
       const text = content
         .filter((item) => item && item.type === 'text' && typeof item.text === 'string')
         .map((item) => item.text)
         .join(' ')
-      if (text === '') return null
+      const id = /run-[A-Za-z0-9-]+/.exec(text)?.[0]
+      const [status, setStatus] = React.useState(undefined)
+      React.useEffect(() => {
+        if (id === undefined) return undefined
+        let alive = true
+        const read = () => {
+          fetch(`/zcd/workflow/runs/${id}`)
+            .then((response) => response.ok ? response.json() : undefined)
+            .then((value) => { if (alive && value !== undefined) setStatus(value.status) })
+            .catch(() => {})
+        }
+        read()
+        const timer = setInterval(read, 2000)
+        return () => { alive = false; clearInterval(timer) }
+      }, [id])
+      if (text === '' && id === undefined) return null
       return jsx('div', {
         'data-tool': 'workflow_run',
         style: rowStyle,
-        children: jsx('span', { children: text }),
+        children: jsx('span', { children: status === undefined ? text : `${id} [${status}]` }),
       })
     }
 

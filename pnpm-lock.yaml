@@ -86,6 +86,9 @@ importers:
       '@zcd/client-ui-zcd':
         specifier: workspace:*
         version: link:../client-ui-zcd
+      '@zcd/workflow-ui-host':
+        specifier: workspace:*
+        version: link:../workflow-ui-host
 
   packages/client-ui-genui:
     devDependencies:
@@ -430,6 +433,19 @@ importers:
         specifier: 4.0.6-alpha.1
         version: 4.0.6-alpha.1(@deepseek-ai/cordis-plugin-include@1.0.11-alpha.1)(@deepseek-ai/cordis-plugin-loader@1.0.7-alpha.1)
 
+  packages/workflow-ui-host:
+    dependencies:
+      '@deepseek-ai/dsh-host-webserver':
+        specifier: 0.2.2-alpha.2
+        version: 0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1)
+      '@zcd/durable-workflow':
+        specifier: workspace:*
+        version: link:../durable-workflow
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: 4.0.6-alpha.1
+        version: 4.0.6-alpha.1(@deepseek-ai/cordis-plugin-include@1.0.11-alpha.1)(@deepseek-ai/cordis-plugin-loader@1.0.7-alpha.1)
+
   profiles/product:
     dependencies:
       '@deepseek-ai/dsh-base':
@@ -501,6 +517,9 @@ importers:
       '@zcd/workflow-store':
         specifier: workspace:*
         version: link:../../packages/workflow-store
+      '@zcd/workflow-ui-host':
+        specifier: workspace:*
+        version: link:../../packages/workflow-ui-host
 
 packages:
 

@@ -80,6 +80,12 @@ try {
     throw new Error(`genui route failed: ${genui.status} csp=${csp}`)
   }
 
+  const workflow = await fetch(`http://127.0.0.1:${port}/zcd/workflow/runs/not-a-run`)
+  const workflowBody = await workflow.text()
+  if (workflow.status !== 404 || !workflowBody.includes('not-found')) {
+    throw new Error(`workflow route failed: ${workflow.status} ${workflowBody}`)
+  }
+
   // Client cards must be in the browser boot graph and their bundles served.
   const login = await fetch(`http://127.0.0.1:${port}/?token=${token}`, { redirect: 'manual' })
   const cookie = (login.headers.get('set-cookie') ?? '').split(';')[0]
