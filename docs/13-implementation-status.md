@@ -54,10 +54,10 @@
 | `@zcd/genui-host` | `/zcd/genui/...` 沙箱路由：严格 CSP + sandbox + no-store | 激活成功 | smoke 检查 200 + CSP |
 | `@zcd/client-ui-genui` | lazy-CJS：`visualize` 结果渲染为沙箱 iframe | 进入 boot graph | smoke 检查 |
 | `@zcd/status-host` | `/zcd/status`：Node/dsh/uptime/最近 runs | 激活成功 | smoke 200 |
-| `@zcd/workflow-ui-host` | `/zcd/workflow/runs` 列表、`/<id>` JSON、`/<id>/nodes`、`POST /<id>/cancel` | 激活成功 | smoke 404 契约 |
+| `@zcd/workflow-ui-host` | `/zcd/workflow/runs` 列表、`/<id>` JSON、`/<id>/nodes`、`/<id>/events`、`POST /<id>/cancel` | 激活成功 | smoke：fixture 列表/节点/事件 + 404 契约 |
 | `@zcd/memory-ui-host` | `GET/POST /zcd/memory`、`DELETE /zcd/memory/<id>`（仅 user scope） | 激活成功 | smoke 增删查往返 |
 | `@zcd/client-ui-settings-zcd` | `settings.section` 的 ZCD 页：运行环境、最近 runs、**用户记忆增删** | **视觉验收通过** | [截图](assets/zcd-settings-memory.png) + smoke |
-| `@zcd/client-ui-workflow` | 右侧栏 workflow tab：3s 轮询 + 节点展开 | **视觉验收通过** | [截图](assets/workflow-panel.png) + smoke |
+| `@zcd/client-ui-workflow` | 右侧栏 workflow tab：3s 轮询 + 节点展开 + 最近 12 条 journal 事件 | **视觉验收通过** | [截图](assets/workflow-panel-events.png) + smoke |
 | `@zcd/client-ui-zcd` | 文档卡 Open/自动打开、workflow 卡片轮询 + 取消 | 进入 boot graph | smoke 检查 |
 | `@zcd/tool-visualize` | `visualize`：写自包含 HTML，返回沙箱 URL（deferred） | 激活成功 | — |
 | `skills/superpowers`（14） | ZCode 工程方法技能，工具名已映射为 dsh | 已安装 | `install-skills.mjs` |
@@ -86,7 +86,7 @@ npx -y node@24 scripts/smoke-profile.mjs
 # ✓ product profile boots on :<port>; HTTP 303; all plugins and client cards active
 ```
 
-smoke 覆盖：Web 启动、无 `did not activate`、Gen UI CSP、文档视图 POST/GET、`/zcd/status`、workflow 列表/404 契约、**memory 列表→创建→列表→删除→列表**、四个 client bundle 的 boot graph 与 combo 内容。
+smoke 覆盖：Web 启动、无 `did not activate`、Gen UI CSP、文档视图 POST/GET、`/zcd/status`、workflow fixture 的列表/节点/事件与 404 契约、**memory 列表→创建→列表→删除→列表**、四个 client bundle 的 boot graph 与 combo 内容。
 
 ---
 
@@ -98,7 +98,7 @@ smoke 覆盖：Web 启动、无 `did not activate`、Gen UI CSP、文档视图 P
 | 2 | Browser / CUA（WP-10/11） | `js` code-act + 浏览器 provider + 面板；技能已归档，能力未实现 |
 | 3 | Office 富格式技能 | 基于 `create_document` 的 8 个文档技能；当前只有基础块 |
 | 4 | 设置页继续写入 | workflow 配置、只读策略开关；用户记忆已经可用 |
-| 5 | Workflow run 详情 | 节点日志、取消历史、失败重试入口 |
+| 5 | Workflow run 详情 | 面板内 resume/amend、耗时/模型列、失败重试入口 |
 | 6 | 剩余技能 | 20/39；按 `docs/08-skills-catalog.md` 推进 |
 
 ## 2.5 P1 尚未全部通过的验收
@@ -120,7 +120,7 @@ P0 已通过；P1（"ZCode 工具语义对齐"）**还没有全部验收**，巡
 |---|---|---|
 | 无 Browser/CUA 工具 | 无法做浏览器/桌面自动化 | WP-10/11 |
 | 设置页只写用户记忆 | Memory 配置、只读策略开关仍不可改 | 复用 `configForms` |
-| workflow 详情缺日志视图 | 只能看到节点状态，排查失败要读 store | 扩展 `/nodes` 与面板 |
+| workflow 面板缺操作 | 只能查看，cancel/resume/amend 需回到工具调用 | 面板加操作按钮 |
 | Office 生成只有基础块 | 无图表/样式/模板 | 技能层补齐 |
 | policy-plan-readonly 默认关闭 | 默认行为与 dsh 一致；严格模式需显式开 | 设置页开关 |
 | 外部插件 e2e | doctor 只做静态检查 | 增加一个真实第三方插件 smoke |

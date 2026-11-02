@@ -18,12 +18,21 @@ window.__ModuleLoader__.load({
     const cell = { padding: '4px 0', fontSize: '12px', color: 'var(--text-secondary, #555)' }
     const mono = { fontFamily: 'var(--font-mono, monospace)' }
 
+    /** Compact one-line event payload for the panel. */
+    function summarize(data) {
+      if (data === undefined) return ''
+      const text = typeof data === 'string' ? data : JSON.stringify(data)
+      if (text === undefined) return ''
+      return ` · ${text.length > 90 ? `${text.slice(0, 90)}…` : text}`
+    }
+
     /** Panel body: recent runs, refreshed every 3s; click a run for its nodes. */
     function WorkflowPanel() {
       const [runs, setRuns] = React.useState([])
       const [error, setError] = React.useState(undefined)
       const [expanded, setExpanded] = React.useState(undefined)
       const [nodes, setNodes] = React.useState({})
+      const [events, setEvents] = React.useState({})
       React.useEffect(() => {
         let alive = true
         const read = () => {
@@ -36,13 +45,20 @@ window.__ModuleLoader__.load({
         const timer = setInterval(read, 3000)
         return () => { alive = false; clearInterval(timer) }
       }, [])
+      const load = (id) => Promise.all([
+        fetch(`/zcd/workflow/runs/${id}/nodes`).then((response) => response.ok ? response.json() : Promise.reject(new Error(String(response.status)))),
+        fetch(`/zcd/workflow/runs/${id}/events`).then((response) => response.ok ? response.json() : Promise.reject(new Error(String(response.status)))),
+      ]).then(([nodeValue, eventValue]) => {
+        setNodes((previous) => ({ ...previous, [id]: Array.isArray(nodeValue.nodes) ? nodeValue.nodes : [] }))
+        setEvents((previous) => ({ ...previous, [id]: Array.isArray(eventValue.events) ? eventValue.events : [] }))
+      }).catch(() => {
+        setNodes((previous) => ({ ...previous, [id]: [] }))
+        setEvents((previous) => ({ ...previous, [id]: [] }))
+      })
       const toggle = (id) => {
         if (expanded === id) { setExpanded(undefined); return }
         setExpanded(id)
-        fetch(`/zcd/workflow/runs/${id}/nodes`)
-          .then((response) => response.ok ? response.json() : Promise.reject(new Error(String(response.status))))
-          .then((value) => setNodes((previous) => ({ ...previous, [id]: Array.isArray(value.nodes) ? value.nodes : [] })))
-          .catch(() => setNodes((previous) => ({ ...previous, [id]: [] })))
+        void load(id)
       }
       if (error !== undefined) {
         return jsx('div', { style: { padding: '12px' }, children: `Workflow runs unavailable (${error}).` })
@@ -60,6 +76,13 @@ window.__ModuleLoader__.load({
               children: `#${node.index} [${node.status}] ${node.prompt}`,
             }))
             : []
+          const eventRows = expanded === run.id
+            ? (events[run.id] ?? []).slice(-12).map((event, index) => jsx('div', {
+              key: `${event.at}-${index}`,
+              style: { ...cell, ...mono, paddingLeft: '10px', fontSize: '10px' },
+              children: `${new Date(event.at).toLocaleTimeString()} ${event.type}${summarize(event.data)}`,
+            }))
+            : []
           return jsxs('div', {
             key: run.id,
             style: { ...cell, cursor: 'pointer' },
@@ -68,6 +91,7 @@ window.__ModuleLoader__.load({
               jsx('div', { style: mono, children: `${run.id} [${run.status}]` }),
               jsx('div', { children: `${run.name} · ${run.nodeCount} nodes` }),
               ...nodeRows,
+              ...eventRows,
             ],
           })
         }),

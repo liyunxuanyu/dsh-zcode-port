@@ -1,11 +1,12 @@
 /**
  * `ctx.durableWorkflow` — replayable workflow runs (MVP).
  *
- * The MVP executes a plain-JavaScript body sequentially. Each `agent(prompt)`
- * is a durable node keyed by `(scriptHash, ordinal, prompt)`: a second
- * execution of the same run returns the stored output instead of calling the
- * model again. There is no parallel(), hole(), amend(), or UI yet; those are
- * specified in docs/04 and land on top of this seam.
+ * Runs execute a plain-JavaScript body. Each `agent(prompt)` is a durable node
+ * keyed by `(scriptHash, ordinal|explicit key, prompt)`: a second execution of
+ * the same run returns the stored output instead of calling the model again.
+ * `parallel()`, `pipeline()`, `hole()`, replay, resume, cancel, amend, and the
+ * journal events land on top of this seam; `docs/04-durable-workflow.md` is the
+ * specification.
  *
  * @module @zcd/durable-workflow
  */
@@ -21,7 +22,7 @@ import type {} from '@deepseek-ai/dsh-agent-default-model'
 import { createUserMessage } from '@deepseek-ai/dsh-llm'
 import type { SessionId } from '@deepseek-ai/dsh-session'
 import type {} from '@zcd/shared/events'
-import { FileWorkflowStore, type HoleRecord, type NodeRecord, type RunRecord } from '@zcd/workflow-store'
+import { FileWorkflowStore, type HoleRecord, type JournalEvent, type NodeRecord, type RunRecord } from '@zcd/workflow-store'
 import type { WorkflowRunView, WorkflowStartRequest } from './types.js'
 
 export type * from './types.js'
@@ -215,6 +216,16 @@ export class DurableWorkflowService extends Service {
   nodes(runId: string): NodeRecord[] {
     this.requireRun(runId)
     return this.store.listNodes(runId)
+  }
+
+  /**
+   * Read the journal of one run, oldest first.
+   * @param runId - run id.
+   * @returns journal events (`node/*`, `run/*`, `hole/*`).
+   */
+  events(runId: string): JournalEvent[] {
+    this.requireRun(runId)
+    return this.store.readEvents(runId)
   }
 
   /**

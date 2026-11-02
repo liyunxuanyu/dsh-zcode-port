@@ -18,6 +18,9 @@ const home = process.env.ZCD_DSH_HOME ?? join(root, '.dsh-home')
 const profile = join(home, 'profiles/product')
 const genuiDir = join(home, 'storages', 'zcd-genui', '__smoke__')
 const memoryHome = join(home, 'memory-smoke')
+const workflowRuns = join(home, 'storages', 'zcd-workflow', 'runs')
+const fixtureId = 'run-smoke'
+const fixtureNodeId = 'smoke-node-1'
 
 if (!existsSync(bin)) {
   console.error('✖ dsh is not installed; run `pnpm install` first.')
@@ -30,6 +33,37 @@ if (!existsSync(profile)) {
 
 mkdirSync(genuiDir, { recursive: true })
 rmSync(memoryHome, { recursive: true, force: true })
+rmSync(join(workflowRuns, fixtureId), { recursive: true, force: true })
+const now = Date.now()
+mkdirSync(join(workflowRuns, fixtureId, 'nodes'), { recursive: true })
+writeFileSync(join(workflowRuns, fixtureId, 'run.json'), JSON.stringify({
+  id: fixtureId,
+  name: 'smoke fixture',
+  status: 'succeeded',
+  script: 'return await agent("Summarize the changelog")',
+  scriptHash: 'smoke',
+  args: {},
+  createdAt: now,
+  updatedAt: now,
+  result: 'Smoke fixture finished.',
+  nodeCount: 1,
+}, null, 2))
+writeFileSync(join(workflowRuns, fixtureId, 'nodes', `${fixtureNodeId}.json`), JSON.stringify({
+  runId: fixtureId,
+  nodeId: fixtureNodeId,
+  index: 0,
+  prompt: 'Summarize the changelog',
+  status: 'succeeded',
+  output: 'Smoke fixture output.',
+  startedAt: now,
+  endedAt: now + 10,
+}, null, 2))
+writeFileSync(join(workflowRuns, fixtureId, 'events.jsonl'), [
+  { at: now, type: 'run/created', data: { name: 'smoke fixture' } },
+  { at: now + 1, type: 'node/started', data: { nodeId: fixtureNodeId, index: 0 } },
+  { at: now + 10, type: 'node/finished', data: { nodeId: fixtureNodeId, index: 0 } },
+  { at: now + 11, type: 'run/finished', data: { status: 'succeeded' } },
+].map(event => JSON.stringify(event)).join('\n') + '\n')
 writeFileSync(join(genuiDir, 'probe.html'), '<!doctype html><h1>zcd genui smoke</h1>')
 
 const child = spawn(process.execPath, [bin, '--profile', 'product', '--no-open', '--port', '0'], {
@@ -105,6 +139,21 @@ try {
   if (runList.status !== 200 || !Array.isArray(runListBody?.runs)) {
     throw new Error(`workflow list route failed: ${runList.status}`)
   }
+  const fixture = runListBody.runs.find(run => run.id === fixtureId)
+  if (fixture?.status !== 'succeeded' || fixture?.nodeCount !== 1) {
+    throw new Error(`workflow list did not expose the fixture: ${JSON.stringify(runListBody)}`)
+  }
+  const fixtureNodes = await fetch(`http://127.0.0.1:${port}/zcd/workflow/runs/${fixtureId}/nodes`)
+  const fixtureNodesBody = await fixtureNodes.json().catch(() => undefined)
+  if (fixtureNodes.status !== 200 || fixtureNodesBody?.nodes?.[0]?.prompt !== 'Summarize the changelog') {
+    throw new Error(`workflow nodes route failed: ${fixtureNodes.status}`)
+  }
+  const fixtureEvents = await fetch(`http://127.0.0.1:${port}/zcd/workflow/runs/${fixtureId}/events`)
+  const fixtureEventsBody = await fixtureEvents.json().catch(() => undefined)
+  const eventTypes = Array.isArray(fixtureEventsBody?.events) ? fixtureEventsBody.events.map(event => event.type) : []
+  for (const type of ['run/created', 'node/started', 'node/finished', 'run/finished']) {
+    if (!eventTypes.includes(type)) throw new Error(`workflow events missing ${type}: ${JSON.stringify(fixtureEventsBody)}`)
+  }
 
   const workflow = await fetch(`http://127.0.0.1:${port}/zcd/workflow/runs/not-a-run`)
   const workflowBody = await workflow.text()
@@ -115,6 +164,8 @@ try {
   if (cancel.status !== 404) throw new Error(`workflow cancel route failed: ${cancel.status}`)
   const nodes = await fetch(`http://127.0.0.1:${port}/zcd/workflow/runs/not-a-run/nodes`)
   if (nodes.status !== 404) throw new Error(`workflow nodes route failed: ${nodes.status}`)
+  const events = await fetch(`http://127.0.0.1:${port}/zcd/workflow/runs/not-a-run/events`)
+  if (events.status !== 404) throw new Error(`workflow events route failed: ${events.status}`)
 
   // User memory: list → create → list → delete → list. The smoke home is a
   // throwaway directory, so "empty" is a meaningful assertion.

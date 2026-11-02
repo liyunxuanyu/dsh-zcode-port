@@ -46,7 +46,7 @@ export function apply(ctx: Context): void {
         res.end(JSON.stringify({ runs }))
         return
       }
-      const match = /^\/zcd\/workflow\/runs\/([A-Za-z0-9_-]+)(\/cancel|\/nodes)?$/.exec(url.pathname)
+      const match = /^\/zcd\/workflow\/runs\/([A-Za-z0-9_-]+)(\/cancel|\/nodes|\/events)?$/.exec(url.pathname)
       const id = match?.[1]
       const sub = match?.[2]
       const cancel = sub === '/cancel'
@@ -54,6 +54,31 @@ export function apply(ctx: Context): void {
         res.writeHead(404)
         res.end()
         return
+      }
+      if (sub === '/events') {
+        if (req.method !== 'GET') {
+          res.writeHead(405, { allow: 'GET' })
+          res.end()
+          return
+        }
+        try {
+          const events = ctx.durableWorkflow.events(id).slice(-200).map(event => ({
+            at: event.at,
+            type: event.type,
+            data: event.data,
+          }))
+          res.writeHead(200, {
+            'content-type': 'application/json; charset=utf-8',
+            'cache-control': 'no-store',
+            'x-content-type-options': 'nosniff',
+          })
+          res.end(JSON.stringify({ events }))
+          return
+        } catch {
+          res.writeHead(404, { 'content-type': 'application/json' })
+          res.end(JSON.stringify({ error: 'not-found' }))
+          return
+        }
       }
       if (sub === '/nodes') {
         if (req.method !== 'GET') {

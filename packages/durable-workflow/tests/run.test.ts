@@ -64,6 +64,11 @@ describe('durable workflow', () => {
     expect(done.result).toMatch(/^answer:session-/)
     expect(done.nodeCount).toBe(1)
     expect(injected.some(text => text.includes('is succeeded'))).toBe(true)
+    const types = service.events(view.id).map(event => event.type)
+    expect(types).toContain('run/created')
+    expect(types).toContain('node/started')
+    expect(types).toContain('node/finished')
+    expect(types).toContain('run/finished')
     await ctx.dispose?.()
   })
 

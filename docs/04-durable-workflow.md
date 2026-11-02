@@ -1,6 +1,6 @@
 # 04 · Durable Workflow（新 seam 规格）
 
-> **实现状态（2026-11-03）**：MVP 已落地于 `@zcd/durable-workflow` + `@zcd/workflow-store` + `@zcd/tool-workflow`。当前支持 `agent()`、`parallel()`、`pipeline()`、`hole()`、节点缓存、resume、cancel、7 个工具、完成/留白通知、amend successor；run 面板仍按本文后续章节实现。
+> **实现状态（2026-11-03）**：MVP 已落地于 `@zcd/durable-workflow` + `@zcd/workflow-store` + `@zcd/tool-workflow`。当前支持 `agent()`、`parallel()`、`pipeline()`、`hole()`、节点缓存、resume、cancel、7 个工具、完成/留白通知、amend successor；右侧栏 run 面板可列出 run、展开节点并显示 journal 事件（`/zcd/workflow/runs/<id>/events`，[截图](assets/workflow-panel-events.png)）。
 
 > 这是本项目**唯一新增的 seam**。目标：把 ZCode 动态工作流的 journal/resume/留白/amend/live-retune 带到 dsh，同时不改 dsh 的 `workflow`。
 >
@@ -492,9 +492,9 @@ declare module '@deepseek-ai/dsh-session' {
 
 ### 12.1 右侧栏 `workflow` tab
 
-- 列表：run 名称、状态、进度（completed/total nodes）、耗时、模型。
+- 已实现：run 列表（状态、名称、节点数）、点击展开节点（序号/状态/prompt）与最近 12 条 journal 事件（时间、类型、payload 摘要），3 秒轮询。
+- 未实现：耗时/模型列、子会话链接、面板内 cancel/resume/amend（cancel 目前在 `workflow_run` 工具卡上）。
 - 详情：节点树（agent/world/hole）、每个节点的输入摘要/输出摘要/子会话链接、错误。
-- 操作：cancel / resume / amend（仅并发滑杆）/ open child session。
 
 ### 12.2 对话内卡片
 
