@@ -29,12 +29,18 @@ importers:
       '@zcd/deferred-tools':
         specifier: workspace:*
         version: link:../deferred-tools
+      '@zcd/memory':
+        specifier: workspace:*
+        version: link:../memory
       '@zcd/offpeak':
         specifier: workspace:*
         version: link:../offpeak
       '@zcd/policy-plan-readonly':
         specifier: workspace:*
         version: link:../policy-plan-readonly
+      '@zcd/tool-memory':
+        specifier: workspace:*
+        version: link:../tool-memory
       '@zcd/tool-models':
         specifier: workspace:*
         version: link:../tool-models
@@ -70,6 +76,19 @@ importers:
       '@deepseek-ai/dsh-tools':
         specifier: 0.2.2-alpha.2
         version: 0.2.2-alpha.2(d570a50fd9051dfa7084c71da173b036)
+      '@zcd/shared':
+        specifier: workspace:*
+        version: link:../shared
+      zod:
+        specifier: 4.4.3
+        version: 4.4.3
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: 4.0.6-alpha.1
+        version: 4.0.6-alpha.1(@deepseek-ai/cordis-plugin-include@1.0.11-alpha.1)(@deepseek-ai/cordis-plugin-loader@1.0.7-alpha.1)
+
+  packages/memory:
+    dependencies:
       '@zcd/shared':
         specifier: workspace:*
         version: link:../shared
@@ -130,6 +149,25 @@ importers:
       '@deepseek-ai/dsh-session':
         specifier: 0.2.2-alpha.2
         version: 0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1)(@deepseek-ai/dsh-scope@0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1))
+
+  packages/tool-memory:
+    dependencies:
+      '@deepseek-ai/dsh-agent':
+        specifier: 0.2.2-alpha.2
+        version: 0.2.2-alpha.2(c09e321863b8ebb6167f522cda8f63dc)
+      '@deepseek-ai/dsh-tools':
+        specifier: 0.2.2-alpha.2
+        version: 0.2.2-alpha.2(d570a50fd9051dfa7084c71da173b036)
+      '@zcd/deferred-tools':
+        specifier: workspace:*
+        version: link:../deferred-tools
+      '@zcd/memory':
+        specifier: workspace:*
+        version: link:../memory
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: 4.0.6-alpha.1
+        version: 4.0.6-alpha.1(@deepseek-ai/cordis-plugin-include@1.0.11-alpha.1)(@deepseek-ai/cordis-plugin-loader@1.0.7-alpha.1)
 
   packages/tool-models:
     dependencies:
@@ -265,12 +303,18 @@ importers:
       '@zcd/deferred-tools':
         specifier: workspace:*
         version: link:../../packages/deferred-tools
+      '@zcd/memory':
+        specifier: workspace:*
+        version: link:../../packages/memory
       '@zcd/offpeak':
         specifier: workspace:*
         version: link:../../packages/offpeak
       '@zcd/policy-plan-readonly':
         specifier: workspace:*
         version: link:../../packages/policy-plan-readonly
+      '@zcd/tool-memory':
+        specifier: workspace:*
+        version: link:../../packages/tool-memory
       '@zcd/tool-models':
         specifier: workspace:*
         version: link:../../packages/tool-models

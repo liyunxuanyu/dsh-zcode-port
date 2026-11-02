@@ -26,6 +26,8 @@
     "@zcd/offpeak": "workspace:*",
     "@zcd/tool-offpeak": "workspace:*",
     "@zcd/tool-models": "workspace:*",
-    "@zcd/tool-session": "workspace:*"
+    "@zcd/tool-session": "workspace:*",
+    "@zcd/memory": "workspace:*",
+    "@zcd/tool-memory": "workspace:*"
   }
 }

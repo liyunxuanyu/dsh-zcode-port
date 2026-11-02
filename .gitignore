@@ -29,3 +29,6 @@ tmp/
 # local harness home and product tarballs
 .dsh-home/
 dist/
+
+# project memory
+.zcd/

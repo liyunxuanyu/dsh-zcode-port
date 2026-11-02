@@ -29,6 +29,17 @@
     - id: zcd-tool-offpeak
       name: '@zcd/tool-offpeak'
 
+    # Long-term memory: project/user Markdown entries + generated index.
+    - id: zcd-memory
+      name: '@zcd/memory'
+      config:
+        maxEntryBytes: 65536
+        maxEntries: 500
+        directoryName: '.zcd/memory'
+
+    - id: zcd-tool-memory
+      name: '@zcd/tool-memory'
+
     # Cross-session handoff (deferred): bounded context from an earlier session.
     - id: zcd-tool-session
       name: '@zcd/tool-session'
