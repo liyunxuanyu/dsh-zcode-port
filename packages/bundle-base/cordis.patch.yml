@@ -29,6 +29,13 @@
     - id: zcd-tool-offpeak
       name: '@zcd/tool-offpeak'
 
+    # Gen UI: sandboxed HTML artifacts served by the host route.
+    - id: zcd-genui-host
+      name: '@zcd/genui-host'
+
+    - id: zcd-tool-visualize
+      name: '@zcd/tool-visualize'
+
     # Durable workflow (MVP): replayable script runs with per-node caching.
     - id: zcd-durable-workflow
       name: '@zcd/durable-workflow'

@@ -22,6 +22,8 @@
     "@zcd/tool-memory": "workspace:*",
     "@zcd/durable-workflow": "workspace:*",
     "@zcd/tool-workflow": "workspace:*",
-    "@zcd/workflow-store": "workspace:*"
+    "@zcd/workflow-store": "workspace:*",
+    "@zcd/genui-host": "workspace:*",
+    "@zcd/tool-visualize": "workspace:*"
   }
 }

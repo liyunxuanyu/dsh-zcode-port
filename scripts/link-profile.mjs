@@ -20,6 +20,8 @@ const directories = {
   '@zcd/bundle-base': 'packages/bundle-base',
   '@zcd/bundle-web-app': 'packages/bundle-web-app',
   '@zcd/policy-plan-readonly': 'packages/policy-plan-readonly',
+  '@zcd/genui-host': 'packages/genui-host',
+  '@zcd/tool-visualize': 'packages/tool-visualize',
   '@zcd/memory': 'packages/memory',
   '@zcd/durable-workflow': 'packages/durable-workflow',
   '@zcd/workflow-store': 'packages/workflow-store',

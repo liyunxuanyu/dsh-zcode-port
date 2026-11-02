@@ -32,6 +32,9 @@ importers:
       '@zcd/durable-workflow':
         specifier: workspace:*
         version: link:../durable-workflow
+      '@zcd/genui-host':
+        specifier: workspace:*
+        version: link:../genui-host
       '@zcd/memory':
         specifier: workspace:*
         version: link:../memory
@@ -62,6 +65,9 @@ importers:
       '@zcd/tool-todo-read':
         specifier: workspace:*
         version: link:../tool-todo-read
+      '@zcd/tool-visualize':
+        specifier: workspace:*
+        version: link:../tool-visualize
       '@zcd/tool-workflow':
         specifier: workspace:*
         version: link:../tool-workflow
@@ -116,6 +122,16 @@ importers:
       '@zcd/workflow-store':
         specifier: workspace:*
         version: link:../workflow-store
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: 4.0.6-alpha.1
+        version: 4.0.6-alpha.1(@deepseek-ai/cordis-plugin-include@1.0.11-alpha.1)(@deepseek-ai/cordis-plugin-loader@1.0.7-alpha.1)
+
+  packages/genui-host:
+    dependencies:
+      '@deepseek-ai/dsh-host-webserver':
+        specifier: 0.2.2-alpha.2
+        version: 0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1)
     devDependencies:
       '@deepseek-ai/cordis':
         specifier: 4.0.6-alpha.1
@@ -326,6 +342,22 @@ importers:
         specifier: 4.0.6-alpha.1
         version: 4.0.6-alpha.1(@deepseek-ai/cordis-plugin-include@1.0.11-alpha.1)(@deepseek-ai/cordis-plugin-loader@1.0.7-alpha.1)
 
+  packages/tool-visualize:
+    dependencies:
+      '@deepseek-ai/dsh-agent':
+        specifier: 0.2.2-alpha.2
+        version: 0.2.2-alpha.2(c09e321863b8ebb6167f522cda8f63dc)
+      '@deepseek-ai/dsh-tools':
+        specifier: 0.2.2-alpha.2
+        version: 0.2.2-alpha.2(d570a50fd9051dfa7084c71da173b036)
+      '@zcd/deferred-tools':
+        specifier: workspace:*
+        version: link:../deferred-tools
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: 4.0.6-alpha.1
+        version: 4.0.6-alpha.1(@deepseek-ai/cordis-plugin-include@1.0.11-alpha.1)(@deepseek-ai/cordis-plugin-loader@1.0.7-alpha.1)
+
   packages/tool-workflow:
     dependencies:
       '@deepseek-ai/dsh-agent':
@@ -371,6 +403,9 @@ importers:
       '@zcd/durable-workflow':
         specifier: workspace:*
         version: link:../../packages/durable-workflow
+      '@zcd/genui-host':
+        specifier: workspace:*
+        version: link:../../packages/genui-host
       '@zcd/memory':
         specifier: workspace:*
         version: link:../../packages/memory
@@ -401,6 +436,9 @@ importers:
       '@zcd/tool-todo-read':
         specifier: workspace:*
         version: link:../../packages/tool-todo-read
+      '@zcd/tool-visualize':
+        specifier: workspace:*
+        version: link:../../packages/tool-visualize
       '@zcd/tool-workflow':
         specifier: workspace:*
         version: link:../../packages/tool-workflow

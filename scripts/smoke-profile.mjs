@@ -8,7 +8,7 @@
  * dsh's own bundles and load every ZCD plugin.
  */
 import { spawn } from 'node:child_process'
-import { existsSync } from 'node:fs'
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -16,6 +16,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const bin = join(root, 'node_modules/@deepseek-ai/dsh/lib/bin.js')
 const home = process.env.ZCD_DSH_HOME ?? join(root, '.dsh-home')
 const profile = join(home, 'profiles/product')
+const genuiDir = join(home, 'storages', 'zcd-genui', '__smoke__')
 
 if (!existsSync(bin)) {
   console.error('✖ dsh is not installed; run `pnpm install` first.')
@@ -25,6 +26,9 @@ if (!existsSync(profile)) {
   console.error(`✖ profile missing at ${profile}; run scripts/link-profile.mjs first.`)
   process.exit(1)
 }
+
+mkdirSync(genuiDir, { recursive: true })
+writeFileSync(join(genuiDir, 'probe.html'), '<!doctype html><h1>zcd genui smoke</h1>')
 
 const child = spawn(process.execPath, [bin, '--profile', 'product', '--no-open', '--port', '0'], {
   cwd: root,
