@@ -2,7 +2,7 @@
 
 > 目标：在 **DeepSeek Harness（dsh）** 之上，用 **overlay 插件** 的方式，复刻 ZCode 最好用的产品能力与技能，同时保留 dsh 的插件化内核。
 >
-> 状态：**P0 已验收，P1/P2 核心能力与 P4 部分 UI 已落地**（38 个工具、33 个技能、89 个单测；product profile 可启动，设置页用户记忆增删与 workflow 面板已通过真实浏览器视觉验收）。进度见 [`docs/13-implementation-status.md`](docs/13-implementation-status.md)。日期：2026-11-03。
+> 状态：**P0 已验收，P1/P2 核心能力与 P4 部分 UI 已落地**（38 个工具、33 个技能、89 个单测；product profile 可启动，设置页用户记忆增删与 workflow 面板已通过真实浏览器视觉验收）。进度见 [`docs/13-implementation-status.md`](docs/13-implementation-status.md)，阶段汇总见 [`docs/14-status-report.md`](docs/14-status-report.md)。日期：2026-11-03。
 > 参考基线：`archive/`（ZCode 60 个文件 + dsh 38 个文件）。
 
 ---
@@ -74,6 +74,7 @@
 | [`docs/11-alternatives.md`](docs/11-alternatives.md) | 四个方案的首次/长期成本对比，何时改选 | 决策者 |
 | [`docs/12-runtime-and-packaging.md`](docs/12-runtime-and-packaging.md) | 运行时清单、一键安装、打包、接入外部插件 | 开发/运维 |
 | [`docs/13-implementation-status.md`](docs/13-implementation-status.md) | **实现状态**：已完成/进行中/缺口/设计修正 | 所有人 |
+| [`docs/14-status-report.md`](docs/14-status-report.md) | **阶段报告**：当前阶段、交付清单、验证证据、缺口与下一步 | 所有人 |
 | [`archive/INDEX.md`](archive/INDEX.md) | 参考文档归档与用途 | 所有人 |
 | [`architecture.html`](architecture.html) | 一页可视化总览（分层、数字、路线图） | 所有人 |
 

@@ -1,7 +1,7 @@
 # 13 · 实现状态
 
 > 最后更新：2026-11-03。
-> 本文是**唯一**的实现进度入口；`docs/10-roadmap.md` 只描述计划，状态以此为准。
+> 本文是**唯一**的实现进度入口；`docs/10-roadmap.md` 只描述计划，状态以此为准。阶段性汇总见 [`docs/14-status-report.md`](14-status-report.md)。
 
 ---
 
@@ -27,7 +27,7 @@
 | CI | `.github/workflows/ci.yml`（typecheck/test/verify/build/pack/doctor/MCP check/smoke） |
 | MCP 运行时 | `runtime/mcp` pin `server-everything@2.1.0`；`pnpm mcp:check` 完成 initialize + tools/list（16 tools） |
 
-当前 workspace 共 **32 个包**：2 个 bundle、4 个 client bundle、5 个 Web host、其余为服务与工具包。
+当前 workspace 共 **33 个包**：2 个 bundle、4 个 client bundle、5 个 Web host、其余为服务与工具包。
 
 ### 1.2 插件与工具
 
@@ -47,7 +47,7 @@
 | `@zcd/memory` | `ctx.memory`：项目/用户 Markdown 条目、索引重建、路径约束、secret 拒绝 | 激活成功 | 6 个单测（slug/parse/root/secret） |
 | `@zcd/tool-memory` | `memory_search/read/write/remove/dream`（deferred） | 激活成功 | — |
 | `@zcd/workflow-store` | 文件型 run 存储：`run.json` + nodes + `events.jsonl`，原子写 | 已编译 | 3 个单测 |
-| `@zcd/durable-workflow` | `ctx.durableWorkflow`：脚本执行、`agent()`/`parallel()`/`pipeline()`、`hole()`、节点缓存、resume、cancel、amend、完成/留白通知 | 激活成功 | 6 个单测 |
+| `@zcd/durable-workflow` | `ctx.durableWorkflow`：脚本执行、`agent()`/`parallel()`/`pipeline()`、`hole()`、节点缓存、resume、cancel、amend、完成/留白通知 | 激活成功 | 8 个单测 |
 | `@zcd/tool-workflow` | `workflow_run/get_run/list_runs/resume/cancel/amend/answer_hole` | 激活成功 | — |
 | `@zcd/tool-documents` | `read_document/search_document/open_document/show_in_viewer/get_view`：text/docx/xlsx/pdf，带锚点 | 激活成功 | 2 个单测 |
 | `@zcd/tool-office` | `create_document`：docx/xlsx/pdf，heading/paragraph/bullet/table | 激活成功 | 3 个单测 |
@@ -62,7 +62,7 @@
 | `@zcd/client-ui-workflow` | 右侧栏 workflow tab：3s 轮询 + 节点展开 + journal 事件 + 取消/恢复/改脚本 | **视觉验收通过** | [截图](assets/workflow-panel-amend.png) + smoke |
 | `@zcd/client-ui-zcd` | 文档卡 Open/自动打开、workflow 卡片轮询 + 取消 | 进入 boot graph | smoke 检查 |
 | `@zcd/tool-visualize` | `visualize`：写自包含 HTML，返回沙箱 URL（deferred） | 激活成功 | 2 个单测（落盘/URL、限额/高度） |
-| `@zcd/browser` | `ctx.browser`：headless Chrome、每会话隔离 context/page、截图落盘、URL 白名单 | 激活成功 | 3 个单测（URL/Chrome 探测/真实导航） |
+| `@zcd/browser` | `ctx.browser`：headless Chrome、每会话隔离 context + 多 tab、截图落盘、URL 白名单 | 激活成功 | 3 个单测（URL/Chrome 探测/真实导航） |
 | `@zcd/tool-browser` | `browser_open/snapshot/evaluate/click/type/screenshot` + tab 4 工具 + `browser_close`（deferred） | 激活成功 | 1 个真实 Chrome 工具链测试 |
 | `skills/superpowers`（14） | ZCode 工程方法技能，工具名已映射为 dsh | 已安装 | `install-skills.mjs` |
 | `skills/dsh-guide`（6） | dsh 自诊断：profile/bundle/patch、插件、MCP、skills | 已安装 | `install-skills.mjs` |
@@ -90,7 +90,7 @@
 ```sh
 pnpm typecheck     # 全部 workspace 包通过
 pnpm test          # 17 个文件 / 89 个用例通过
-pnpm verify        # verify-naming: 33 ZCD tools, 32 reserved names；docs 链接 0 问题
+pnpm verify        # verify-naming: 38 ZCD tools, 32 reserved names；docs 链接 0 问题
 pnpm mcp:check     # pinned MCP server: initialize + tools/list
 pnpm build         # 所有包 emit 到 lib/
 node scripts/pack-product.mjs   # dist/zcd-product-<version>.tgz（相对路径，Windows 也可用）
