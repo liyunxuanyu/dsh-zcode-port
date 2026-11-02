@@ -11,6 +11,7 @@ links each bundle into `$DSH_HOME/skills/<name>`.
 | Category | Source | Status |
 |---|---|---|
 | `superpowers/` (14) | ZCode `superpowers-plugin` (Apache-2.0) | Ported; tool names adapted to dsh (`subagent`, `todo_write`, `enter_plan_mode`, lowercase file/shell tools) |
+| `dsh-guide/` (6) | ZCode `zcode-guide-plugin` (Apache-2.0) | Rewritten for dsh: profile/bundle/patch, MCP, hooks, skills, commands |
 
 Planned categories (see `docs/08-skills-catalog.md`): office (8), browser (2),
 computer-use (1), visualize (1), guide (6), creators (2).

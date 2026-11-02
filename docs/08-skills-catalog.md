@@ -1,6 +1,6 @@
 # 08 · 技能迁移目录
 
-> **进度（2026-11-03）**：`skills/superpowers/` 14 个已移植并通过命名门禁；安装脚本 `scripts/install-skills.mjs`。其余按下方分类推进。
+> **进度（2026-11-03）**：`skills/superpowers/` 14 个 + `skills/dsh-guide/` 6 个已移植（共 20/39），通过命名门禁；安装脚本 `scripts/install-skills.mjs`。其余按下方分类推进。
 
 > ZCode 共 **39 个 SKILL.md**（38 个产品技能 + `dynamic-workflows`）。本文逐条给出：用途、依赖工具、dsh 对应能力、处理方式、改动点、优先级。
 >

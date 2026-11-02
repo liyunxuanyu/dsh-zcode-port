@@ -45,6 +45,7 @@
 | `@zcd/durable-workflow` | `ctx.durableWorkflow`：脚本执行、`agent()`/`parallel()`/`pipeline()`、`hole()`、节点缓存、resume、cancel | 激活成功 | 5 个单测（运行/重放/并行/留白/失败） |
 | `@zcd/tool-workflow` | `workflow_run/get_run/list_runs/resume/cancel/answer_hole` | 激活成功 | — |
 | `skills/superpowers`（14） | ZCode 工程方法技能，工具名已映射为 dsh | 已安装到 `$DSH_HOME/skills` | `install-skills.mjs` |
+| `skills/dsh-guide`（6） | 自诊断技能改写为 dsh：profile/bundle/patch、MCP、hooks、skills、commands | 已安装 | `install-skills.mjs` |
 | `@zcd/policy-plan-readonly` | plan mode 严格只读：deny 写工具与非只读 bash | 编译通过；bundle 中默认 `disabled: true` | 35 个分类器单测 |
 | `@zcd/bundle-base` | 三行 insert（tool-search / todo-read / plan policy） | 已组合 | dump-config |
 | `@zcd/bundle-web-app` | 空 insert（为 UI 工作包预留） | 已组合 | dump-config |
@@ -90,7 +91,7 @@ node scripts/smoke-profile.mjs
 | 6 | ~~Memory~~（WP-06） | 已完成：条目/索引/路径/secret/软删除 + 确定性 dream + 每 agent 的索引 prompt section |
 | 7 | ~~Durable Workflow MVP~~ | 已完成：文件 store + `agent()`/`parallel()`/`pipeline()` + 稳定 key + resume + `hole()`/answer + 6 工具；amend/UI 待做 |
 | 8 | ~~Memory dream + prompt index~~ | 已完成：确定性整理 + `zcd:memory:index` section（子代理跳过） |
-| 8.5 | **其余技能** | 已完成 superpowers 14/39；office/browser/CUA/guide 随对应 WP |
+| 8.5 | **其余技能** | 已完成 20/39（superpowers 14 + dsh-guide 6）；office/browser/CUA 随对应 WP |
 | 9 | **Workflow 完整版** | parallel/pipeline、hole、amend、run 面板、通知 |
 | 10 | **Browser / CUA**（WP-10/11） | `js` code-act + 浏览器 provider + 面板 |
 | 11 | **UI**（WP-12/13/14） | Gen UI、文档工具、设置页 |
