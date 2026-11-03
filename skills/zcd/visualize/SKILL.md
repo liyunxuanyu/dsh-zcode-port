@@ -1,6 +1,7 @@
 ---
 name: visualize
-description: Use when the user needs to see or explore something in the conversation: a chart, diagram, simulation, map, timeline, calculator, or small interactive tool. Creates a self-contained HTML page with the visualize tool; not for project files or static tables.
+description: >-
+  Use when the user needs to see or explore something in the conversation: a chart, diagram, simulation, map, timeline, calculator, or small interactive tool. Creates a self-contained HTML page with the visualize tool; not for project files or static tables.
 ---
 
 <!-- Rewritten for dsh from the ZCode visualize skill (Apache-2.0):

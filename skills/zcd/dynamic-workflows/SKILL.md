@@ -1,6 +1,7 @@
 ---
 name: dynamic-workflows
-description: Use when authoring, resuming, or debugging a durable workflow script with workflow_run: choosing subagent topology, fan-out, holes, replay-safe node keys, and result reporting.
+description: >-
+  Use when authoring, resuming, or debugging a durable workflow script with workflow_run. Covers choosing subagent topology, fan-out, holes, replay-safe node keys, and result reporting.
 ---
 
 <!-- Rewritten for dsh from the ZCode dynamic-workflows skill (Apache-2.0):

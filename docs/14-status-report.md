@@ -26,7 +26,7 @@
 | 阶段 | 目标 | 状态 | 说明 |
 |---|---|---|---|
 | **P0** | 不改上游，能启动 product profile | ✅ 已完成 | 4 个 bundle 组合；`--dump-config` 1325 行；smoke 启动 Web |
-| **P1** | ZCode 工具语义对齐 | 🟡 大部分完成 | 工具搜索/延迟加载、plan 只读、OffPeak、技能门禁、schema 预算、`schedule_pause` 已验收；gate/skill 触发未在真实模型会话观察 |
+| **P1** | ZCode 工具语义对齐 | ✅ 已完成 | 工具搜索/延迟加载、plan 只读、OffPeak、`schedule_pause`、schema 预算，以及 skill gate 的拒绝与放行均在真实模型会话里验收 |
 | **P2** | durable workflow + memory | ✅ 核心完成 | 脚本引擎、节点缓存、resume/cancel/amend/hole、文件 store、memory/dream/index |
 | **P3** | 浏览器与 CUA | 🟡 浏览器 v2 完成（CUA 除外） | headless 或 CDP 接管用户 Chrome + 12 个工具 + 多 tab + `browser_act` code-act + 右侧栏实时面板；CUA 仅 macOS provider |
 | **P4** | UI 体验 | 🟡 部分完成 | Gen UI 路由/卡片、文档 5 工具 + create_document、设置页、workflow 面板；设置页只写用户记忆 |

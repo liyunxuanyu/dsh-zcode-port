@@ -124,6 +124,17 @@ doctor 是静态的：它读 manifest，不启动任何东西。`scripts/e2e-ext
 裸写 `- id: x / name: y` 会在启动时被静默丢弃（`patch: entry "x" not found`），
 新增一行必须包在 `- insert:` 里。
 
+### 5.5.2 技能安装与 frontmatter 门禁
+
+`scripts/link-profile.mjs` 物化 profile 时会调用 `scripts/install-skills.mjs`，
+把 `skills/*/*` 链到 `$DSH_HOME/skills`。没有这一步，skill gate 永远打不开：
+`skill({ name: 'dynamic-workflows' })` 会回答 unknown。
+
+技能文件被 dsh 静默丢弃的两种常见原因，现在都由 `pnpm verify` 拦截：
+
+- frontmatter 不是合法 YAML（典型是 `description: 有: 冒号`，YAML 会把它读成嵌套映射）；
+- 目录名与 frontmatter 的 `name` 不一致，或缺少 `name`/`description`。
+
 ## 5.6 MCP runtime
 
 `runtime/mcp/` pins the MCP servers this product ships or tests with.

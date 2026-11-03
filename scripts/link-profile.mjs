@@ -112,6 +112,16 @@ execFileSync('pnpm', ['install', '--ignore-workspace', '--config.strict-dep-buil
   shell: true,
 })
 
+// dsh discovers user skills at `$DSH_HOME/skills`; the profile is useless for
+// skill-gated tools (workflow authoring) without them, so linking the profile
+// also links the repository skill library. Idempotent: existing non-repo
+// entries are left alone.
+execFileSync(process.execPath, [join(root, 'scripts/install-skills.mjs')], {
+  cwd: root,
+  stdio: 'inherit',
+  env: { ...process.env, ZCD_DSH_HOME: home },
+})
+
 console.log(`\n✓ profile ready: ${profileDir}`)
 console.log(`  DSH_HOME=${home} (set ZCD_DSH_HOME to override)`)
 console.log(`  dsh --profile product --dump-config`)

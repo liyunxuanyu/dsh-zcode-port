@@ -125,10 +125,12 @@ P0 已通过；P1（"ZCode 工具语义对齐"）**还没有全部验收**，巡
 | ToolSearch 可观测性 | 已有服务级测试：加载前 `when=false`，加载后 `when=true`；可见 schema 预算测试 < 8k tokens（chars/4 估算） |
 | OffPeak 恢复 | 已有持久化测试：pending 恢复、running→interrupted、空闲执行 |
 | 只读策略集成 | 已有分类器/决策单测 + Cordis waterfall 集成测试（deny write / allow read / bash classify / inactive） |
-| skill gate | 已实现并通过纯函数测试；尚未在真实模型会话里观察拒绝 |
+| skill gate | ✅ 真实模型会话验收通过：未加载技能时 `workflow_run` 被拒；加载 `dynamic-workflows` 后放行并实际跑出 `run-112dd50c…`（result 42） |
 | S1 工具对齐 | ✅ `schedule_pause` 已补（`@zcd/schedule-pause`，快照后删除、恢复时重建）；`schedule_delete` 仍用 dsh 原生；`list_agents`/`interrupt_agent` 覆盖 subagent 查询/停止 |
-| 技能 | 33 个技能可用，覆盖 34/39（26 个移植/改写 + 7 个 dsh 原生 Office） |
+| 技能 | 33 个技能可用（26 个文件技能 + 7 个 dsh 原生 Office）；`dynamic-workflows`/`visualize` 的 frontmatter 已修好并纳入门禁，真实会话确认二者可加载 |
 | 设置页写入 | 用户记忆已通；其余配置项未做 |
+| 真实模型会话 | ✅ 用 OpenAI 兼容端点实测：`tool_search`→`todo_read`、skill gate 拒绝/放行、`workflow_run` 实际执行 |
+| 技能安装 | ✅ 修复 `link-profile` 从没调用 `install-skills` 的缺口；`verify-naming` 现校验 SKILL.md frontmatter 可解析 |
 
 ## 3. 已知缺口
 

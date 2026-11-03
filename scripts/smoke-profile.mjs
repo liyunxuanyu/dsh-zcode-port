@@ -144,6 +144,13 @@ try {
     throw new Error(`document view GET failed: ${view.status}`)
   }
 
+  // Skills must be linked into the home: without them the workflow gate can
+  // never be satisfied, because `skill("dynamic-workflows")` answers "unknown".
+  for (const name of ['dynamic-workflows', 'browser-use', 'visualize']) {
+    if (!existsSync(join(home, 'skills', name, 'SKILL.md'))) {
+      throw new Error(`skill ${name} is missing from $DSH_HOME/skills; run scripts/install-skills.mjs`)
+    }
+  }
   const status = await fetch(`http://127.0.0.1:${port}/zcd/status`)
   const statusBody = await status.json().catch(() => undefined)
   if (status.status !== 200 || statusBody?.product !== 'ZCD') {

@@ -8,6 +8,7 @@
  *   in this repo or in the pinned dsh package list
  */
 import { readdirSync, readFileSync, statSync } from 'node:fs'
+import { parse as parseYaml } from 'yaml'
 import { dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -77,6 +78,36 @@ const ZCODE_TOOL_NAMES = new Set([
   'ReadSessionContext', 'CronCreate', 'CronList', 'CronUpdate', 'CronDelete',
   'CronPauseSelf', 'OffPeakCreate', 'OffPeakList',
 ])
+
+// A skill whose frontmatter does not parse is dropped by the provider without
+// any warning: it simply never appears in the catalog, so `skill({name})`
+// answers "unknown". A bare `description: text: with a colon` is the trap —
+// YAML reads the second colon as a nested mapping. Failing here keeps that
+// class of skill from silently disappearing.
+for (const file of walk(join(root, 'skills'))) {
+  if (!file.endsWith('SKILL.md')) continue
+  const source = readFileSync(file, 'utf8')
+  const block = /^---\r?\n([\s\S]*?)\r?\n---/.exec(source)
+  if (block === null) {
+    problems.push(`${relative(root, file)}: missing YAML frontmatter`)
+    continue
+  }
+  let parsed
+  try {
+    parsed = parseYaml(block[1])
+  } catch (error) {
+    problems.push(`${relative(root, file)}: frontmatter does not parse (${error.message.split('\n')[0]})`)
+    continue
+  }
+  if (typeof parsed?.name !== 'string' || parsed.name.trim().length === 0) {
+    problems.push(`${relative(root, file)}: frontmatter needs a non-empty name`)
+  } else if (!file.includes(`${parsed.name}/SKILL.md`)) {
+    problems.push(`${relative(root, file)}: directory does not match frontmatter name "${parsed.name}"`)
+  }
+  if (typeof parsed?.description !== 'string' || parsed.description.trim().length === 0) {
+    problems.push(`${relative(root, file)}: frontmatter needs a non-empty description`)
+  }
+}
 
 // Ported skills must not reference ZCode's PascalCase wire names. Only
 // backticked names are checked: prose may legitimately say "Agent" or "Task".
