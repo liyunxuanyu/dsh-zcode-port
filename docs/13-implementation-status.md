@@ -154,7 +154,7 @@ P0 已通过；P1（"ZCode 工具语义对齐"）**还没有全部验收**，巡
 |---|---|---|
 | CUA（WP-11） | dsh 的 computer-use provider 只有 macOS 实现；本机是 Linux/proot | 在 Windows 上接一个可用驱动后，用 `computer` 相关工具跑一次桌面操作 |
 | Gen UI 会话内卡片 | 需要真实浏览器渲染 iframe；本机没有浏览器 | 在 Windows 上打开 Web UI，让模型调一次 `visualize`，确认会话里出现卡片 |
-| 浏览器集成测试 | 需要 Chrome；本机未安装 | `ZCD_CHROME_PATH` 指向 Chrome 后跑 `pnpm test`，被跳过的用例会自动启用 |
+| ~~浏览器集成测试~~ | ✅ 已在本机跑通：装 Chrome for Testing（arm64）后 `ZCD_CHROME_PATH` 指过去，123/123 用例全绿、零跳过 | 见 `docs/12 §7` |
 
 ## 4. 关键设计修正（相对早期文档）
 

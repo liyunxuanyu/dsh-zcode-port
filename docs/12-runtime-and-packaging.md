@@ -157,3 +157,33 @@ Enable it after installing the runtime, or point `command` at your own server.
 | `EADDRINUSE` | 3080 被占用 | `--port 0` 或指定端口 |
 | `401` 打开页面 | token 走 cookie 跳转 | 用日志里的完整 URL；`smoke-profile` 接受 303 |
 | 插件版本不兼容 | dsh `engines.dsh` 不匹配 | `dsh plugin allow-version`（需显式确认） |
+
+## 7. 在没有 Chrome 的主机上跑浏览器测试
+
+`packages/browser` 的集成测试在 `detectChrome()` 找不到浏览器时会自动跳过。
+装一个 Chrome for Testing 就能让它跑起来——包括 arm64 主机（官方
+`google-chrome-stable` 只有 x86_64，Ubuntu 24.04 的 `chromium` 是 snap，
+在 proot 里跑不了）。
+
+```sh
+# 1. 下载对应架构的包（国内用 npmmirror 镜像，明显更快）
+curl -L -o /tmp/chrome.zip \
+  https://registry.npmmirror.com/-/binary/chrome-for-testing/156.0.8078.4/linux-arm64/chrome-linux-arm64.zip
+unzip -q /tmp/chrome.zip -d /tmp
+
+# 2. 补齐运行库
+apt-get install -y libglib2.0-0 libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 \
+  libcups2 libdbus-1-3 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 \
+  libxrandr2 libgbm1 libpango-1.0-0 libcairo2 libasound2t64 libx11-xcb1 \
+  libxcb-dri3-0 libxcursor1 libgtk-3-0
+
+# 3. 指给测试和运行时
+export ZCD_CHROME_PATH=/tmp/chrome-linux-arm64/chrome
+pnpm test            # 原本跳过的用例会开始执行
+```
+
+proot 里运行 Chrome 会打印 `Failed to read /proc/sys/fs/inotify/max_user_watches`
+和 dbus 连接错误的噪音，不影响 headless 工作。
+
+同一份二进制也可以交给 `@zcd/browser` 的运行时使用：它优先读
+`ZCD_CHROME_PATH`，其次读常见安装路径，最后读 `browser.executablePath` 配置。

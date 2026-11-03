@@ -263,7 +263,8 @@ npx -y node@24 scripts/smoke-profile.mjs
 
 1. **CUA**：dsh 原生 provider 只有 macOS 实现，Windows 需要另找驱动；接好后用桌面自动化工具跑一次。
 2. **Gen UI 会话内卡片**：沙箱路由已验收，缺的是真实浏览器里 iframe 卡片的视觉确认。
-3. **浏览器集成测试**：`pnpm test` 里有 2 个用例因没有 Chrome 被跳过；装好 Chrome 或设 `ZCD_CHROME_PATH` 后会自动启用。
+3. ~~**浏览器集成测试**~~：已在本机跑通——装了 Chrome for Testing（arm64），
+   `ZCD_CHROME_PATH` 指过去后 `pnpm test` 是 123/123、零跳过。
 
 复跑顺序：
 
