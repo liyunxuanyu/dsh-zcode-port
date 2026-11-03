@@ -6,10 +6,18 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "exports": {
-    ".": { "types": "./lib/index.d.ts", "default": "./lib/index.js" },
-    "./types": { "types": "./lib/types.d.ts", "default": "./lib/types.js" }
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./types": {
+      "types": "./lib/types.d.ts",
+      "default": "./lib/types.js"
+    }
   },
-  "files": ["lib"],
+  "files": [
+    "lib"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit"
@@ -19,9 +27,14 @@
     "@deepseek-ai/dsh-agent-default-model": "0.2.2-alpha.2",
     "@deepseek-ai/dsh-llm": "0.2.2-alpha.2",
     "@deepseek-ai/dsh-session": "0.2.2-alpha.2",
+    "@zcd/runtime-settings": "workspace:*",
     "@zcd/shared": "workspace:*",
     "@zcd/workflow-store": "workspace:*"
   },
-  "peerDependencies": { "@deepseek-ai/cordis": "~4.0.6-alpha.1" },
-  "devDependencies": { "@deepseek-ai/cordis": "4.0.6-alpha.1" }
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "~4.0.6-alpha.1"
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "4.0.6-alpha.1"
+  }
 }

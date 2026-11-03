@@ -22,6 +22,7 @@ import type {} from '@deepseek-ai/dsh-agent-default-model'
 import { createUserMessage } from '@deepseek-ai/dsh-llm'
 import type { SessionId } from '@deepseek-ai/dsh-session'
 import type {} from '@zcd/shared/events'
+import type {} from '@zcd/runtime-settings'
 import { FileWorkflowStore, type HoleRecord, type JournalEvent, type NodeRecord, type RunRecord } from '@zcd/workflow-store'
 import type { WorkflowRunView, WorkflowStartRequest } from './types.js'
 
@@ -79,6 +80,12 @@ export class DurableWorkflowService extends Service {
     this.store = new FileWorkflowStore(root)
     this.maxNodes = config.maxNodes ?? 100
     this.nodeTimeoutMs = config.nodeTimeoutMs ?? 30 * 60_000
+  }
+
+  /** Read one numeric setting, preferring the settings page over composition config. */
+  private setting(key: 'workflow.maxNodes' | 'workflow.nodeTimeoutMs', fallback: number): number {
+    const value = this.ctx.get('runtimeSettings')?.get(key)
+    return typeof value === 'number' ? value : fallback
   }
 
   /**
@@ -391,7 +398,8 @@ export class DurableWorkflowService extends Service {
     let holeIndex = 0
     const executeAgent = async (prompt: string, options?: { key?: string }): Promise<string> => {
       if (signal.aborted) throw new Error('workflow cancelled')
-      if (index >= this.maxNodes) throw new Error(`workflow exceeded ${this.maxNodes} agent calls`)
+      const maxNodes = this.setting('workflow.maxNodes', this.maxNodes)
+      if (index >= maxNodes) throw new Error(`workflow exceeded ${maxNodes} agent calls`)
       const key = options?.key
       const ordinal = key === undefined ? index++ : -1
       return this.runAgent(record, ordinal, String(prompt), parent, signal, key)
@@ -518,7 +526,7 @@ export class DurableWorkflowService extends Service {
     })
     const timer = setTimeout(() => {
       agent.cancel({ kind: 'user' })
-    }, this.nodeTimeoutMs)
+    }, this.setting('workflow.nodeTimeoutMs', this.nodeTimeoutMs))
     try {
       agent.followup(createUserMessage({
         content: [{ type: 'text', text: prompt }],

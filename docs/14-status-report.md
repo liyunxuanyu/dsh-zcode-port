@@ -14,7 +14,7 @@
 - **38 个 ZCD 工具**在 product profile 中激活
 - **33 个技能**可用（覆盖 34/39 项 ZCode 技能）
 - **33 个 workspace 包**、4 个 bundle 正确组合
-- **93 个单测 / 17 个文件**，另有 typecheck、命名/文档门禁、插件 doctor、打包、MCP smoke、启动 smoke
+- **104 个单测 / 18 个文件**，另有 typecheck、命名/文档门禁、插件 doctor、打包、MCP smoke、启动 smoke
 - 设置页、workflow 运行面板、文档卡已通过真实浏览器视觉验收
 
 当前阶段不是“全部完成”：P1 还有 `schedule_pause` 与真实模型会话验证缺口，P3 只完成浏览器 v1，CUA 受平台限制，P4 的设置写入只覆盖用户记忆。
@@ -29,7 +29,7 @@
 | **P1** | ZCode 工具语义对齐 | 🟡 大部分完成 | 工具搜索/延迟加载、plan 只读、OffPeak、技能门禁、schema 预算已验收；`schedule_pause` 缺 dsh API；gate/skill 触发未在真实模型会话观察 |
 | **P2** | durable workflow + memory | ✅ 核心完成 | 脚本引擎、节点缓存、resume/cancel/amend/hole、文件 store、memory/dream/index |
 | **P3** | 浏览器与 CUA | 🟡 浏览器 v1 | headless Chrome + 11 个工具 + 多 tab + 页面级 evaluate；CUA 仅 macOS provider，本机 Windows 不可用 |
-| **P4** | UI 体验 | 🟡 部分完成 | Gen UI 路由/卡片、文档 5 工具 + create_document、设置页、workflow 面板（耗时/模型/节点重试）；设置页只写用户记忆 |
+| **P4** | UI 体验 | 🟡 部分完成 | Gen UI 路由/卡片、文档 5 工具 + create_document、设置页（用户记忆 + 运行时策略开关）、workflow 面板（耗时/模型/节点重试） |
 | **P5** | 技能全量 | 🟡 34/39 覆盖 | 33 个技能条目；浏览器 2 项合并为 `browser-use`；CUA 1 项未实现；4 项主动丢弃 |
 
 ---
@@ -164,7 +164,7 @@
 
 ```sh
 pnpm typecheck                 # 全部 workspace 包通过
-pnpm test                      # 17 个文件 / 93 个用例
+pnpm test                      # 18 个文件 / 104 个用例
 pnpm verify                    # 38 ZCD tools, 32 reserved names；docs 链接 0 问题
 pnpm build                     # 所有包 emit 到 lib/
 node scripts/pack-product.mjs  # dist/zcd-product-0.0.0.tgz

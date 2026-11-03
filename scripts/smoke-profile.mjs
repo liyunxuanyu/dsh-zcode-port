@@ -18,6 +18,7 @@ const home = process.env.ZCD_DSH_HOME ?? join(root, '.dsh-home')
 const profile = join(home, 'profiles/product')
 const genuiDir = join(home, 'storages', 'zcd-genui', '__smoke__')
 const memoryHome = join(home, 'memory-smoke')
+const settingsHome = join(home, 'settings-smoke')
 const workflowRuns = join(home, 'storages', 'zcd-workflow', 'runs')
 const fixtureId = 'run-smoke'
 const fixtureNodeId = 'smoke-node-1'
@@ -34,6 +35,8 @@ if (!existsSync(profile)) {
 
 mkdirSync(genuiDir, { recursive: true })
 rmSync(memoryHome, { recursive: true, force: true })
+rmSync(settingsHome, { recursive: true, force: true })
+mkdirSync(settingsHome, { recursive: true })
 rmSync(join(workflowRuns, fixtureId), { recursive: true, force: true })
 rmSync(join(workflowRuns, runningId), { recursive: true, force: true })
 const now = Date.now()
@@ -85,7 +88,7 @@ writeFileSync(join(genuiDir, 'probe.html'), '<!doctype html><h1>zcd genui smoke<
 
 const child = spawn(process.execPath, [bin, '--profile', 'product', '--no-open', '--port', '0'], {
   cwd: root,
-  env: { ...process.env, DSH_HOME: home, ZCD_USER_MEMORY_HOME: memoryHome },
+  env: { ...process.env, DSH_HOME: home, ZCD_USER_MEMORY_HOME: memoryHome, ZCD_SETTINGS_HOME: settingsHome },
   stdio: ['ignore', 'pipe', 'pipe'],
 })
 
@@ -236,6 +239,40 @@ try {
   if (nodes.status !== 404) throw new Error(`workflow nodes route failed: ${nodes.status}`)
   const events = await fetch(`http://127.0.0.1:${port}/zcd/workflow/runs/not-a-run/events`)
   if (events.status !== 404) throw new Error(`workflow events route failed: ${events.status}`)
+
+  // Runtime settings: defaults → validated patch → reset → rejected patch.
+  const settingsRead = await fetch(`http://127.0.0.1:${port}/zcd/settings`)
+  const settingsBody = await settingsRead.json().catch(() => undefined)
+  if (settingsRead.status !== 200 || settingsBody?.values?.['workflow.maxNodes'] !== 100) {
+    throw new Error(`settings defaults failed: ${settingsRead.status} ${JSON.stringify(settingsBody)}`)
+  }
+  const settingsPatch = await fetch(`http://127.0.0.1:${port}/zcd/settings`, {
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ 'workflow.maxNodes': 7, 'policy.planReadonly.enabled': true }),
+  })
+  const settingsPatched = await settingsPatch.json().catch(() => undefined)
+  if (settingsPatch.status !== 200 || settingsPatched?.values?.['workflow.maxNodes'] !== 7
+    || settingsPatched?.values?.['policy.planReadonly.enabled'] !== true) {
+    throw new Error(`settings patch failed: ${settingsPatch.status} ${JSON.stringify(settingsPatched)}`)
+  }
+  const settingsRejected = await fetch(`http://127.0.0.1:${port}/zcd/settings`, {
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ 'workflow.maxNodes': 0 }),
+  })
+  if (settingsRejected.status !== 400) throw new Error(`settings should reject an out-of-range value: ${settingsRejected.status}`)
+  const settingsUnknown = await fetch(`http://127.0.0.1:${port}/zcd/settings`, {
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ 'nope.key': true }),
+  })
+  if (settingsUnknown.status !== 400) throw new Error(`settings should reject an unknown key: ${settingsUnknown.status}`)
+  const settingsReset = await fetch(`http://127.0.0.1:${port}/zcd/settings/reset`, { method: 'POST' })
+  const settingsResetBody = await settingsReset.json().catch(() => undefined)
+  if (settingsReset.status !== 200 || settingsResetBody?.values?.['workflow.maxNodes'] !== 100) {
+    throw new Error(`settings reset failed: ${settingsReset.status} ${JSON.stringify(settingsResetBody)}`)
+  }
 
   // User memory: list → create → list → delete → list. The smoke home is a
   // throwaway directory, so "empty" is a meaningful assertion.

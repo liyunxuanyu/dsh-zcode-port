@@ -15,6 +15,7 @@ import type { Context } from '@deepseek-ai/cordis'
 import type { PreToolDecision, ToolExecution } from '@deepseek-ai/dsh-tools'
 import type {} from '@deepseek-ai/dsh-session-projection'
 import type {} from '@deepseek-ai/dsh-plan-mode'
+import type {} from '@zcd/runtime-settings'
 import { classifyCommand } from './classify.js'
 
 export const name = 'zcd-policy-plan-readonly'
@@ -27,8 +28,14 @@ export interface Config {
    * shell/terminal input; read-only tools are never denied.
    */
   deniedTools?: string[]
-  /** Whether a bash command must pass the read-only classifier. */
+  /** Whether a bash command must pass the read-only classifier when no setting overrides it. */
   classifyBash?: boolean
+  /**
+   * Whether the policy starts enabled when the settings file has no opinion.
+   * Defaults to false so the shipped behaviour matches dsh; the settings page
+   * is the switch that turns strict plan mode on.
+   */
+  enabled?: boolean
 }
 
 /** Tools that always mutate, independent of arguments. */
@@ -111,13 +118,18 @@ export function decidePlanMode(input: {
  */
 export function apply(ctx: Context, config: Config = {}): void {
   const denied = new Set(config.deniedTools ?? DEFAULT_DENIED)
-  const classifyBash = config.classifyBash ?? true
   ctx.on('tools/pre-execute', async (
     exec: ToolExecution,
     next: () => Promise<PreToolDecision>,
   ): Promise<PreToolDecision> => {
     const decision = await next()
     if (decision.kind !== 'allow') return decision
+    // Read the switch per call: the settings page flips it without a restart,
+    // and an absent service falls back to the composition config.
+    const settings = ctx.get('runtimeSettings')
+    const enabled = settings?.get('policy.planReadonly.enabled') ?? config.enabled ?? false
+    if (!enabled) return decision
+    const classifyBash = settings?.get('policy.planReadonly.classifyBash') ?? config.classifyBash ?? true
     return decidePlanMode({
       active: planActive(ctx, exec),
       toolName: exec.name,

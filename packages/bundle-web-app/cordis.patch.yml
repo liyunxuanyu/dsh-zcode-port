@@ -13,6 +13,9 @@
     - id: zcd-memory-ui-host
       name: '@zcd/memory-ui-host'
 
+    - id: zcd-settings-ui-host
+      name: '@zcd/settings-ui-host'
+
     - id: zcd-client-ui-settings-zcd
       name: '@zcd/client-ui-settings-zcd'
 
