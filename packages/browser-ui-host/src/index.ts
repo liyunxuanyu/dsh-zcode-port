@@ -69,7 +69,7 @@ export function apply(ctx: Context): void {
       }
 
       if (url.pathname === '/zcd/browser/frame') {
-        void ctx.browser.liveFrame(session, { maxWidth: 960 }).then(png => {
+        void ctx.browser.liveFrame(session).then(png => {
           res.writeHead(200, {
             'content-type': 'image/png',
             'cache-control': 'no-store',

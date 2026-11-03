@@ -1,8 +1,8 @@
 # 06 · 浏览器与 CUA 移植
 
-> **实现状态（2026-11-03）**：浏览器 **v1 已落地** —— `@zcd/browser`（headless Chrome，每会话一个隔离 context/page）+ `@zcd/tool-browser` 的 11 个 deferred 工具（`browser_open/snapshot/evaluate/click/type/screenshot`、`browser_new_tab/list_tabs/switch_tab/close_tab`、`browser_close`），技能 `skills/zcd/browser-use`。**CUA 未实现**：dsh 原生 CUA provider 只有 macOS（`cua-macos`），本机是 Windows，且没有安装可用的桌面驱动。
+> **实现状态（2026-11-03）**：浏览器 **v2 已落地** —— `@zcd/browser` 支持 headless Chrome 与 **CDP 接管用户 Chrome**（`ZCD_BROWSER_CDP_URL`，不关闭用户 context/cookie）、每会话隔离 context + 多 tab，并提供 Node 级 code-act（`browser_act`）；`@zcd/tool-browser` 共 **12 个 deferred 工具**；`@zcd/browser-ui-host` + `@zcd/client-ui-browser` 提供右侧栏实时浏览器面板（1.5s 刷新、tab 列表）。技能 `skills/zcd/browser-use`。**CUA 未实现**：dsh 原生 CUA provider 只有 macOS（`cua-macos`），本机是 Windows，且没有安装可用的桌面驱动。
 >
-> v1 与本文原始目标的差异：没有用 PTC/`js` + `agent.browsers`，而是先做一条可测试、无浏览器二进制下载的工具面；`js` code-act、多 tab、用户浏览器与可视面板留在 v2。
+> **安全边界**：`browser_act` 的 vm 上下文使用 null-prototype sandbox、禁用字符串代码生成，绑定函数在 vm 内创建并只经 JSON 文本与宿主通信；`constructor` 链逃逸（`this.constructor.constructor("return process")()`）已被阻断并有回归测试。`node:vm` 不是强隔离，`browser_act` 仍是模型可写的执行面，部署时应按 shell 权限对待。
 >
 > 目标：复刻 ZCode 的"一个 `js` 面驱动浏览器/桌面"体验，但底层用 dsh 的 PTC、sandbox、approval、provider 注册。
 >

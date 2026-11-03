@@ -2,7 +2,7 @@
 
 > 目标：在 **DeepSeek Harness（dsh）** 之上，用 **overlay 插件** 的方式，复刻 ZCode 最好用的产品能力与技能，同时保留 dsh 的插件化内核。
 >
-> 状态：**P0 已验收，P1/P2 核心能力与 P4 部分 UI 已落地**（42 个工具、33 个技能、123 个单测；product profile 可启动，设置页用户记忆增删、运行时策略写入与 workflow 面板已通过真实浏览器视觉验收）。进度见 [`docs/13-implementation-status.md`](docs/13-implementation-status.md)，阶段汇总见 [`docs/14-status-report.md`](docs/14-status-report.md)。日期：2026-11-03。
+> 状态：**P0/P1 已验收，P2 核心与 P3 浏览器 v2 已落地，P4 大部分完成**（42 个工具、33 个技能、124 个单测；设置页、workflow 面板与浏览器面板均已通过真实浏览器视觉验收）。进度见 [`docs/13-implementation-status.md`](docs/13-implementation-status.md)，阶段汇总见 [`docs/14-status-report.md`](docs/14-status-report.md)。日期：2026-11-03。
 > 参考基线：`archive/`（ZCode 60 个文件 + dsh 38 个文件）。
 
 ---
@@ -130,9 +130,7 @@
 
 1. Gen UI 会话内卡片验收（需要一次 `visualize` 结果会话；路由渲染已验收）。
 2. CUA：dsh 原生 provider 仅支持 macOS；Windows 需另找驱动。
-3. 浏览器 v2：Node 级 `js` code-act、用户浏览器、可视面板；页面级 `browser_evaluate` 与多 tab 已落地。
-4. 设置页其余写入（workflow 配置、只读策略开关）。
-5. Workflow run 详情补耗时/模型列与失败重试；cancel/resume/amend 已完成。
-6. 剩余 5 项（CUA 1 + 主动丢弃的站点/移动端/旧会话恢复 4）。
+3. Memory 根目录/条数上限等部署项仍只读。
+4. 剩余 5 项技能（CUA 1 + 主动丢弃的站点/移动端/旧会话恢复 4）。
 
 **接入外部 dsh 插件**：`pnpm doctor` → `dsh plugin --profile product add <pkg>`，见 `docs/12-runtime-and-packaging.md` §5。

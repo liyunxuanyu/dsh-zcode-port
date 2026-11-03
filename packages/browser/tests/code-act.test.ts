@@ -119,4 +119,25 @@ describe('browser code-act runner', () => {
     expect(out.result).toBe('done')
     expect(fake.calls).toEqual(['click', 'fill:zcd', 'press:Enter', 'waitFor'])
   })
+
+  it('does not expose host globals or code generation to the script', async () => {
+    const runner = new BrowserCodeAct(host())
+    const capabilities = await runner.run('sandbox-1', {
+      title: 'caps',
+      code: 'return [typeof process, typeof require, typeof fetch, typeof bridge].join(",")',
+    })
+    expect(capabilities.result).toBe('undefined,undefined,undefined,undefined')
+
+    // The classic vm escape climbs the constructor chain to the host Function
+    // constructor. String code generation is disabled in the context, so it
+    // must fail instead of returning the real host process.
+    await expect(runner.run('sandbox-1', {
+      title: 'escape',
+      code: 'return this.constructor.constructor("return process")().version',
+    })).rejects.toThrow(/Code generation from strings disallowed/)
+    await expect(runner.run('sandbox-1', {
+      title: 'escape-2',
+      code: 'return ({}).constructor.constructor("return process")().version',
+    })).rejects.toThrow(/Code generation from strings disallowed/)
+  })
 })

@@ -55,11 +55,18 @@ cpSync(sourceProfile, profileDir, {
 // The copied manifest lists every ZCD package as `link:` to this checkout.
 // `file:` deps of the fixture need those same packages, so keep the links and
 // add the fixture as a directory dependency.
+//
+// Copy the fixture inside the scratch profile and depend on it by a relative
+// path: a `file:` spec with an absolute Windows path breaks pnpm's argument
+// parsing (drive colon, spaces in the checkout path), and a local copy still
+// proves the plugin resolves from the profile's own node_modules.
+const localFixture = join(profileDir, 'zcd-e2e-probe')
+cpSync(fixture, localFixture, { recursive: true })
 const manifestPath = join(profileDir, 'package.json')
 const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'))
 manifest.dependencies = {
   ...manifest.dependencies,
-  '@zcd-e2e/probe': `file:${fixture.split('\\').join('/')}`,
+  '@zcd-e2e/probe': 'file:./zcd-e2e-probe',
 }
 manifest.pnpm = manifest.pnpm ?? {}
 manifest.pnpm.ignoredBuiltDependencies = manifest.pnpm.ignoredBuiltDependencies ?? [
@@ -86,9 +93,13 @@ writeFileSync(patchPath, existingPatch.includes('\n[]')
   : existingPatch.replace(/^\[\]\s*$/m, insertBlock))
 
 console.log('→ installing the external plugin into the scratch profile')
-const install = spawn('pnpm', ['install', '--ignore-workspace', '--config.strict-dep-builds=false'], {
+// Windows resolves the package manager through its `.cmd` shim, which needs a
+// shell; the arguments are fixed strings, so no untrusted input is concatenated.
+const pnpm = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm'
+const install = spawn(pnpm, ['install', '--ignore-workspace', '--config.strict-dep-builds=false'], {
   cwd: profileDir,
   stdio: ['ignore', 'pipe', 'pipe'],
+  shell: true,
 })
 let installOut = ''
 install.stdout.on('data', chunk => { installOut += chunk })

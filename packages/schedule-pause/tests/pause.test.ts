@@ -90,7 +90,7 @@ describe('PausedTaskStore', () => {
   })
 
   it('honours the ZCD_SCHEDULE_PAUSE_HOME override', () => {
-    expect(resolvePausedPath({ ZCD_SCHEDULE_PAUSE_HOME: '/tmp/x' })).toBe('/tmp/x/zcd-schedule-paused.json')
-    expect(resolvePausedPath({ DSH_HOME: '/tmp/home' })).toBe('/tmp/home/storages/zcd-schedule-paused.json')
+    expect(resolvePausedPath({ ZCD_SCHEDULE_PAUSE_HOME: '/tmp/x' })).toBe(join('/tmp/x', 'zcd-schedule-paused.json'))
+    expect(resolvePausedPath({ DSH_HOME: '/tmp/home' })).toBe(join('/tmp/home', 'storages', 'zcd-schedule-paused.json'))
   })
 })

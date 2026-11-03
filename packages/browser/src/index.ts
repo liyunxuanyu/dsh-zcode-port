@@ -306,14 +306,11 @@ export class BrowserService extends Service {
    * @param options - optional viewport resize before capture.
    * @returns PNG bytes.
    */
-  async liveFrame(sessionId: string, options: { maxWidth?: number } = {}): Promise<Buffer> {
+  async liveFrame(sessionId: string): Promise<Buffer> {
+    // Never resize the page just to serve the panel: the agent's own
+    // screenshots and coordinates must not change because someone opened the
+    // sidebar. The panel scales the PNG in CSS instead.
     const page = await this.page(sessionId)
-    if (options.maxWidth !== undefined) {
-      const size = page.viewportSize()
-      if (size !== null && size.width > options.maxWidth) {
-        await page.setViewportSize({ width: options.maxWidth, height: Math.round(size.height * options.maxWidth / size.width) })
-      }
-    }
     return await page.screenshot({ type: 'png' })
   }
 
@@ -387,7 +384,13 @@ export class BrowserService extends Service {
     const sessions = [...this.sessions.values()]
     this.sessions.clear()
     this.sessionsById.clear()
-    await Promise.allSettled(sessions.map(async session => (await session).context.close()))
+    await Promise.allSettled(sessions.map(async session => {
+      const resolved = await session
+      // Attached mode reuses the user's context: close only the pages we
+      // opened, never their browser or cookies.
+      for (const page of resolved.pages.values()) await page.close().catch(() => undefined)
+      if (resolved.ownsContext) await resolved.context.close().catch(() => undefined)
+    }))
     const browser = this.launchPromise
     this.launchPromise = undefined
     if (browser !== undefined) {

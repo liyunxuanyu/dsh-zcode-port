@@ -101,8 +101,14 @@ for (const file of walk(join(root, 'skills'))) {
   }
   if (typeof parsed?.name !== 'string' || parsed.name.trim().length === 0) {
     problems.push(`${relative(root, file)}: frontmatter needs a non-empty name`)
-  } else if (!file.includes(`${parsed.name}/SKILL.md`)) {
-    problems.push(`${relative(root, file)}: directory does not match frontmatter name "${parsed.name}"`)
+  } else {
+    // Compare the bundle directory with separators normalised so the gate works
+    // on Windows as well as POSIX.
+    const segments = relative(join(root, 'skills'), dirname(file)).split(/[\\/]/)
+    const directory = segments[segments.length - 1]
+    if (directory !== parsed.name) {
+      problems.push(`${relative(root, file)}: directory does not match frontmatter name "${parsed.name}"`)
+    }
   }
   if (typeof parsed?.description !== 'string' || parsed.description.trim().length === 0) {
     problems.push(`${relative(root, file)}: frontmatter needs a non-empty description`)

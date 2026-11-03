@@ -1,7 +1,7 @@
 # 14 · 当前阶段与交付报告
 
 > 生成日期：2026-11-03
-> 报告时最新功能提交：`8d32d68`（`docs: refresh counts and workflow gap after panel controls`）
+> 报告时最新功能提交：`feb0c4f`（`docs: real Chrome for Testing on arm64 makes the browser suite run`），并在合并后补了 `browser_act` 沙箱加固
 > 仓库：https://github.com/liyunxuanyu/dsh-zcode-port
 > 对照基线：dsh `0.2.2-alpha.2` / Cordis `4.0.6-alpha.1`
 
@@ -14,10 +14,10 @@
 - **42 个 ZCD 工具**在 product profile 中激活
 - **33 个技能**可用（覆盖 34/39 项 ZCode 技能）
 - **33 个 workspace 包**、4 个 bundle 正确组合
-- **123 个单测 / 20 个文件**，另有 typecheck、命名/文档门禁、插件 doctor、打包、MCP smoke、启动 smoke
+- **124 个单测 / 20 个文件**，另有 typecheck、命名/文档门禁、插件 doctor、打包、MCP smoke、启动 smoke
 - 设置页、workflow 运行面板、文档卡已通过真实浏览器视觉验收
 
-当前阶段不是“全部完成”：P1 还有 `schedule_pause` 与真实模型会话验证缺口，P3 只完成浏览器 v1，CUA 受平台限制，P4 的设置写入只覆盖用户记忆。
+当前阶段接近“开发侧完成”：P0/P1 已通过，P2 核心已落地，P3 的浏览器 v2 完成（CUA 受平台限制），P4 只剩 Gen UI 会话内卡片与 Memory 部署项；剩余问题主要是环境验收而不是缺代码。
 
 ---
 
@@ -36,7 +36,7 @@
 
 ## 3. 当前交付物
 
-### 3.1 工具面（38）
+### 3.1 工具面（42）
 
 | 类别 | 工具 | 数量 |
 |---|---|---:|
@@ -68,11 +68,11 @@
 
 ### 3.3 包与 profile
 
-- workspace：**36 个包**
+- workspace：**38 个包**
   - 2 个 bundle：`bundle-base`、`bundle-web-app`
   - 5 个 client bundle：`client-ui-genui`、`client-ui-zcd`、`client-ui-settings-zcd`、`client-ui-workflow`、`client-ui-browser`
   - 7 个 Web host：`documents-ui-host`、`status-host`、`workflow-ui-host`、`genui-host`、`memory-ui-host`、`settings-ui-host`、`browser-ui-host`
-  - 其余为服务与工具包
+  - 其余为服务与工具包（含 `runtime-settings`、`schedule-pause`、`policy-skill-gate`、`browser` 等）
 - `profiles/product`：`dsh-base → zcd-base → dsh-web-app → zcd-web-app`
 - `dsh --profile product --dump-config`：1325 行
 - `pnpm doctor`：42 dependencies / 4 bundles / no blocking issues
@@ -135,17 +135,20 @@
 - `@zcd/client-ui-genui`：`tool.call.toolview` 卡片渲染沙箱 iframe。
 - 路由渲染已做真实浏览器验收：[截图](assets/zcd-genui-render.png)；会话内卡片仍需一次真实模型会话。
 
-### 4.8 浏览器 v1（P3）
+### 4.8 浏览器 v2（P3）
 
-- `@zcd/browser`：懒启动本机 Chrome/Chromium/Edge（`ZCD_CHROME_PATH` 或标准路径）、headless、每会话隔离 context、多 tab、15s 超时、截图落盘、URL 仅 http(s)。
-- `@zcd/tool-browser` 11 个 deferred 工具：导航、accessibility snapshot、页面级 evaluate、点击/输入、截图、tab 管理、关闭。
-- 测试：URL/Chrome 探测/真实导航，以及工具层完整调用链（open→snapshot→evaluate→click→type→screenshot→tab→close）。
-- 未实现：Node 级 `js` 持久内核、`agent.browsers` 对象模型、用户已开浏览器、可视面板、下载/上传、CUA。
+- `@zcd/browser`：懒启动本机 Chrome/Chromium/Edge（`ZCD_CHROME_PATH` 或标准路径），或经 `ZCD_BROWSER_CDP_URL` 接管用户 Chrome（不关闭用户 context/cookie）；每会话隔离 context、多 tab、15s 超时、截图落盘、URL 仅 http(s)。
+- `browser_act`：Node 级 code-act。绑定 `goto/snapshot/click/type/evaluate/screenshot/tabs/newTab/switchTab/closeTab/waitFor/write/state`，支持 top-level await 与 REPL 末表达式返回；`state` 与 `globalThis` 跨调用保留。
+- 沙箱：null-prototype sandbox、禁用字符串代码生成、绑定函数在 vm 内创建并只经 JSON 文本通信。已验证 `this.constructor.constructor("return process")()` 类逃逸被阻断，并有回归测试；`node:vm` 不是强隔离，部署按 shell 权限对待。
+- `@zcd/tool-browser` 12 个 deferred 工具。
+- 面板：`@zcd/browser-ui-host`（`/zcd/browser/sessions`、`/live`、`/frame`）+ `@zcd/client-ui-browser`（右侧栏实时画面 1.5s 刷新、tab 列表），只观察不驱动。
+- 测试：URL/Chrome 探测/真实导航、11 个 code-act 单测、工具层完整调用链。
+- 未实现：`agent.browsers` 对象模型、下载/上传、CUA。
 
 ### 4.9 设置页与运行面板（P4）
 
-- 设置页 `ZCD` section：Product/Node/dsh/Uptime、最近 runs、用户记忆增删/整理。
-- Workflow 面板：3 秒轮询、节点展开、journal 事件、Cancel/Resume/Amend。
+- 设置页 `ZCD` section：Product/Node/dsh/Uptime、**运行时策略**（严格 plan mode 开关、bash 分类、workflow 节点上限/超时，`/zcd/settings` 白名单校验）、最近 runs、用户记忆增删/整理。
+- Workflow 面板：3 秒轮询、节点展开（模型/耗时）、失败节点 Retry、journal 事件、Cancel/Resume/Amend。
 - 两者均已通过真实浏览器截图验收：
   - [设置页 + 用户记忆](assets/zcd-settings-memory.png)
   - [Workflow Amend](assets/workflow-panel-amend.png)
@@ -165,7 +168,7 @@
 
 ```sh
 pnpm typecheck                 # 全部 workspace 包通过
-pnpm test                      # 20 个文件 / 123 个用例
+pnpm test                      # 20 个文件 / 124 个用例
 pnpm verify                    # 38 ZCD tools, 32 reserved names；docs 链接 0 问题
 pnpm build                     # 所有包 emit 到 lib/
 node scripts/pack-product.mjs  # dist/zcd-product-0.0.0.tgz
@@ -191,26 +194,19 @@ smoke 覆盖：
 
 | 项 | 现状 | 后续 |
 |---|---|---|
-| `schedule_pause` | dsh schedule 只有 create/list/update/delete，无 active 开关 | 需要 dsh 暴露 pause，或在本层用“删除+重建”模拟 |
-| skill gate 真实模型验证 | Cordis 集成测试已证明 deny/allow | 需要一次真实模型会话观察拒绝文本 |
-| 技能触发回归 | 命名门禁 + 安装检查通过 | 需要模型会话验证按 description 触发 |
 | Gen UI 会话内卡片 | 路由渲染已验收 | 需要一次真实 `visualize` 工具结果会话 |
 | CUA | dsh 原生 provider 仅 macOS；本机 Windows | 等待可用驱动；macOS 可挂原生 provider |
-| 浏览器 Node 级 `js` | 已有页面级 `browser_evaluate` | 需要 PTC/`agent.browsers` 对象模型与可视面板 |
-| 设置页其余写入 | 用户记忆已可用 | workflow 配置、只读策略开关需要 `configForms`/volatile Config |
-| Workflow 指标 | 面板有状态、节点、journal、操作 | 耗时/模型列、失败重试按钮 |
-| 外部插件 e2e | doctor 静态检查 | 增加一个真实第三方插件的启动 smoke |
+| Memory 部署项 | 用户记忆可增删/整理 | 根目录、条数上限仍只读 |
+| `browser_act` 隔离强度 | 已阻断 constructor 链逃逸，禁用字符串代码生成 | `node:vm` 非强隔离；更高隔离需 worker/进程边界 |
 
 ---
 
 ## 7. 下一步（按优先级）
 
-1. 真实模型会话验收：skill gate 拒绝/放行、技能触发、Gen UI 卡片。
-2. 设置页写入：workflow 配置与 plan 只读开关。
-3. 浏览器 v2：Node 级 `js` code-act、用户浏览器、可视面板。
-4. Workflow 指标：耗时/模型列、失败重试。
-5. CUA：等待 Windows 可用驱动，或在 macOS 上挂 dsh 原生 provider。
-6. 外部插件 e2e smoke。
+1. Gen UI 会话内卡片验收（路由渲染已通过）。
+2. CUA：等待 Windows 可用驱动，或在 macOS 上挂 dsh 原生 provider。
+3. Memory 部署项（根目录/上限）写入。
+4. `browser_act` 隔离升级（worker/子进程边界），如果部署环境需要强隔离。
 
 ---
 
@@ -264,14 +260,14 @@ npx -y node@24 scripts/smoke-profile.mjs
 1. **CUA**：dsh 原生 provider 只有 macOS 实现，Windows 需要另找驱动；接好后用桌面自动化工具跑一次。
 2. **Gen UI 会话内卡片**：沙箱路由已验收，缺的是真实浏览器里 iframe 卡片的视觉确认。
 3. ~~**浏览器集成测试**~~：已在本机跑通——装了 Chrome for Testing（arm64），
-   `ZCD_CHROME_PATH` 指过去后 `pnpm test` 是 123/123、零跳过。
+   `ZCD_CHROME_PATH` 指过去后 `pnpm test` 是 124/124、零跳过。
 
 复跑顺序：
 
 ```sh
 pnpm install
 pnpm build
-pnpm test          # 123 个用例
+pnpm test          # 124 个用例
 pnpm verify
 pnpm doctor
 node scripts/link-profile.mjs
