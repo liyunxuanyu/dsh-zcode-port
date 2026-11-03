@@ -50,6 +50,7 @@ const directories = {
   '@zcd/tool-plan-mode': 'packages/tool-plan-mode',
   '@zcd/tool-search': 'packages/tool-search',
   '@zcd/tool-todo-read': 'packages/tool-todo-read',
+  '@zcd/schedule-pause': 'packages/schedule-pause',
 }
 
 const sourceProfile = JSON.parse(readFileSync(join(root, 'profiles/product/package.json'), 'utf8'))
@@ -79,6 +80,18 @@ for (const directory of Object.values(directories)) {
 const manifest = {
   ...sourceProfile,
   dependencies,
+  // The profile resolves these packages' prebuilt binaries; their native
+  // postinstall steps are intentionally skipped, so say so up front instead of
+  // letting `pnpm install` refuse the tree on a host without a toolchain.
+  pnpm: {
+    ignoredBuiltDependencies: [
+      '@deepseek-ai/dsh-subprocess-local',
+      '@google/genai',
+      'koffi',
+      'node-pty',
+      'protobufjs',
+    ],
+  },
 }
 
 if (!existsSync(join(root, 'packages/tool-search/lib/index.js'))) {
@@ -91,7 +104,13 @@ writeFileSync(join(profileDir, 'package.json'), `${JSON.stringify(manifest, null
 copyFileSync(join(root, 'profiles/product/cordis.patch.yml'), join(profileDir, 'cordis.patch.yml'))
 
 console.log(`→ pnpm install in ${profileDir}`)
-execFileSync('pnpm', ['install', '--ignore-workspace'], { cwd: profileDir, stdio: 'inherit', shell: true })
+// Newer pnpm turns an ignored postinstall into a hard error unless told
+// otherwise; the profile ignores exactly those builds (see `pnpm` above).
+execFileSync('pnpm', ['install', '--ignore-workspace', '--config.strict-dep-builds=false'], {
+  cwd: profileDir,
+  stdio: 'inherit',
+  shell: true,
+})
 
 console.log(`\n✓ profile ready: ${profileDir}`)
 console.log(`  DSH_HOME=${home} (set ZCD_DSH_HOME to override)`)

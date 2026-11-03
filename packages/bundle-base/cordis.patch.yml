@@ -29,6 +29,11 @@
     - id: zcd-tool-offpeak
       name: '@zcd/tool-offpeak'
 
+    # Reminder pause/resume: dsh's schedule has no active flag, so ZCD keeps a
+    # snapshot and recreates the row on resume.
+    - id: zcd-schedule-pause
+      name: '@zcd/schedule-pause'
+
     # Office generation: create_document (docx/xlsx/pdf).
     - id: zcd-tool-office
       name: '@zcd/tool-office'

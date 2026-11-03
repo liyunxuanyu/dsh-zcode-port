@@ -7,7 +7,7 @@
 
 ## 0. 一句话
 
-**P0 已通过，P1/P2/P4 部分落地**：product profile 在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**39 个** ZCD 工具激活，**33 个技能**可用（26 个文件技能 + 7 个 dsh 原生 Office；覆盖 34/39 项 ZCode 技能），**100 个单测（18 个文件）**、命名门禁、docs 链接、运行时 doctor 与启动 smoke 全部通过。设置页已能在真实浏览器里列出、添加、删除**用户记忆**；workflow run 面板与文档卡已可用。
+**P0 已通过，P1/P2/P4 部分落地**：product profile 在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**42 个** ZCD 工具激活，**33 个技能**可用（26 个文件技能 + 7 个 dsh 原生 Office；覆盖 34/39 项 ZCode 技能），**108 个单测（19 个文件）**、命名门禁、docs 链接、运行时 doctor 与启动 smoke 全部通过。设置页已能在真实浏览器里列出、添加、删除**用户记忆**；workflow run 面板与文档卡已可用。
 
 ---
 
@@ -27,7 +27,7 @@
 | CI | `.github/workflows/ci.yml`（typecheck/test/verify/build/pack/doctor/MCP check/smoke） |
 | MCP 运行时 | `runtime/mcp` pin `server-everything@2.1.0`；`pnpm mcp:check` 完成 initialize + tools/list（16 tools） |
 
-当前 workspace 共 **35 个包**：2 个 bundle、5 个 client bundle、7 个 Web host、其余为服务与工具包。
+当前 workspace 共 **36 个包**：2 个 bundle、5 个 client bundle、7 个 Web host、其余为服务与工具包。
 
 ### 1.2 插件与工具
 
@@ -42,6 +42,7 @@
 | `@zcd/policy-skill-gate` | 工作流作者门禁：未加载 `dynamic-workflows` 时 deny `workflow_run`/改脚本 amend；compaction 后失效 | 激活成功 | 4 单测 + 2 集成测试 |
 | `@zcd/offpeak` | `ctx.offpeak`：空闲判定、新会话执行、用户输入即让路、`tasks.json` 恢复 | 激活成功 | 3 个单测 |
 | `@zcd/tool-offpeak` | `offpeak_create/list/cancel`（deferred） | 激活成功 | — |
+| `@zcd/schedule-pause` | `schedule_pause/resume/paused`：dsh 的 schedule 没有 active 开关，所以暂停＝快照+删除、恢复＝按原规则重建（deferred） | 激活成功 | 8 个单测 |
 | `@zcd/tool-models` | `list_models`：按 provider 列出可路由模型（deferred） | 激活成功 | — |
 | `@zcd/tool-session` | `session_handoff`：同 cwd 会话的 bounded handoff（deferred） | 激活成功 | — |
 | `@zcd/memory` | `ctx.memory`：项目/用户 Markdown 条目、索引重建、路径约束、secret 拒绝 | 激活成功 | 6 个单测（slug/parse/root/secret） |
@@ -89,8 +90,8 @@
 
 ```sh
 pnpm typecheck     # 全部 workspace 包通过
-pnpm test          # 18 个文件 / 100 个用例通过
-pnpm verify        # verify-naming: 39 ZCD tools, 32 reserved names；docs 链接 0 问题
+pnpm test          # 19 个文件 / 108 个用例通过
+pnpm verify        # verify-naming: 42 ZCD tools, 32 reserved names；docs 链接 0 问题
 pnpm mcp:check     # pinned MCP server: initialize + tools/list
 pnpm build         # 所有包 emit 到 lib/
 node scripts/pack-product.mjs   # dist/zcd-product-<version>.tgz（相对路径，Windows 也可用）
@@ -124,7 +125,7 @@ P0 已通过；P1（"ZCode 工具语义对齐"）**还没有全部验收**，巡
 | OffPeak 恢复 | 已有持久化测试：pending 恢复、running→interrupted、空闲执行 |
 | 只读策略集成 | 已有分类器/决策单测 + Cordis waterfall 集成测试（deny write / allow read / bash classify / inactive） |
 | skill gate | 已实现并通过纯函数测试；尚未在真实模型会话里观察拒绝 |
-| S1 工具对齐 | 删除由 dsh 原生 `schedule_delete` 覆盖；**`schedule_pause` 未实现**（dsh 的 schedule 只有 delete/update，没有 active 开关）；`list_agents`/`interrupt_agent` 覆盖 subagent 查询/停止 |
+| S1 工具对齐 | ✅ `schedule_pause` 已补（`@zcd/schedule-pause`，快照后删除、恢复时重建）；`schedule_delete` 仍用 dsh 原生；`list_agents`/`interrupt_agent` 覆盖 subagent 查询/停止 |
 | 技能 | 33 个技能可用，覆盖 34/39（26 个移植/改写 + 7 个 dsh 原生 Office） |
 | 设置页写入 | 用户记忆已通；其余配置项未做 |
 

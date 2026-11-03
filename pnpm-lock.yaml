@@ -356,6 +356,25 @@ importers:
         specifier: 4.0.6-alpha.1
         version: 4.0.6-alpha.1(@deepseek-ai/cordis-plugin-include@1.0.11-alpha.1)(@deepseek-ai/cordis-plugin-loader@1.0.7-alpha.1)
 
+  packages/schedule-pause:
+    dependencies:
+      '@deepseek-ai/dsh-schedule':
+        specifier: 0.2.2-alpha.2
+        version: 0.2.2-alpha.2(4a48717f67e8a6b8febb28d598132875)
+      '@deepseek-ai/dsh-session':
+        specifier: 0.2.2-alpha.2
+        version: 0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1)(@deepseek-ai/dsh-scope@0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1))
+      '@deepseek-ai/dsh-tools':
+        specifier: 0.2.2-alpha.2
+        version: 0.2.2-alpha.2(d570a50fd9051dfa7084c71da173b036)
+      '@zcd/deferred-tools':
+        specifier: workspace:*
+        version: link:../deferred-tools
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: 4.0.6-alpha.1
+        version: 4.0.6-alpha.1(@deepseek-ai/cordis-plugin-include@1.0.11-alpha.1)(@deepseek-ai/cordis-plugin-loader@1.0.7-alpha.1)
+
   packages/shared:
     dependencies:
       '@deepseek-ai/dsh-llm':
@@ -714,6 +733,9 @@ importers:
       '@zcd/policy-skill-gate':
         specifier: workspace:*
         version: link:../../packages/policy-skill-gate
+      '@zcd/schedule-pause':
+        specifier: workspace:*
+        version: link:../../packages/schedule-pause
       '@zcd/status-host':
         specifier: workspace:*
         version: link:../../packages/status-host
