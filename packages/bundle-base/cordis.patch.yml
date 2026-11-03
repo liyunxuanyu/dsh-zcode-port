@@ -6,6 +6,11 @@
 # off without dropping the whole product layer.
 
 - insert:
+    # Runtime switches the ZCD settings page can change without a rebuild.
+    # Defaults match the shipped behaviour, so an empty settings file is inert.
+    - id: zcd-runtime-settings
+      name: '@zcd/runtime-settings'
+
     # Deferred-tool seam: keeps rare tools out of every step until loaded.
     - id: zcd-deferred-tools
       name: '@zcd/deferred-tools'
@@ -119,8 +124,10 @@
     # ZCode-style strict plan mode: read-only tools stay available, mutating
     # tools are denied until the plan is approved. Off by default because dsh's
     # own plan mode is deliberately non-restrictive; enable per deployment.
+    # Strict plan mode. Enabled but inert until `policy.planReadonly.enabled`
+    # is turned on from the settings page, so the default matches dsh.
     - id: zcd-policy-plan-readonly
       name: '@zcd/policy-plan-readonly'
-      disabled: true
       config:
+        enabled: false
         classifyBash: true

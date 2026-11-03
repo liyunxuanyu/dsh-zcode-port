@@ -26,6 +26,61 @@ window.__ModuleLoader__.load({
       const [body, setBody] = React.useState('')
       const [busy, setBusy] = React.useState(false)
       const [message, setMessage] = React.useState(undefined)
+      const [settings, setSettings] = React.useState(undefined)
+      const [draftSettings, setDraftSettings] = React.useState(undefined)
+      const [settingsMessage, setSettingsMessage] = React.useState(undefined)
+      const [settingsBusy, setSettingsBusy] = React.useState(false)
+      React.useEffect(() => {
+        let alive = true
+        fetch('/zcd/settings')
+          .then((response) => response.ok ? response.json() : Promise.reject(new Error(String(response.status))))
+          .then((value) => {
+            if (!alive) return
+            setSettings(value.values ?? {})
+            setDraftSettings(value.values ?? {})
+          })
+          .catch((reason) => { if (alive) setSettingsMessage(String(reason?.message ?? reason)) })
+        return () => { alive = false }
+      }, [])
+      const saveSettings = () => {
+        if (draftSettings === undefined) return
+        setSettingsBusy(true)
+        setSettingsMessage(undefined)
+        const payload = {
+          'policy.planReadonly.enabled': draftSettings['policy.planReadonly.enabled'] === true,
+          'policy.planReadonly.classifyBash': draftSettings['policy.planReadonly.classifyBash'] === true,
+          'workflow.maxNodes': Number(draftSettings['workflow.maxNodes']),
+          'workflow.nodeTimeoutMs': Number(draftSettings['workflow.nodeTimeoutMs']),
+        }
+        fetch('/zcd/settings', {
+          method: 'PATCH',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+          .then((response) => response.ok ? response.json() : response.json()
+            .then((value) => Promise.reject(new Error(value.error ?? String(response.status))))
+            .catch((reason) => Promise.reject(reason instanceof Error ? reason : new Error(String(response.status)))))
+          .then((value) => {
+            setSettings(value.values ?? {})
+            setDraftSettings(value.values ?? {})
+            setSettingsMessage('Saved. The new values apply on the next tool call.')
+          })
+          .catch((reason) => setSettingsMessage(String(reason?.message ?? reason)))
+          .finally(() => setSettingsBusy(false))
+      }
+      const resetSettings = () => {
+        setSettingsBusy(true)
+        setSettingsMessage(undefined)
+        fetch('/zcd/settings/reset', { method: 'POST' })
+          .then((response) => response.ok ? response.json() : Promise.reject(new Error(String(response.status))))
+          .then((value) => {
+            setSettings(value.values ?? {})
+            setDraftSettings(value.values ?? {})
+            setSettingsMessage('Reset to the shipped defaults.')
+          })
+          .catch((reason) => setSettingsMessage(String(reason?.message ?? reason)))
+          .finally(() => setSettingsBusy(false))
+      }
       React.useEffect(() => {
         let alive = true
         fetch('/zcd/status')
@@ -165,7 +220,67 @@ window.__ModuleLoader__.load({
         ] }),
         message === undefined ? null : jsx('div', { style: cell, children: message }),
       ] })
-      return jsxs('div', { style: { display: 'grid', gap: '14px' }, children: [identity, runsBlock, memoryBlock] })
+      const draft = draftSettings ?? {}
+      const settingsBlock = jsxs('div', { style: { display: 'grid', gap: '6px' }, children: [
+        jsx('div', { style: headingStyle, children: 'Runtime policy' }),
+        jsx('div', { style: { ...cell, opacity: 0.8 }, children: 'Stored in $DSH_HOME/storages/zcd-settings.json. Read on every tool call, so a save applies immediately.' }),
+        jsx('label', { style: { ...cell, display: 'flex', gap: '6px', alignItems: 'center' }, children: [
+          jsx('input', {
+            type: 'checkbox',
+            checked: draft['policy.planReadonly.enabled'] === true,
+            onChange: (event) => setDraftSettings({ ...draft, 'policy.planReadonly.enabled': event.target.checked }),
+          }),
+          jsx('span', { children: 'Strict plan mode (deny write tools while planning)' }),
+        ] }),
+        jsx('label', { style: { ...cell, display: 'flex', gap: '6px', alignItems: 'center' }, children: [
+          jsx('input', {
+            type: 'checkbox',
+            checked: draft['policy.planReadonly.classifyBash'] === true,
+            onChange: (event) => setDraftSettings({ ...draft, 'policy.planReadonly.classifyBash': event.target.checked }),
+          }),
+          jsx('span', { children: 'Classify bash commands while planning' }),
+        ] }),
+        jsx('label', { style: cell, children: [
+          jsx('span', { children: 'Max agent() nodes per workflow run' }),
+          jsx('input', {
+            type: 'number',
+            min: 1,
+            max: 1000,
+            value: String(draft['workflow.maxNodes'] ?? ''),
+            onChange: (event) => setDraftSettings({ ...draft, 'workflow.maxNodes': Number(event.target.value) }),
+            style: inputStyle,
+          }),
+        ] }),
+        jsx('label', { style: cell, children: [
+          jsx('span', { children: 'Node timeout (seconds)' }),
+          jsx('input', {
+            type: 'number',
+            min: 1,
+            max: 86400,
+            value: String(Math.round((Number(draft['workflow.nodeTimeoutMs'] ?? 0)) / 1000)),
+            onChange: (event) => setDraftSettings({ ...draft, 'workflow.nodeTimeoutMs': Math.round(Number(event.target.value) * 1000) }),
+            style: inputStyle,
+          }),
+        ] }),
+        jsxs('div', { style: { display: 'flex', gap: '8px' }, children: [
+          jsx('button', {
+            type: 'button',
+            style: buttonStyle,
+            disabled: settingsBusy,
+            onClick: saveSettings,
+            children: settingsBusy ? 'Saving…' : 'Save policy',
+          }),
+          jsx('button', {
+            type: 'button',
+            style: buttonStyle,
+            disabled: settingsBusy || settings === undefined,
+            onClick: resetSettings,
+            children: 'Reset defaults',
+          }),
+        ] }),
+        settingsMessage === undefined ? null : jsx('div', { style: cell, children: settingsMessage }),
+      ] })
+      return jsxs('div', { style: { display: 'grid', gap: '14px' }, children: [identity, settingsBlock, runsBlock, memoryBlock] })
     }
 
     /** Register the settings section. */

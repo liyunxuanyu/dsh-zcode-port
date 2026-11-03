@@ -51,6 +51,8 @@ const directories = {
   '@zcd/tool-search': 'packages/tool-search',
   '@zcd/tool-todo-read': 'packages/tool-todo-read',
   '@zcd/schedule-pause': 'packages/schedule-pause',
+  '@zcd/runtime-settings': 'packages/runtime-settings',
+  '@zcd/settings-ui-host': 'packages/settings-ui-host',
 }
 
 const sourceProfile = JSON.parse(readFileSync(join(root, 'profiles/product/package.json'), 'utf8'))

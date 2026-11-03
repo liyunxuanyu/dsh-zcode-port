@@ -7,7 +7,7 @@
 
 ## 0. 一句话
 
-**P0 已通过，P1/P2/P4 部分落地**：product profile 在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**42 个** ZCD 工具激活，**33 个技能**可用（26 个文件技能 + 7 个 dsh 原生 Office；覆盖 34/39 项 ZCode 技能），**108 个单测（19 个文件）**、命名门禁、docs 链接、运行时 doctor 与启动 smoke 全部通过。设置页已能在真实浏览器里列出、添加、删除**用户记忆**；workflow run 面板带耗时/模型列与节点重试，文档卡已可用。
+**P0 已通过，P1/P2/P4 部分落地**：product profile 在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**42 个** ZCD 工具激活，**33 个技能**可用（26 个文件技能 + 7 个 dsh 原生 Office；覆盖 34/39 项 ZCode 技能），**108 个单测（19 个文件）**、命名门禁、docs 链接、运行时 doctor 与启动 smoke 全部通过。设置页已能在真实浏览器里列出、添加、删除**用户记忆**，并写入**只读策略开关与 workflow 限额**；workflow run 面板带耗时/模型列与节点重试，文档卡已可用。
 
 ---
 
@@ -33,12 +33,13 @@
 
 | 包 | 工具/能力 | 状态 | 测试 |
 |---|---|---|---|
+| `@zcd/runtime-settings` | `ctx.runtimeSettings`：`$DSH_HOME/storages/zcd-settings.json` 的白名单开关（布尔/整数校验、原子写、`ZCD_SETTINGS_HOME` 覆盖） | 激活成功 | 8 个单测 |
 | `@zcd/shared` | 事件声明合并（`deferred-tool/loaded`、`offpeak/*`、`memory/*`、`workflow/*`）、branded id | 已编译 | — |
 | `@zcd/deferred-tools` | `ctx.deferredTools`：工具注册带 `when`，按会话投影决定是否进入 step | 激活成功 | 3 个 admission 单测 |
 | `@zcd/tool-search` | `tool_search`：搜未加载的 deferred 目录，命中后写 `deferred-tool/loaded` | 激活成功 | 5 个单测（排序/分词/限额） |
 | `@zcd/tool-todo-read` | `todo_read`：deferred，读 `todos` 投影 | 激活成功 | — |
 | `@zcd/tool-plan-mode` | `enter_plan_mode`：程序化执行 `/plan`，不拥有 plan 状态 | 激活成功 | — |
-| `@zcd/policy-plan-readonly` | plan mode 严格只读：deny 写工具与非只读 bash | 编译通过；bundle 中默认 `disabled: true` | 35 + 4 单测 + 4 集成测试 |
+| `@zcd/policy-plan-readonly` | plan mode 严格只读：deny 写工具与非只读 bash；开关由设置页的 `policy.planReadonly.enabled` 实时决定（默认关，与 dsh 一致） | 激活成功 | 35 + 4 单测 + 7 集成测试 |
 | `@zcd/policy-skill-gate` | 工作流作者门禁：未加载 `dynamic-workflows` 时 deny `workflow_run`/改脚本 amend；compaction 后失效 | 激活成功 | 4 单测 + 2 集成测试 |
 | `@zcd/offpeak` | `ctx.offpeak`：空闲判定、新会话执行、用户输入即让路、`tasks.json` 恢复 | 激活成功 | 3 个单测 |
 | `@zcd/tool-offpeak` | `offpeak_create/list/cancel`（deferred） | 激活成功 | — |
@@ -59,7 +60,8 @@
 | `@zcd/status-host` | `/zcd/status`：Node/dsh/uptime/最近 runs | 激活成功 | smoke 200 |
 | `@zcd/workflow-ui-host` | 列表（含 `durationMs`/`error`）、`/<id>`（含 script）、nodes（含 `model`/`durationMs`）、events、`POST cancel/resume/amend`、`POST nodes/<nodeId>/retry` | 激活成功 | smoke：fixture 列表/节点/事件/cancel + resume/amend 409 契约 + retry 200/404/409 |
 | `@zcd/memory-ui-host` | `GET/POST /zcd/memory`、`DELETE /zcd/memory/<id>`、`POST /zcd/memory/dream`（仅 user scope） | 激活成功 | smoke 增删查 + dream 往返 |
-| `@zcd/client-ui-settings-zcd` | `settings.section` 的 ZCD 页：运行环境、最近 runs、**用户记忆增删/整理** | **视觉验收通过** | [截图](assets/zcd-settings-memory.png) + smoke |
+| `@zcd/settings-ui-host` | `GET /zcd/settings`、`PATCH/POST /zcd/settings`、`POST /zcd/settings/reset`；未知键/越界值 400 | 激活成功 | smoke 默认值→写入→重置 + 400 契约 |
+| `@zcd/client-ui-settings-zcd` | `settings.section` 的 ZCD 页：运行环境、**运行时策略**（只读开关 + workflow 限额）、最近 runs、用户记忆增删/整理 | **视觉验收通过** | [截图](assets/zcd-settings-memory.png) + smoke |
 | `@zcd/client-ui-workflow` | 右侧栏 workflow tab：3s 轮询 + 节点展开（模型/耗时列）+ 失败节点的 Retry node + journal 事件 + 取消/恢复/改脚本 | **视觉验收通过** | [截图](assets/workflow-panel-amend.png) + smoke |
 | `@zcd/client-ui-zcd` | 文档卡 Open/自动打开、workflow 卡片轮询 + 取消 | 进入 boot graph | smoke 检查 |
 | `@zcd/tool-visualize` | `visualize`：写自包含 HTML，返回沙箱 URL（deferred） | 激活成功 | 2 个单测（落盘/URL、限额/高度） |
@@ -128,7 +130,7 @@ P0 已通过；P1（"ZCode 工具语义对齐"）**还没有全部验收**，巡
 | skill gate | ✅ 真实模型会话验收通过：未加载技能时 `workflow_run` 被拒；加载 `dynamic-workflows` 后放行并实际跑出 `run-112dd50c…`（result 42） |
 | S1 工具对齐 | ✅ `schedule_pause` 已补（`@zcd/schedule-pause`，快照后删除、恢复时重建）；`schedule_delete` 仍用 dsh 原生；`list_agents`/`interrupt_agent` 覆盖 subagent 查询/停止 |
 | 技能 | 33 个技能可用（26 个文件技能 + 7 个 dsh 原生 Office）；`dynamic-workflows`/`visualize` 的 frontmatter 已修好并纳入门禁，真实会话确认二者可加载 |
-| 设置页写入 | 用户记忆已通；其余配置项未做 |
+| 设置页写入 | ✅ 用户记忆 + 只读策略开关 + workflow 限额已可写；Memory 的根目录/条数上限仍只读 |
 | 真实模型会话 | ✅ 用 OpenAI 兼容端点实测：`tool_search`→`todo_read`、skill gate 拒绝/放行、`workflow_run` 实际执行 |
 | 技能安装 | ✅ 修复 `link-profile` 从没调用 `install-skills` 的缺口；`verify-naming` 现校验 SKILL.md frontmatter 可解析 |
 | Workflow 详情 | 耗时/模型列与节点重试已落地（run 列表 `durationMs`、节点 `model`/`durationMs`、`POST nodes/<nodeId>/retry`）；run 详情仍无逐节点重试历史 |
@@ -139,9 +141,9 @@ P0 已通过；P1（"ZCode 工具语义对齐"）**还没有全部验收**，巡
 |---|---|---|
 | 无 CUA 工具 | Windows 上无法做桌面自动化 | 等待可用驱动；macOS 可挂 dsh 原生 provider |
 | ~~浏览器无 Node 级脚本~~ | ✅ 已补 `browser_act`（Node 级 code-act）、CDP 接管用户浏览器、可视面板 | — |
-| 设置页只写用户记忆 | Memory 配置、只读策略开关仍不可改 | 复用 `configForms` |
+| ~~设置页只写用户记忆~~ | ✅ 已补：`/zcd/settings` 白名单开关（只读策略、workflow 限额）；Memory 根目录等部署项仍不可改 | — |
 | ~~workflow 面板缺指标~~ | ✅ 已补：run/节点耗时、节点模型、失败节点重试（`retryNode` + `node/dropped` journal） | — |
-| policy-plan-readonly 默认关闭 | 默认行为与 dsh 一致；严格模式需显式开 | 设置页开关 |
+| ~~policy-plan-readonly 默认关闭~~ | ✅ 改为「常驻但默认惰性」，由 `policy.planReadonly.enabled` 实时开关；默认仍与 dsh 一致 | 设置页开关已落地 |
 | ~~外部插件 e2e~~ | ✅ 已补：`scripts/e2e-external-plugin.mjs` 用临时 profile 真装外部插件并验证其路由；doctor 仍是静态预检 | — |
 
 ## 4. 关键设计修正（相对早期文档）

@@ -243,6 +243,9 @@ importers:
       '@deepseek-ai/dsh-session':
         specifier: 0.2.2-alpha.2
         version: 0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1)(@deepseek-ai/dsh-scope@0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1))
+      '@zcd/runtime-settings':
+        specifier: workspace:*
+        version: link:../runtime-settings
       '@zcd/shared':
         specifier: workspace:*
         version: link:../shared
@@ -332,6 +335,9 @@ importers:
       '@deepseek-ai/dsh-tools':
         specifier: 0.2.2-alpha.2
         version: 0.2.2-alpha.2(d570a50fd9051dfa7084c71da173b036)
+      '@zcd/runtime-settings':
+        specifier: workspace:*
+        version: link:../runtime-settings
     devDependencies:
       '@deepseek-ai/cordis':
         specifier: 4.0.6-alpha.1
@@ -356,6 +362,19 @@ importers:
         specifier: 4.0.6-alpha.1
         version: 4.0.6-alpha.1(@deepseek-ai/cordis-plugin-include@1.0.11-alpha.1)(@deepseek-ai/cordis-plugin-loader@1.0.7-alpha.1)
 
+  packages/runtime-settings:
+    dependencies:
+      '@deepseek-ai/dsh-session':
+        specifier: 0.2.2-alpha.2
+        version: 0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1)(@deepseek-ai/dsh-scope@0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1))
+      '@zcd/shared':
+        specifier: workspace:*
+        version: link:../shared
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: 4.0.6-alpha.1
+        version: 4.0.6-alpha.1(@deepseek-ai/cordis-plugin-include@1.0.11-alpha.1)(@deepseek-ai/cordis-plugin-loader@1.0.7-alpha.1)
+
   packages/schedule-pause:
     dependencies:
       '@deepseek-ai/dsh-schedule':
@@ -370,6 +389,19 @@ importers:
       '@zcd/deferred-tools':
         specifier: workspace:*
         version: link:../deferred-tools
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: 4.0.6-alpha.1
+        version: 4.0.6-alpha.1(@deepseek-ai/cordis-plugin-include@1.0.11-alpha.1)(@deepseek-ai/cordis-plugin-loader@1.0.7-alpha.1)
+
+  packages/settings-ui-host:
+    dependencies:
+      '@deepseek-ai/dsh-host-webserver':
+        specifier: 0.2.2-alpha.2
+        version: 0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1)
+      '@zcd/runtime-settings':
+        specifier: workspace:*
+        version: link:../runtime-settings
     devDependencies:
       '@deepseek-ai/cordis':
         specifier: 4.0.6-alpha.1
@@ -733,9 +765,15 @@ importers:
       '@zcd/policy-skill-gate':
         specifier: workspace:*
         version: link:../../packages/policy-skill-gate
+      '@zcd/runtime-settings':
+        specifier: workspace:*
+        version: link:../../packages/runtime-settings
       '@zcd/schedule-pause':
         specifier: workspace:*
         version: link:../../packages/schedule-pause
+      '@zcd/settings-ui-host':
+        specifier: workspace:*
+        version: link:../../packages/settings-ui-host
       '@zcd/status-host':
         specifier: workspace:*
         version: link:../../packages/status-host
