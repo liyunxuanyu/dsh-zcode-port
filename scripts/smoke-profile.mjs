@@ -8,6 +8,7 @@
  * dsh's own bundles and load every ZCD plugin.
  */
 import { spawn } from 'node:child_process'
+import { createServer } from 'node:net'
 import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -86,7 +87,27 @@ writeFileSync(join(workflowRuns, fixtureId, 'events.jsonl'), [
 ].map(event => JSON.stringify(event)).join('\n') + '\n')
 writeFileSync(join(genuiDir, 'probe.html'), '<!doctype html><h1>zcd genui smoke</h1>')
 
-const child = spawn(process.execPath, [bin, '--profile', 'product', '--no-open', '--port', '0'], {
+/**
+ * Reserve a free port ourselves.
+ *
+ * `--port 0` lets the OS pick, and a random pick can land on one of the ports
+ * `fetch` refuses to connect to (for example 6000), which fails the smoke for
+ * reasons unrelated to the product.
+ */
+function freePort() {
+  return new Promise((resolve, reject) => {
+    const server = createServer()
+    server.on('error', reject)
+    server.listen(0, '127.0.0.1', () => {
+      const address = server.address()
+      const port = typeof address === 'object' && address !== null ? address.port : 0
+      server.close(() => resolve(port))
+    })
+  })
+}
+
+const reservedPort = await freePort()
+const child = spawn(process.execPath, [bin, '--profile', 'product', '--no-open', '--port', String(reservedPort)], {
   cwd: root,
   env: { ...process.env, DSH_HOME: home, ZCD_USER_MEMORY_HOME: memoryHome, ZCD_SETTINGS_HOME: settingsHome },
   stdio: ['ignore', 'pipe', 'pipe'],
@@ -97,7 +118,7 @@ let stderr = ''
 child.stdout.on('data', chunk => { stdout += chunk })
 child.stderr.on('data', chunk => { stderr += chunk })
 
-/** Resolve the first printed Web URL. */
+/** Resolve the printed Web URL for the reserved port. */
 function waitForUrl(timeoutMs) {
   return new Promise((resolve, reject) => {
     const deadline = Date.now() + timeoutMs
@@ -281,6 +302,18 @@ try {
     throw new Error(`settings reset failed: ${settingsReset.status} ${JSON.stringify(settingsResetBody)}`)
   }
 
+  // Browser panel: the session list always answers, and a missing/unknown
+  // session is a 400/503 instead of an empty image.
+  const browserSessions = await fetch(`http://127.0.0.1:${port}/zcd/browser/sessions`)
+  const browserSessionsBody = await browserSessions.json().catch(() => undefined)
+  if (browserSessions.status !== 200 || !Array.isArray(browserSessionsBody?.sessions)) {
+    throw new Error(`browser sessions route failed: ${browserSessions.status}`)
+  }
+  const browserLiveMissing = await fetch(`http://127.0.0.1:${port}/zcd/browser/live`)
+  if (browserLiveMissing.status !== 400) throw new Error(`browser live without session should be 400: ${browserLiveMissing.status}`)
+  const browserLiveUnknown = await fetch(`http://127.0.0.1:${port}/zcd/browser/live?session=not-a-session`)
+  if (browserLiveUnknown.status !== 503) throw new Error(`browser live for unknown session should be 503: ${browserLiveUnknown.status}`)
+
   // User memory: list → create → list → delete → list. The smoke home is a
   // throwaway directory, so "empty" is a meaningful assertion.
   const memoryList = await fetch(`http://127.0.0.1:${port}/zcd/memory`)
@@ -330,6 +363,7 @@ try {
     ['@zcd/client-ui-zcd', 'read_document'],
     ['@zcd/client-ui-settings-zcd', 'settings.section'],
     ['@zcd/client-ui-workflow', 'sidebar.right.pane.tab'],
+    ['@zcd/client-ui-browser', 'zcd-browser'],
   ]) {
     const prefix = `${id}/client.js&rev=`
     const at = html.indexOf(prefix)

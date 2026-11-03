@@ -60,9 +60,11 @@
 | `@zcd/status-host` | `/zcd/status`：Node/dsh/uptime/最近 runs | 激活成功 | smoke 200 |
 | `@zcd/workflow-ui-host` | 列表（含 `durationMs`/`error`）、`/<id>`（含 script）、nodes（含 `model`/`durationMs`）、events、`POST cancel/resume/amend`、`POST nodes/<nodeId>/retry` | 激活成功 | smoke：fixture 列表/节点/事件/cancel + resume/amend 409 契约 + retry 200/404/409 |
 | `@zcd/memory-ui-host` | `GET/POST /zcd/memory`、`DELETE /zcd/memory/<id>`、`POST /zcd/memory/dream`（仅 user scope） | 激活成功 | smoke 增删查 + dream 往返 |
+| `@zcd/browser-ui-host` | `/zcd/browser/sessions`、`/live`、`/frame`；只读，未知 session 不启动浏览器（400/503） | 激活成功 | smoke 200/400/503 契约 |
 | `@zcd/settings-ui-host` | `GET /zcd/settings`、`PATCH/POST /zcd/settings`、`POST /zcd/settings/reset`；未知键/越界值 400 | 激活成功 | smoke 默认值→写入→重置 + 400 契约 |
 | `@zcd/client-ui-settings-zcd` | `settings.section` 的 ZCD 页：运行环境、**运行时策略**（只读开关 + workflow 限额）、最近 runs、用户记忆增删/整理 | **视觉验收通过** | [截图](assets/zcd-settings-memory.png) + smoke |
 | `@zcd/client-ui-workflow` | 右侧栏 workflow tab：3s 轮询 + 节点展开（模型/耗时列）+ 失败节点的 Retry node + journal 事件 + 取消/恢复/改脚本 | **视觉验收通过** | [截图](assets/workflow-panel-amend.png) + smoke |
+| `@zcd/client-ui-browser` | 右侧栏 Browser tab：session 选择、1.5s 刷新截图、tab 列表（只观察） | 进入 boot graph | smoke 检查 |
 | `@zcd/client-ui-zcd` | 文档卡 Open/自动打开、workflow 卡片轮询 + 取消 | 进入 boot graph | smoke 检查 |
 | `@zcd/tool-visualize` | `visualize`：写自包含 HTML，返回沙箱 URL（deferred） | 激活成功 | 2 个单测（落盘/URL、限额/高度） |
 | `@zcd/browser` | `ctx.browser`：headless Chrome 或经 CDP 接管用户 Chrome（`ZCD_BROWSER_CDP_URL`，不再关掉用户 context）、每会话隔离 context + 多 tab、截图落盘、URL 白名单；`act()` 跑 Node 级 code-act（null-prototype + 禁用字符串代码生成的加固 vm、REPL 语义、`state`/`globalThis` 跨调用、输出预算）；`liveFrame()`/`liveState()` 供面板轮询 | 激活成功 | 3 个单测 + 11 个 code-act 单测（含逃逸回归） |

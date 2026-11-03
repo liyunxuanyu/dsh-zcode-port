@@ -310,8 +310,17 @@ export class BrowserService extends Service {
     // Never resize the page just to serve the panel: the agent's own
     // screenshots and coordinates must not change because someone opened the
     // sidebar. The panel scales the PNG in CSS instead.
-    const page = await this.page(sessionId)
+    const session = await this.existingSession(sessionId)
+    if (session === undefined) throw new Error(`browser session ${sessionId} is not active`)
+    const page = session.active === undefined ? undefined : session.pages.get(session.active)
+    if (page === undefined || page.isClosed()) throw new Error(`browser session ${sessionId} has no active page`)
     return await page.screenshot({ type: 'png' })
+  }
+
+  /** Read an existing session without launching a browser for an unknown id. */
+  private async existingSession(sessionId: string): Promise<SessionBrowser | undefined> {
+    const existing = this.sessions.get(sessionId)
+    return existing === undefined ? undefined : await existing
   }
 
   /**
@@ -332,10 +341,18 @@ export class BrowserService extends Service {
    * @returns the mode and the session's tabs.
    */
   async liveState(sessionId: string): Promise<{ mode: 'launched' | 'attached'; tabs: TabInfo[] }> {
-    const session = await this.session(sessionId)
+    // The panel is read-only: an id that never opened a browser must not make
+    // the service launch one just because someone queried the sidebar.
+    const session = await this.existingSession(sessionId)
+    if (session === undefined) throw new Error(`browser session ${sessionId} is not active`)
+    const tabs: TabInfo[] = []
+    for (const [id, page] of session.pages) {
+      if (page.isClosed()) continue
+      tabs.push(await this.tabInfo(page, session, id))
+    }
     return {
       mode: session.ownsContext ? 'launched' : 'attached',
-      tabs: await this.listTabs(sessionId),
+      tabs,
     }
   }
 
