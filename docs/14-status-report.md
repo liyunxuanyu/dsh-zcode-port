@@ -14,7 +14,7 @@
 - **39 个 ZCD 工具**在 product profile 中激活
 - **33 个技能**可用（覆盖 34/39 项 ZCode 技能）
 - **33 个 workspace 包**、4 个 bundle 正确组合
-- **99 个单测 / 18 个文件**，另有 typecheck、命名/文档门禁、插件 doctor、打包、MCP smoke、启动 smoke
+- **100 个单测 / 18 个文件**，另有 typecheck、命名/文档门禁、插件 doctor、打包、MCP smoke、启动 smoke
 - 设置页、workflow 运行面板、文档卡已通过真实浏览器视觉验收
 
 当前阶段不是“全部完成”：P1 还有 `schedule_pause` 与真实模型会话验证缺口，P3 只完成浏览器 v1，CUA 受平台限制，P4 的设置写入只覆盖用户记忆。
@@ -28,7 +28,7 @@
 | **P0** | 不改上游，能启动 product profile | ✅ 已完成 | 4 个 bundle 组合；`--dump-config` 1325 行；smoke 启动 Web |
 | **P1** | ZCode 工具语义对齐 | 🟡 大部分完成 | 工具搜索/延迟加载、plan 只读、OffPeak、技能门禁、schema 预算已验收；`schedule_pause` 缺 dsh API；gate/skill 触发未在真实模型会话观察 |
 | **P2** | durable workflow + memory | ✅ 核心完成 | 脚本引擎、节点缓存、resume/cancel/amend/hole、文件 store、memory/dream/index |
-| **P3** | 浏览器与 CUA | 🟡 浏览器 v1 + code-act | headless Chrome + 12 个工具 + 多 tab + 页面级 evaluate + Node 级 `browser_act`；CUA 仅 macOS provider，本机 Windows 不可用 |
+| **P3** | 浏览器与 CUA | 🟡 浏览器 v2 完成（CUA 除外） | headless 或 CDP 接管用户 Chrome + 12 个工具 + 多 tab + `browser_act` code-act + 右侧栏实时面板；CUA 仅 macOS provider |
 | **P4** | UI 体验 | 🟡 部分完成 | Gen UI 路由/卡片、文档 5 工具 + create_document、设置页、workflow 面板；设置页只写用户记忆 |
 | **P5** | 技能全量 | 🟡 34/39 覆盖 | 33 个技能条目；浏览器 2 项合并为 `browser-use`；CUA 1 项未实现；4 项主动丢弃 |
 
@@ -67,10 +67,10 @@
 
 ### 3.3 包与 profile
 
-- workspace：**33 个包**
+- workspace：**35 个包**
   - 2 个 bundle：`bundle-base`、`bundle-web-app`
-  - 4 个 client bundle：`client-ui-genui`、`client-ui-zcd`、`client-ui-settings-zcd`、`client-ui-workflow`
-  - 5 个 Web host：`documents-ui-host`、`status-host`、`workflow-ui-host`、`genui-host`、`memory-ui-host`
+  - 5 个 client bundle：`client-ui-genui`、`client-ui-zcd`、`client-ui-settings-zcd`、`client-ui-workflow`、`client-ui-browser`
+  - 7 个 Web host：`documents-ui-host`、`status-host`、`workflow-ui-host`、`genui-host`、`memory-ui-host`、`settings-ui-host`、`browser-ui-host`
   - 其余为服务与工具包
 - `profiles/product`：`dsh-base → zcd-base → dsh-web-app → zcd-web-app`
 - `dsh --profile product --dump-config`：1325 行
@@ -162,7 +162,7 @@
 
 ```sh
 pnpm typecheck                 # 全部 workspace 包通过
-pnpm test                      # 18 个文件 / 99 个用例
+pnpm test                      # 18 个文件 / 100 个用例
 pnpm verify                    # 38 ZCD tools, 32 reserved names；docs 链接 0 问题
 pnpm build                     # 所有包 emit 到 lib/
 node scripts/pack-product.mjs  # dist/zcd-product-0.0.0.tgz
@@ -180,7 +180,7 @@ smoke 覆盖：
 - `/zcd/status`
 - workflow fixture 列表/节点/事件/cancel，resume/amend 无父会话时 409
 - memory 列表→创建→dream→删除→空
-- 4 个 client bundle 的 boot graph 与 combo 内容
+- 5 个 client bundle 的 boot graph 与 combo 内容
 
 ---
 

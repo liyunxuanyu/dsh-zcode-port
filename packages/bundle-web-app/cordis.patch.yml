@@ -27,3 +27,10 @@
 
     - id: zcd-client-ui-genui
       name: '@zcd/client-ui-genui'
+
+    # Live browser panel: mirrors the session Chrome in the right sidebar.
+    - id: zcd-browser-ui-host
+      name: '@zcd/browser-ui-host'
+
+    - id: zcd-client-ui-browser
+      name: '@zcd/client-ui-browser'

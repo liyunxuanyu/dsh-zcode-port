@@ -37,6 +37,19 @@ importers:
         specifier: 4.0.6-alpha.1
         version: 4.0.6-alpha.1(@deepseek-ai/cordis-plugin-include@1.0.11-alpha.1)(@deepseek-ai/cordis-plugin-loader@1.0.7-alpha.1)
 
+  packages/browser-ui-host:
+    dependencies:
+      '@deepseek-ai/dsh-host-webserver':
+        specifier: 0.2.2-alpha.2
+        version: 0.2.2-alpha.2(@deepseek-ai/cordis@4.0.6-alpha.1)
+      '@zcd/browser':
+        specifier: workspace:*
+        version: link:../browser
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: 4.0.6-alpha.1
+        version: 4.0.6-alpha.1(@deepseek-ai/cordis-plugin-include@1.0.11-alpha.1)(@deepseek-ai/cordis-plugin-loader@1.0.7-alpha.1)
+
   packages/bundle-base:
     dependencies:
       '@deepseek-ai/dsh-skill-office':
@@ -141,6 +154,12 @@ importers:
       '@zcd/workflow-ui-host':
         specifier: workspace:*
         version: link:../workflow-ui-host
+
+  packages/client-ui-browser:
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: 4.0.6-alpha.1
+        version: 4.0.6-alpha.1(@deepseek-ai/cordis-plugin-include@1.0.11-alpha.1)(@deepseek-ai/cordis-plugin-loader@1.0.7-alpha.1)
 
   packages/client-ui-genui:
     devDependencies:
@@ -641,12 +660,18 @@ importers:
       '@zcd/browser':
         specifier: workspace:*
         version: link:../../packages/browser
+      '@zcd/browser-ui-host':
+        specifier: workspace:*
+        version: link:../../packages/browser-ui-host
       '@zcd/bundle-base':
         specifier: workspace:*
         version: link:../../packages/bundle-base
       '@zcd/bundle-web-app':
         specifier: workspace:*
         version: link:../../packages/bundle-web-app
+      '@zcd/client-ui-browser':
+        specifier: workspace:*
+        version: link:../../packages/client-ui-browser
       '@zcd/client-ui-genui':
         specifier: workspace:*
         version: link:../../packages/client-ui-genui

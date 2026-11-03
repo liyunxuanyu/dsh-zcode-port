@@ -25,6 +25,8 @@ const directories = {
   '@zcd/client-ui-workflow': 'packages/client-ui-workflow',
   '@zcd/client-ui-zcd': 'packages/client-ui-zcd',
   '@zcd/client-ui-genui': 'packages/client-ui-genui',
+  '@zcd/browser-ui-host': 'packages/browser-ui-host',
+  '@zcd/client-ui-browser': 'packages/client-ui-browser',
   '@zcd/bundle-base': 'packages/bundle-base',
   '@zcd/bundle-web-app': 'packages/bundle-web-app',
   '@zcd/policy-plan-readonly': 'packages/policy-plan-readonly',

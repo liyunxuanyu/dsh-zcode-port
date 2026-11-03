@@ -29,6 +29,12 @@ export interface Config {
   executablePath?: string
   /** Per-action timeout in milliseconds (default 15000). */
   timeoutMs?: number
+  /**
+   * Attach to an already-running Chrome over CDP instead of launching one,
+   * for example `http://127.0.0.1:9222`. `ZCD_BROWSER_CDP_URL` is the env
+   * fallback; when set, the user's browser and cookies are reused.
+   */
+  cdpUrl?: string
   /** Screenshot root; defaults to `$DSH_HOME/storages/zcd-browser`. */
   storageDir?: string
   /** Viewport for new pages. */
@@ -48,6 +54,8 @@ declare module '@deepseek-ai/cordis' {
 /** One session's isolated context and its tabs. */
 interface SessionBrowser {
   context: BrowserContext
+  /** False when the context belongs to the user's browser and must stay open. */
+  ownsContext: boolean
   pages: Map<string, Page>
   active: string | undefined
   next: number
@@ -111,12 +119,28 @@ export function detectChrome(env: NodeJS.ProcessEnv = process.env): string | und
 }
 
 /**
+ * Read the CDP endpoint from the environment.
+ *
+ * `ZCD_BROWSER_CDP_URL` lets an operator point the product at a Chrome they
+ * started with `--remote-debugging-port=9222`; an empty value means "launch
+ * our own".
+ * @param env - process environment.
+ * @returns the endpoint, or undefined.
+ */
+export function resolveCdpUrl(env: NodeJS.ProcessEnv = process.env): string | undefined {
+  const value = env.ZCD_BROWSER_CDP_URL
+  return value === undefined || value.trim().length === 0 ? undefined : value.trim()
+}
+
+/**
  * Browser service.
  */
 export class BrowserService extends Service {
   private readonly config: Required<Pick<Config, 'headless' | 'timeoutMs' | 'storageDir'>> & Config
   private launchPromise?: Promise<Browser>
   private readonly sessions = new Map<string, Promise<SessionBrowser>>()
+  /** Session order for the panel picker; kept in sync with {@link sessions}. */
+  private readonly sessionsById = new Map<string, true>()
   private readonly codeAct: BrowserCodeAct
 
   constructor(ctx: Context, config: Config = {}) {
@@ -237,7 +261,8 @@ export class BrowserService extends Service {
     if (session.active === tabId) session.active = session.pages.keys().next().value
     if (session.pages.size === 0) {
       this.sessions.delete(sessionId)
-      await session.context.close().catch(() => undefined)
+      this.sessionsById.delete(sessionId)
+      if (session.ownsContext) await session.context.close().catch(() => undefined)
     }
   }
 
@@ -251,7 +276,8 @@ export class BrowserService extends Service {
     if (existing === undefined) return
     this.sessions.delete(sessionId)
     const session = await existing.catch(() => undefined)
-    await session?.context.close().catch(() => undefined)
+    this.sessionsById.delete(sessionId)
+    if (session?.ownsContext === true) await session.context.close().catch(() => undefined)
   }
 
   /**
@@ -270,16 +296,64 @@ export class BrowserService extends Service {
     return path
   }
 
+  /**
+   * Capture the active page as a PNG buffer for the live panel.
+   *
+   * The panel polls this instead of the file-writing tool so no screenshot
+   * ever lands on disk just because someone opened the sidebar.
+   *
+   * @param sessionId - agent session id.
+   * @param options - optional viewport resize before capture.
+   * @returns PNG bytes.
+   */
+  async liveFrame(sessionId: string, options: { maxWidth?: number } = {}): Promise<Buffer> {
+    const page = await this.page(sessionId)
+    if (options.maxWidth !== undefined) {
+      const size = page.viewportSize()
+      if (size !== null && size.width > options.maxWidth) {
+        await page.setViewportSize({ width: options.maxWidth, height: Math.round(size.height * options.maxWidth / size.width) })
+      }
+    }
+    return await page.screenshot({ type: 'png' })
+  }
+
+  /**
+   * Session ids that currently own a browser container.
+   *
+   * The sidebar panel is not session-scoped, so it needs this list to offer a
+   * picker instead of guessing which agent is driving the browser.
+   *
+   * @returns ids in creation order.
+   */
+  browserSessions(): string[] {
+    return [...this.sessionsById.keys()]
+  }
+
+  /**
+   * Describe the live browser for the panel: attachment mode and tabs.
+   * @param sessionId - agent session id.
+   * @returns the mode and the session's tabs.
+   */
+  async liveState(sessionId: string): Promise<{ mode: 'launched' | 'attached'; tabs: TabInfo[] }> {
+    const session = await this.session(sessionId)
+    return {
+      mode: session.ownsContext ? 'launched' : 'attached',
+      tabs: await this.listTabs(sessionId),
+    }
+  }
+
   /** Get or create the session container. */
   private async session(sessionId: string): Promise<SessionBrowser> {
     const existing = this.sessions.get(sessionId)
     if (existing !== undefined) return existing
     const created = this.createSession(sessionId)
     this.sessions.set(sessionId, created)
+    this.sessionsById.set(sessionId, true)
     try {
       return await created
     } catch (error: unknown) {
       this.sessions.delete(sessionId)
+      this.sessionsById.delete(sessionId)
       throw error
     }
   }
@@ -312,6 +386,7 @@ export class BrowserService extends Service {
   async shutdown(): Promise<void> {
     const sessions = [...this.sessions.values()]
     this.sessions.clear()
+    this.sessionsById.clear()
     await Promise.allSettled(sessions.map(async session => (await session).context.close()))
     const browser = this.launchPromise
     this.launchPromise = undefined
@@ -321,9 +396,20 @@ export class BrowserService extends Service {
     }
   }
 
-  /** Launch Chrome on first use. */
+  /** Connect to the user's Chrome, or launch our own when no CDP endpoint is set. */
   private async launch(): Promise<Browser> {
     if (this.launchPromise !== undefined) return this.launchPromise
+    const cdpUrl = this.config.cdpUrl ?? resolveCdpUrl()
+    if (cdpUrl !== undefined) {
+      const promise = import('playwright-core').then(({ chromium }) => chromium.connectOverCDP(cdpUrl))
+      this.launchPromise = promise
+      try {
+        return await promise
+      } catch (error: unknown) {
+        this.launchPromise = undefined
+        throw new Error(`browser: could not attach to ${cdpUrl}: ${error instanceof Error ? error.message : String(error)}`)
+      }
+    }
     const executablePath = this.config.executablePath ?? detectChrome()
     if (executablePath === undefined) {
       throw new Error('browser: Chrome/Chromium not found; set ZCD_CHROME_PATH or browser.executablePath')
@@ -339,13 +425,25 @@ export class BrowserService extends Service {
     }
   }
 
-  /** Create an isolated context for one session. */
+  /**
+   * Create the container for one session.
+   *
+   * With a CDP attachment we reuse the user's existing context — that is the
+   * whole point of "their browser", cookies included — so the context must
+   * never be closed by us: only our own pages are. A launched Chrome gets a
+   * fresh isolated context per session, as before.
+   */
   private async createSession(_sessionId: string): Promise<SessionBrowser> {
     const browser = await this.launch()
+    const attached = (this.config.cdpUrl ?? resolveCdpUrl()) !== undefined
+    const existing = attached ? browser.contexts()[0] : undefined
+    if (existing !== undefined) {
+      return { context: existing, ownsContext: false, pages: new Map(), active: undefined, next: 1 }
+    }
     const context = await browser.newContext({
       viewport: this.config.viewport ?? { width: 1280, height: 720 },
     })
-    return { context, pages: new Map(), active: undefined, next: 1 }
+    return { context, ownsContext: true, pages: new Map(), active: undefined, next: 1 }
   }
 }
 

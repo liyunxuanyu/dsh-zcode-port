@@ -4,7 +4,15 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Context } from '@deepseek-ai/cordis'
 import { describe, expect, it } from 'vitest'
-import { BrowserService, assertHttpUrl, detectChrome } from '../src/index.js'
+import { BrowserService, assertHttpUrl, detectChrome, resolveCdpUrl } from '../src/index.js'
+
+describe('resolveCdpUrl', () => {
+  it('reads the env override and treats blank as absent', () => {
+    expect(resolveCdpUrl({ ZCD_BROWSER_CDP_URL: 'http://127.0.0.1:9222' })).toBe('http://127.0.0.1:9222')
+    expect(resolveCdpUrl({ ZCD_BROWSER_CDP_URL: '  ' })).toBeUndefined()
+    expect(resolveCdpUrl({})).toBeUndefined()
+  })
+})
 
 describe('assertHttpUrl', () => {
   it('accepts http and https and normalizes them', () => {

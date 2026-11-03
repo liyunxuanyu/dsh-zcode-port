@@ -7,7 +7,7 @@
 
 ## 0. 一句话
 
-**P0 已通过，P1/P2/P4 部分落地**：product profile 在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**39 个** ZCD 工具激活，**33 个技能**可用（26 个文件技能 + 7 个 dsh 原生 Office；覆盖 34/39 项 ZCode 技能），**99 个单测（18 个文件）**、命名门禁、docs 链接、运行时 doctor 与启动 smoke 全部通过。设置页已能在真实浏览器里列出、添加、删除**用户记忆**；workflow run 面板与文档卡已可用。
+**P0 已通过，P1/P2/P4 部分落地**：product profile 在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**39 个** ZCD 工具激活，**33 个技能**可用（26 个文件技能 + 7 个 dsh 原生 Office；覆盖 34/39 项 ZCode 技能），**100 个单测（18 个文件）**、命名门禁、docs 链接、运行时 doctor 与启动 smoke 全部通过。设置页已能在真实浏览器里列出、添加、删除**用户记忆**；workflow run 面板与文档卡已可用。
 
 ---
 
@@ -27,7 +27,7 @@
 | CI | `.github/workflows/ci.yml`（typecheck/test/verify/build/pack/doctor/MCP check/smoke） |
 | MCP 运行时 | `runtime/mcp` pin `server-everything@2.1.0`；`pnpm mcp:check` 完成 initialize + tools/list（16 tools） |
 
-当前 workspace 共 **33 个包**：2 个 bundle、4 个 client bundle、5 个 Web host、其余为服务与工具包。
+当前 workspace 共 **35 个包**：2 个 bundle、5 个 client bundle、7 个 Web host、其余为服务与工具包。
 
 ### 1.2 插件与工具
 
@@ -62,7 +62,7 @@
 | `@zcd/client-ui-workflow` | 右侧栏 workflow tab：3s 轮询 + 节点展开 + journal 事件 + 取消/恢复/改脚本 | **视觉验收通过** | [截图](assets/workflow-panel-amend.png) + smoke |
 | `@zcd/client-ui-zcd` | 文档卡 Open/自动打开、workflow 卡片轮询 + 取消 | 进入 boot graph | smoke 检查 |
 | `@zcd/tool-visualize` | `visualize`：写自包含 HTML，返回沙箱 URL（deferred） | 激活成功 | 2 个单测（落盘/URL、限额/高度） |
-| `@zcd/browser` | `ctx.browser`：headless Chrome、每会话隔离 context + 多 tab、截图落盘、URL 白名单；`act()` 跑 Node 级 code-act（vm 沙箱、REPL 语义、`state`/`globalThis` 跨调用、输出预算） | 激活成功 | 3 个单测 + 10 个 code-act 单测 |
+| `@zcd/browser` | `ctx.browser`：headless Chrome 或经 CDP 接管用户 Chrome（`ZCD_BROWSER_CDP_URL`，不再关掉用户 context）、每会话隔离 context + 多 tab、截图落盘、URL 白名单；`act()` 跑 Node 级 code-act（vm 沙箱、REPL 语义、`state`/`globalThis` 跨调用、输出预算）；`liveFrame()`/`liveState()` 供面板轮询 | 激活成功 | 3 个单测 + 10 个 code-act 单测 |
 | `@zcd/tool-browser` | `browser_open/snapshot/evaluate/click/type/screenshot` + tab 4 工具 + `browser_act`（Node 级 code-act）+ `browser_close`（deferred） | 激活成功 | 1 个真实 Chrome 工具链测试 |
 | `skills/superpowers`（14） | ZCode 工程方法技能，工具名已映射为 dsh | 已安装 | `install-skills.mjs` |
 | `skills/dsh-guide`（6） | dsh 自诊断：profile/bundle/patch、插件、MCP、skills | 已安装 | `install-skills.mjs` |
@@ -74,7 +74,7 @@
 | `skills/zcd/plugin-creator`（1） | Cordis 插件/bundle/profile 接入与故障排查 | 已安装 | verify-naming |
 | `@deepseek-ai/dsh-skill-office`（7） | office 路由 + docx/pptx/xlsx/render/recalculate/export-pdf | 已挂载 | 启动 smoke；LibreOffice kit 由 dsh 依赖提供 |
 | `@zcd/bundle-base` | 基础能力行（tool-search / todo-read / deferred / offpeak / memory / workflow / documents / genui / browser …） | 已组合 | dump-config |
-| `@zcd/bundle-web-app` | 5 个 host 行 + 4 个 client bundle 行 | 已组合 | dump-config |
+| `@zcd/bundle-web-app` | 7 个 host 行 + 5 个 client bundle 行 | 已组合 | dump-config |
 | `profiles/product` | bundles = dsh-base → zcd-base → dsh-web-app → zcd-web-app | 已组合 | dump-config + smoke |
 
 ### 1.3 设置页写入（本轮新增）
@@ -89,7 +89,7 @@
 
 ```sh
 pnpm typecheck     # 全部 workspace 包通过
-pnpm test          # 18 个文件 / 99 个用例通过
+pnpm test          # 18 个文件 / 100 个用例通过
 pnpm verify        # verify-naming: 39 ZCD tools, 32 reserved names；docs 链接 0 问题
 pnpm mcp:check     # pinned MCP server: initialize + tools/list
 pnpm build         # 所有包 emit 到 lib/
@@ -109,7 +109,7 @@ smoke 覆盖：Web 启动、无 `did not activate`、Gen UI CSP、文档视图 P
 |---|---|---|
 | 1 | Gen UI 会话内卡片验收 | 沙箱路由已渲染验收；仍需要一次真实 `visualize` 结果会话确认 iframe 卡片 |
 | 2 | CUA（WP-11） | dsh 原生 provider 仅 macOS；Windows 需另找 CUA 驱动 |
-| 3 | 浏览器 v2 | 🟡 部分完成：Node 级 `browser_act` code-act 已落地（vm 沙箱 + 注入 bindings + REPL 语义）；用户浏览器与可视面板未做 |
+| 3 | ~~浏览器 v2~~ | ✅ 已完成（2026-11-03）：`browser_act` code-act、CDP 接管用户浏览器、右侧栏实时可视面板 |
 | 4 | 设置页继续写入 | workflow 配置、只读策略开关；用户记忆已经可用 |
 | 5 | Workflow run 详情 | 耗时/模型列、失败重试入口；cancel/resume/amend 已完成 |
 | 6 | 剩余技能 | 覆盖 34/39；剩 CUA 1 + 主动丢弃 4（站点/移动端/旧会话恢复） |
@@ -133,7 +133,7 @@ P0 已通过；P1（"ZCode 工具语义对齐"）**还没有全部验收**，巡
 | 缺口 | 影响 | 计划 |
 |---|---|---|
 | 无 CUA 工具 | Windows 上无法做桌面自动化 | 等待可用驱动；macOS 可挂 dsh 原生 provider |
-| ~~浏览器无 Node 级脚本~~ | ✅ 已补 `browser_act`（Node 级 code-act）；仍无用户已开浏览器与可视面板 | — |
+| ~~浏览器无 Node 级脚本~~ | ✅ 已补 `browser_act`（Node 级 code-act）、CDP 接管用户浏览器、可视面板 | — |
 | 设置页只写用户记忆 | Memory 配置、只读策略开关仍不可改 | 复用 `configForms` |
 | workflow 面板缺指标 | 无耗时/模型列与失败重试按钮 | 保存在节点上的模型与计时 |
 | policy-plan-readonly 默认关闭 | 默认行为与 dsh 一致；严格模式需显式开 | 设置页开关 |
