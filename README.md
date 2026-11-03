@@ -116,10 +116,10 @@
 | Workflow 技能门禁 | ✅ | `@zcd/policy-skill-gate`：未加载 `dynamic-workflows` 时 deny `workflow_run`/改脚本的 amend；compaction 后重新关闭 |
 | OffPeak | ✅ | `tasks.json` 持久化、pending 恢复、running→interrupted |
 | Memory | ✅ | 条目/索引/dream/路径约束/secret 拒绝；per-agent prompt section |
-| Durable Workflow MVP | ✅ | 文件 store、`agent()`/`parallel()`/`pipeline()`/`hole()`、resume 重放、amend、通知 |
+| Durable Workflow MVP | ✅ | 文件 store、`agent()`/`parallel()`/`pipeline()`/`hole()`、resume 重放、amend、节点重试、run/节点耗时与模型、通知 |
 | 文档 | ✅ 5/5 + 生成 | read/search/open/show/get_view；docx/xlsx/pdf/text 锚点；create_document 基础生成 |
 | Gen UI | ✅ 工具 + 路由 + 卡片 | `visualize` + `/zcd/genui` CSP 沙箱 + lazy-CJS iframe 卡片；路由渲染[截图](docs/assets/zcd-genui-render.png)，会话内卡片待模型会话验收 |
-| Workflow 面板 | ✅ 视觉验收 | 右侧栏 run 列表 + 节点展开 + journal 事件 + 取消/恢复/改脚本（[截图](docs/assets/workflow-panel-amend.png)） |
+| Workflow 面板 | ✅ 视觉验收 | 右侧栏 run 列表（耗时/错误）+ 节点展开（模型/耗时列）+ 失败节点 Retry + journal 事件 + 取消/恢复/改脚本（[截图](docs/assets/workflow-panel-amend.png)） |
 | ZCD 设置页 | ✅ 视觉验收 | 运行环境 + 最近 runs + 用户记忆增删/整理（`/zcd/memory`，[截图](docs/assets/zcd-settings-memory.png)） |
 | 技能 | ✅ 33 个（覆盖 34/39） | superpowers 14 + dsh-guide 6 + zcd 6（office-viewer/browser-use/visualize/dynamic-workflows/skill-creator/plugin-creator）+ dsh 原生 Office 7 |
 | 浏览器 v2 | ✅ | `@zcd/browser` + 12 个 deferred 工具；headless 或经 CDP 接管你的 Chrome；`browser_act` 在 vm 沙箱跑 Node 级脚本；右侧栏实时可视面板 |

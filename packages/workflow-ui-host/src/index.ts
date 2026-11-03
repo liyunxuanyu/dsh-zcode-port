@@ -52,6 +52,8 @@ export function apply(ctx: Context): void {
           name: run.name,
           status: run.status,
           nodeCount: run.nodeCount,
+          durationMs: run.durationMs,
+          error: run.error,
           updatedAt: run.updatedAt,
         }))
         res.writeHead(200, {
@@ -62,12 +64,13 @@ export function apply(ctx: Context): void {
         res.end(JSON.stringify({ runs }))
         return
       }
-      const match = /^\/zcd\/workflow\/runs\/([A-Za-z0-9_-]+)(\/cancel|\/resume|\/amend|\/nodes|\/events)?$/.exec(url.pathname)
+      const match = /^\/zcd\/workflow\/runs\/([A-Za-z0-9_-]+)(\/cancel|\/resume|\/amend|\/nodes|\/events|\/nodes\/[A-Za-z0-9_-]+\/retry)?$/.exec(url.pathname)
       const id = match?.[1]
       const sub = match?.[2]
       const cancel = sub === '/cancel'
       const resume = sub === '/resume'
       const amend = sub === '/amend'
+      const retryNodeId = sub?.startsWith('/nodes/') === true ? sub.split('/')[2] : undefined
       if (id === undefined) {
         res.writeHead(404)
         res.end()
@@ -112,6 +115,8 @@ export function apply(ctx: Context): void {
             prompt: node.prompt.slice(0, 160),
             output: node.output?.slice(0, 240),
             error: node.error,
+            durationMs: node.endedAt - node.startedAt,
+            model: node.model,
           }))
           res.writeHead(200, {
             'content-type': 'application/json; charset=utf-8',
@@ -125,6 +130,38 @@ export function apply(ctx: Context): void {
           res.end(JSON.stringify({ error: 'not-found' }))
           return
         }
+      }
+      if (retryNodeId !== undefined) {
+        if (req.method !== 'POST') {
+          res.writeHead(405, { allow: 'POST' })
+          res.end()
+          return
+        }
+        try {
+          ctx.durableWorkflow.get(id)
+        } catch {
+          res.writeHead(404, { 'content-type': 'application/json' })
+          res.end(JSON.stringify({ error: 'not-found' }))
+          return
+        }
+        try {
+          const result = ctx.durableWorkflow.retryNode(id, retryNodeId)
+          res.writeHead(result.dropped ? 200 : 404, {
+            'content-type': 'application/json; charset=utf-8',
+            'cache-control': 'no-store',
+            'x-content-type-options': 'nosniff',
+          })
+          res.end(JSON.stringify({
+            dropped: result.dropped,
+            nodeId: result.nodeId,
+            run: { nodeCount: result.view.nodeCount },
+            ...(result.dropped ? {} : { error: 'not-found' }),
+          }))
+        } catch (error: unknown) {
+          res.writeHead(409, { 'content-type': 'application/json' })
+          res.end(JSON.stringify({ error: error instanceof Error ? error.message : 'retry-failed' }))
+        }
+        return
       }
       if (cancel || resume || amend) {
         if (req.method !== 'POST') {
@@ -191,6 +228,7 @@ export function apply(ctx: Context): void {
         name: run.name,
         status: run.status,
         nodeCount: run.nodeCount,
+        durationMs: run.durationMs,
         script: run.script,
         result: run.result,
         error: run.error,

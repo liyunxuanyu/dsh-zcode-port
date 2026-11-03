@@ -57,6 +57,7 @@ writeFileSync(join(workflowRuns, fixtureId, 'nodes', `${fixtureNodeId}.json`), J
   prompt: 'Summarize the changelog',
   status: 'succeeded',
   output: 'Smoke fixture output.',
+  model: 'smoke/model',
   startedAt: now,
   endedAt: now + 10,
 }, null, 2))
@@ -166,10 +167,17 @@ try {
   if (fixture?.status !== 'succeeded' || fixture?.nodeCount !== 1) {
     throw new Error(`workflow list did not expose the fixture: ${JSON.stringify(runListBody)}`)
   }
+  if (typeof fixture.durationMs !== 'number') {
+    throw new Error(`workflow list did not expose a duration: ${JSON.stringify(fixture)}`)
+  }
   const fixtureNodes = await fetch(`http://127.0.0.1:${port}/zcd/workflow/runs/${fixtureId}/nodes`)
   const fixtureNodesBody = await fixtureNodes.json().catch(() => undefined)
   if (fixtureNodes.status !== 200 || fixtureNodesBody?.nodes?.[0]?.prompt !== 'Summarize the changelog') {
     throw new Error(`workflow nodes route failed: ${fixtureNodes.status}`)
+  }
+  // The run panel renders model and duration columns from these two fields.
+  if (fixtureNodesBody.nodes[0].model !== 'smoke/model' || fixtureNodesBody.nodes[0].durationMs !== 10) {
+    throw new Error(`workflow nodes did not expose model/duration: ${JSON.stringify(fixtureNodesBody.nodes[0])}`)
   }
   const fixtureEvents = await fetch(`http://127.0.0.1:${port}/zcd/workflow/runs/${fixtureId}/events`)
   const fixtureEventsBody = await fixtureEvents.json().catch(() => undefined)
@@ -177,6 +185,10 @@ try {
   for (const type of ['run/created', 'node/started', 'node/finished', 'run/finished']) {
     if (!eventTypes.includes(type)) throw new Error(`workflow events missing ${type}: ${JSON.stringify(fixtureEventsBody)}`)
   }
+  // Node retry while the run is still executing must be refused: the engine
+  // cannot drop a node the live script may still replay.
+  const retryRunning = await fetch(`http://127.0.0.1:${port}/zcd/workflow/runs/${runningId}/nodes/${fixtureNodeId}/retry`, { method: 'POST' })
+  if (retryRunning.status !== 409) throw new Error(`workflow retry of a running run should be 409: ${retryRunning.status}`)
   const cancelled = await fetch(`http://127.0.0.1:${port}/zcd/workflow/runs/${runningId}/cancel`, { method: 'POST' })
   if (cancelled.status !== 200) throw new Error(`workflow cancel of a running run failed: ${cancelled.status}`)
   const cancelledBody = await (await fetch(`http://127.0.0.1:${port}/zcd/workflow/runs/${runningId}`)).json().catch(() => undefined)
@@ -201,6 +213,24 @@ try {
     body: JSON.stringify({ script: 'return "amended"' }),
   })
   if (amend.status !== 409) throw new Error(`workflow amend without a live parent should be 409: ${amend.status}`)
+
+  // Node retry: drop the settled node from a finished run and journal it; a
+  // missing node reports 404 instead of pretending the retry happened.
+  const retry = await fetch(`http://127.0.0.1:${port}/zcd/workflow/runs/${fixtureId}/nodes/${fixtureNodeId}/retry`, { method: 'POST' })
+  const retryBody = await retry.json().catch(() => undefined)
+  if (retry.status !== 200 || retryBody?.dropped !== true || retryBody?.run?.nodeCount !== 0) {
+    throw new Error(`workflow retry did not drop the node: ${retry.status} ${JSON.stringify(retryBody)}`)
+  }
+  const retriedNodes = await (await fetch(`http://127.0.0.1:${port}/zcd/workflow/runs/${fixtureId}/nodes`)).json().catch(() => undefined)
+  if (!Array.isArray(retriedNodes?.nodes) || retriedNodes.nodes.length !== 0) {
+    throw new Error(`workflow retry left the node in place: ${JSON.stringify(retriedNodes)}`)
+  }
+  const retriedEvents = await (await fetch(`http://127.0.0.1:${port}/zcd/workflow/runs/${fixtureId}/events`)).json().catch(() => undefined)
+  if (!retriedEvents?.events?.some(event => event.type === 'node/dropped')) {
+    throw new Error(`workflow retry did not journal node/dropped: ${JSON.stringify(retriedEvents)}`)
+  }
+  const retryMissing = await fetch(`http://127.0.0.1:${port}/zcd/workflow/runs/${fixtureId}/nodes/not-a-node/retry`, { method: 'POST' })
+  if (retryMissing.status !== 404) throw new Error(`workflow retry of a missing node should be 404: ${retryMissing.status}`)
 
   const workflow = await fetch(`http://127.0.0.1:${port}/zcd/workflow/runs/not-a-run`)
   const workflowBody = await workflow.text()

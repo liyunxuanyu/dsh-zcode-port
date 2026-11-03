@@ -29,9 +29,25 @@ describe('FileWorkflowStore', () => {
     })
     s.putNode({
       runId: 'run-2', nodeId: 'n1', index: 0, prompt: 'p', status: 'succeeded',
-      output: 'ok', startedAt: 1, endedAt: 2,
+      output: 'ok', model: 'test/model', startedAt: 1, endedAt: 2,
     })
     expect(s.getNode('run-2', 'n1')?.output).toBe('ok')
+    expect(s.getNode('run-2', 'n1')?.model).toBe('test/model')
+  })
+
+  it('drops one settled node without touching its siblings', () => {
+    const s = store()
+    s.createRun({
+      id: 'run-3', name: 'demo', status: 'running', script: 'x', scriptHash: 'h',
+      args: {}, createdAt: 1, updatedAt: 1, nodeCount: 0,
+    })
+    s.putNode({ runId: 'run-3', nodeId: 'a', index: 0, prompt: 'p', status: 'succeeded', startedAt: 1, endedAt: 2 })
+    s.putNode({ runId: 'run-3', nodeId: 'b', index: 1, prompt: 'q', status: 'failed', startedAt: 1, endedAt: 2 })
+
+    expect(s.deleteNode('run-3', 'b')).toBe(true)
+    expect(s.deleteNode('run-3', 'b')).toBe(false)
+    expect(s.listNodes('run-3').map(node => node.nodeId)).toEqual(['a'])
+    expect(s.countNodes('run-3')).toBe(1)
   })
 
   it('derives stable node ids from script, ordinal, and prompt', () => {

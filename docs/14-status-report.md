@@ -29,7 +29,7 @@
 | **P1** | ZCode 工具语义对齐 | ✅ 已完成 | 工具搜索/延迟加载、plan 只读、OffPeak、`schedule_pause`、schema 预算，以及 skill gate 的拒绝与放行均在真实模型会话里验收 |
 | **P2** | durable workflow + memory | ✅ 核心完成 | 脚本引擎、节点缓存、resume/cancel/amend/hole、文件 store、memory/dream/index |
 | **P3** | 浏览器与 CUA | 🟡 浏览器 v2 完成（CUA 除外） | headless 或 CDP 接管用户 Chrome + 12 个工具 + 多 tab + `browser_act` code-act + 右侧栏实时面板；CUA 仅 macOS provider |
-| **P4** | UI 体验 | 🟡 部分完成 | Gen UI 路由/卡片、文档 5 工具 + create_document、设置页、workflow 面板；设置页只写用户记忆 |
+| **P4** | UI 体验 | 🟡 部分完成 | Gen UI 路由/卡片、文档 5 工具 + create_document、设置页（用户记忆 + 运行时策略开关）、workflow 面板（耗时/模型/节点重试） |
 | **P5** | 技能全量 | 🟡 34/39 覆盖 | 33 个技能条目；浏览器 2 项合并为 `browser-use`；CUA 1 项未实现；4 项主动丢弃 |
 
 ---
@@ -116,8 +116,10 @@
   - `phase/log/report`、`hole(prompt)`、`args`
   - 节点按 `(scriptHash, ordinal|key, prompt)` 缓存，resume 不重复调用模型
   - cancel / amend successor / 父会话通知
+  - 观测：run 级 `durationMs`、节点 `model` + `durationMs`、`node/finished` 带耗时
+  - 重试：`retryNode` 删除已落盘节点并 journal `node/dropped`，随后 resume 重跑该节点
 - 7 个工具；`workflow_run` 可见，其余 deferred。
-- 右侧栏面板：run 列表、节点展开、最近 12 条 journal 事件、Cancel/Resume/Amend。
+- 右侧栏面板：run 列表（耗时/错误码）、节点展开（模型与耗时列）、最近 12 条 journal 事件、Cancel/Resume/Amend/Retry node。
 - 限制：Resume/Amend 只在启动 run 的父会话仍存活时可用。
 
 ### 4.6 文档与 Office（P4）
