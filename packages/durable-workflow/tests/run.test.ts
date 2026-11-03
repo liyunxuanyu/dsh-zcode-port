@@ -6,10 +6,14 @@ import { describe, expect, it } from 'vitest'
 import { DurableWorkflowService } from '../src/index.js'
 
 /** Build a context whose child agent emits one assistant message and goes idle. */
-async function harness() {
+async function harness(options: { failTimes?: number } = {}) {
   const ctx = new Context()
   const created: string[] = []
   let parentAgent: unknown
+  let remainingFailures = options.failTimes ?? 0
+  ctx.provide('agentDefaultModel', {
+    currentSelection: () => ({ provider: 'test', model: 'fake-model' }),
+  })
   ctx.provide('agents', {
     async create({ sessionId }: { sessionId: string }) {
       created.push(sessionId)
@@ -18,13 +22,19 @@ async function harness() {
         header: { cwd: '/work', origin: 'subagent' as const },
       }
       let resolveIdle: () => void = () => {}
-      const idle = new Promise<void>(resolve => { resolveIdle = resolve })
+      let rejectIdle: (error: Error) => void = () => {}
+      const idle = new Promise<void>((resolve, reject) => { resolveIdle = resolve; rejectIdle = reject })
       const agent = {
         id: sessionId,
         status: 'idle',
         session,
         followup() {
           queueMicrotask(() => {
+            if (remainingFailures > 0) {
+              remainingFailures -= 1
+              rejectIdle(new Error('model exploded'))
+              return
+            }
             ctx.emit('session/event' as never, session as never, {
               type: 'assistant/message',
               data: { message: { content: [{ type: 'text', text: `answer:${sessionId}` }] } },
@@ -168,6 +178,57 @@ describe('durable workflow', () => {
     const done = await service.wait(view.id, 5_000)
     expect(done.status).toBe('failed')
     expect(done.error?.code).toBe('WORKFLOW_FAILED')
+    await ctx.dispose?.()
+  })
+
+  it('records the routed model and per-node duration', async () => {
+    const { ctx, service, parent } = await harness()
+    const view = service.start({ script: 'return await agent("hi")' }, parent)
+    const done = await service.wait(view.id, 5_000)
+    expect(done.status).toBe('succeeded')
+    expect(done.durationMs).toBeGreaterThanOrEqual(0)
+
+    const node = service.nodes(view.id)[0]
+    expect(node?.model).toBe('test/fake-model')
+    expect(node?.endedAt).toBeGreaterThanOrEqual(node?.startedAt ?? 0)
+
+    const finished = service.events(view.id).find(event => event.type === 'node/finished')
+    expect((finished?.data as { durationMs?: number }).durationMs).toBeGreaterThanOrEqual(0)
+    expect((finished?.data as { model?: string }).model).toBe('test/fake-model')
+    await ctx.dispose?.()
+  })
+
+  it('drops a failed node so the next resume runs it again', async () => {
+    const { ctx, service, parent, created } = await harness({ failTimes: 1 })
+    const view = service.start({ script: 'return await agent("hi")' }, parent)
+    const failed = await service.wait(view.id, 5_000)
+    expect(failed.status).toBe('failed')
+
+    const node = service.nodes(view.id)[0]
+    expect(node?.status).toBe('failed')
+    expect(node?.model).toBe('test/fake-model')
+
+    const retried = service.retryNode(view.id, node!.nodeId)
+    expect(retried.dropped).toBe(true)
+    expect(retried.view.nodeCount).toBe(0)
+    expect(service.nodes(view.id)).toHaveLength(0)
+    expect(service.events(view.id).map(event => event.type)).toContain('node/dropped')
+
+    service.resume(view.id, parent)
+    const done = await service.wait(view.id, 5_000)
+    expect(done.status).toBe('succeeded')
+    expect(done.nodeCount).toBe(1)
+    expect(created).toHaveLength(2)
+    expect(service.nodes(view.id)[0]?.status).toBe('succeeded')
+    await ctx.dispose?.()
+  })
+
+  it('refuses to retry a node while the run is still executing', async () => {
+    const { ctx, service, parent } = await harness()
+    const view = service.start({ script: 'return await agent("hi")' }, parent)
+    expect(() => service.retryNode(view.id, 'anything')).toThrow(/running/)
+    await service.wait(view.id, 5_000)
+    expect(service.retryNode(view.id, 'missing').dropped).toBe(false)
     await ctx.dispose?.()
   })
 })

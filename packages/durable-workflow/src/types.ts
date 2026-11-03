@@ -28,6 +28,8 @@ export interface WorkflowRunView {
   readonly createdAt: number
   readonly updatedAt: number
   readonly nodeCount: number
+  /** Wall-clock milliseconds from first start to settlement; keeps growing while running. */
+  readonly durationMs: number
   readonly result?: unknown
   readonly error?: { code: string; message: string }
   /** Open and answered holes; present only when the run used `hole()`. */

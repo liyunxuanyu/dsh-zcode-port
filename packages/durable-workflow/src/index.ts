@@ -121,7 +121,7 @@ export class DurableWorkflowService extends Service {
   resume(runId: string, parent: Agent): WorkflowRunView {
     const record = this.requireRun(runId)
     if (record.status === 'running') throw new Error(`workflow ${runId} is already running`)
-    const next = this.store.updateRun(runId, { status: 'queued', error: undefined })
+    const next = this.store.updateRun(runId, { status: 'queued', error: undefined, finishedAt: undefined })
     const aborter = new AbortController()
     this.aborters.set(runId, aborter)
     void this.execute(next, parent, aborter.signal).finally(() => { this.aborters.delete(runId) })
@@ -179,7 +179,11 @@ export class DurableWorkflowService extends Service {
     const record = this.requireRun(runId)
     this.aborters.get(runId)?.abort(new Error(reason))
     if (record.status === 'queued' || record.status === 'running') {
-      this.store.updateRun(runId, { status: 'cancelled', error: { code: 'WORKFLOW_CANCELLED', message: reason } })
+      this.store.updateRun(runId, {
+        status: 'cancelled',
+        error: { code: 'WORKFLOW_CANCELLED', message: reason },
+        finishedAt: Date.now(),
+      })
       this.store.appendEvent(runId, { at: Date.now(), type: 'run/cancelled', data: { reason } })
     }
   }
@@ -244,7 +248,7 @@ export class DurableWorkflowService extends Service {
     if (hole.answer !== undefined) throw new Error(`hole ${holeId} is already answered`)
     this.store.putHole({ ...hole, answer, answeredAt: Date.now() })
     this.store.appendEvent(runId, { at: Date.now(), type: 'run/hole-filled', data: { holeId } })
-    const next = this.store.updateRun(runId, { status: 'queued', error: undefined })
+    const next = this.store.updateRun(runId, { status: 'queued', error: undefined, finishedAt: undefined })
     const aborter = new AbortController()
     this.aborters.set(runId, aborter)
     void this.execute(next, parent, aborter.signal).finally(() => { this.aborters.delete(runId) })
@@ -259,6 +263,29 @@ export class DurableWorkflowService extends Service {
   nodes(runId: string): NodeRecord[] {
     this.requireRun(runId)
     return this.store.listNodes(runId)
+  }
+
+  /**
+   * Forget one settled node so the next execution runs it again instead of
+   * replaying the stored output. The caller resumes the run afterwards; a node
+   * that is still part of the current session's memory cannot be replayed past,
+   * so retry is always "drop node, then resume".
+   *
+   * @param runId - run id.
+   * @param nodeId - settled node id from {@link nodes}.
+   * @returns the drop result and the refreshed run view.
+   */
+  retryNode(runId: string, nodeId: string): { dropped: boolean; nodeId: string; view: WorkflowRunView } {
+    const record = this.requireRun(runId)
+    if (record.status === 'running') {
+      throw new Error(`workflow ${runId} is running; cancel it before retrying a node`)
+    }
+    const dropped = this.store.deleteNode(runId, nodeId)
+    if (dropped) {
+      this.store.appendEvent(runId, { at: Date.now(), type: 'node/dropped', data: { nodeId } })
+      this.store.updateRun(runId, { nodeCount: this.store.countNodes(runId) })
+    }
+    return { dropped, nodeId, view: this.view(this.requireRun(runId)) }
   }
 
   /**
@@ -336,6 +363,7 @@ export class DurableWorkflowService extends Service {
       createdAt: record.createdAt,
       updatedAt: record.updatedAt,
       nodeCount: record.nodeCount,
+      durationMs: (record.finishedAt ?? record.updatedAt) - (record.startedAt ?? record.createdAt),
       ...(record.result === undefined ? {} : { result: record.result }),
       ...(record.error === undefined ? {} : { error: record.error }),
       ...(this.store.listHoles(record.id).length === 0 ? {} : {
@@ -355,7 +383,10 @@ export class DurableWorkflowService extends Service {
    * @param signal - cancellation.
    */
   private async execute(record: RunRecord, parent: Agent, signal: AbortSignal): Promise<void> {
-    this.store.updateRun(record.id, { status: 'running' })
+    this.store.updateRun(record.id, {
+      status: 'running',
+      ...(record.startedAt === undefined ? { startedAt: Date.now() } : {}),
+    })
     let index = 0
     let holeIndex = 0
     const executeAgent = async (prompt: string, options?: { key?: string }): Promise<string> => {
@@ -421,7 +452,7 @@ export class DurableWorkflowService extends Service {
       const value = await pending
       if (signal.aborted) throw new Error('workflow cancelled')
       const result = value === undefined ? null : JSON.parse(JSON.stringify(value)) as unknown
-      const finished = this.store.updateRun(record.id, { status: 'succeeded', result, error: undefined })
+      const finished = this.store.updateRun(record.id, { status: 'succeeded', result, error: undefined, finishedAt: Date.now() })
       this.store.appendEvent(record.id, { at: Date.now(), type: 'run/finished', data: { status: 'succeeded' } })
       this.notify(parent, finished)
     } catch (error: unknown) {
@@ -431,12 +462,20 @@ export class DurableWorkflowService extends Service {
         return
       }
       if (signal.aborted) {
-        const cancelled = this.store.updateRun(record.id, { status: 'cancelled', error: { code: 'WORKFLOW_CANCELLED', message: 'cancelled' } })
+        const cancelled = this.store.updateRun(record.id, {
+          status: 'cancelled',
+          error: { code: 'WORKFLOW_CANCELLED', message: 'cancelled' },
+          finishedAt: Date.now(),
+        })
         this.notify(parent, cancelled)
         return
       }
       const message = error instanceof Error ? error.message : String(error)
-      const failed = this.store.updateRun(record.id, { status: 'failed', error: { code: 'WORKFLOW_FAILED', message } })
+      const failed = this.store.updateRun(record.id, {
+        status: 'failed',
+        error: { code: 'WORKFLOW_FAILED', message },
+        finishedAt: Date.now(),
+      })
       this.store.appendEvent(record.id, { at: Date.now(), type: 'run/finished', data: { status: 'failed', message } })
       this.notify(parent, failed)
     }
@@ -462,6 +501,7 @@ export class DurableWorkflowService extends Service {
     this.store.appendEvent(record.id, { at: startedAt, type: 'node/started', data: { nodeId, index } })
     const cwd = parent.session.header.cwd
     const selection = this.ctx.get('agentDefaultModel')?.currentSelection()
+    const model = selection === undefined ? undefined : `${selection.provider}/${selection.model}`
     const child = await this.ctx.agents.create({
       sessionId: `session-${randomUUID()}` as SessionId,
       parentAgent: parent,
@@ -494,12 +534,17 @@ export class DurableWorkflowService extends Service {
         prompt,
         status: 'succeeded',
         output: last,
+        ...(model === undefined ? {} : { model }),
         startedAt,
         endedAt: Date.now(),
       }
       this.store.putNode(node)
       this.store.updateRun(record.id, { nodeCount: this.store.countNodes(record.id) })
-      this.store.appendEvent(record.id, { at: Date.now(), type: 'node/finished', data: { nodeId, index } })
+      this.store.appendEvent(record.id, {
+        at: node.endedAt,
+        type: 'node/finished',
+        data: { nodeId, index, durationMs: node.endedAt - startedAt, ...(model === undefined ? {} : { model }) },
+      })
       return last
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error)
@@ -511,6 +556,7 @@ export class DurableWorkflowService extends Service {
         prompt,
         status: 'failed',
         error: { code: 'NODE_FAILED', message },
+        ...(model === undefined ? {} : { model }),
         startedAt,
         endedAt: Date.now(),
       })

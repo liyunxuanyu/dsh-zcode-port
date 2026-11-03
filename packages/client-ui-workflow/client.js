@@ -28,6 +28,15 @@ window.__ModuleLoader__.load({
       return ` · ${text.length > 90 ? `${text.slice(0, 90)}…` : text}`
     }
 
+    /** Compact wall-clock duration for the panel (`820ms`, `4.2s`, `1m 05s`). */
+    function formatDuration(ms) {
+      if (typeof ms !== 'number' || !Number.isFinite(ms) || ms < 0) return ''
+      if (ms < 1000) return `${Math.round(ms)}ms`
+      if (ms < 60_000) return `${(ms / 1000).toFixed(1)}s`
+      const total = Math.round(ms / 1000)
+      return `${Math.floor(total / 60)}m ${String(total % 60).padStart(2, '0')}s`
+    }
+
     /** Panel body: recent runs, refreshed every 3s; click a run for its nodes. */
     function WorkflowPanel() {
       const [runs, setRuns] = React.useState([])
@@ -71,6 +80,25 @@ window.__ModuleLoader__.load({
           .then(() => setRefresh((value) => value + 1))
           .catch((reason) => setActionError(String(reason?.message ?? reason)))
       }
+      const retryNode = (id, nodeId) => {
+        setActionError(undefined)
+        fetch(`/zcd/workflow/runs/${id}/nodes/${nodeId}/retry`, { method: 'POST' })
+          .then((response) => response.ok ? response.json() : response.json()
+            .then((value) => Promise.reject(new Error(value.error ?? String(response.status))))
+            .catch((reason) => Promise.reject(reason instanceof Error ? reason : new Error(String(response.status)))))
+          .then(() => fetch(`/zcd/workflow/runs/${id}/resume`, { method: 'POST' }))
+          .then((response) => {
+            if (response.ok) return undefined
+            return response.json()
+              .catch(() => ({}))
+              .then((value) => Promise.reject(new Error(value.error ?? `resume failed (${response.status})`)))
+          })
+          .then(() => setRefresh((value) => value + 1))
+          .catch((reason) => {
+            setActionError(`Node cleared, resume failed: ${String(reason?.message ?? reason)}`)
+            setRefresh((value) => value + 1)
+          })
+      }
       const beginAmend = (id) => {
         setActionError(undefined)
         fetch(`/zcd/workflow/runs/${id}`)
@@ -111,11 +139,26 @@ window.__ModuleLoader__.load({
         actionError === undefined ? null : jsx('div', { style: { ...cell, color: 'var(--red, #b00)' }, children: actionError }),
         ...runs.map((run) => {
           const nodeRows = expanded === run.id
-            ? (nodes[run.id] ?? []).map((node) => jsx('div', {
-              key: node.id,
-              style: { ...cell, paddingLeft: '10px', fontSize: '11px' },
-              children: `#${node.index} [${node.status}] ${node.prompt}`,
-            }))
+            ? (nodes[run.id] ?? []).map((node) => {
+              const meta = [node.model, formatDuration(node.durationMs)].filter(Boolean).join(' · ')
+              return jsxs('div', {
+                key: node.id,
+                style: { ...cell, paddingLeft: '10px', fontSize: '11px', display: 'flex', gap: '6px', alignItems: 'baseline', flexWrap: 'wrap' },
+                children: [
+                  jsx('span', { style: mono, children: `#${node.index} [${node.status}]` }),
+                  meta.length === 0 ? null : jsx('span', { style: { opacity: 0.75 }, children: meta }),
+                  jsx('span', { children: node.prompt }),
+                  node.status === 'failed'
+                    ? jsx('button', {
+                      type: 'button',
+                      style: smallButton,
+                      onClick: (event) => { event.stopPropagation(); retryNode(run.id, node.id) },
+                      children: 'Retry node',
+                    })
+                    : null,
+                ],
+              })
+            })
             : []
           const eventRows = expanded === run.id
             ? (events[run.id] ?? []).slice(-12).map((event, index) => jsx('div', {
@@ -130,7 +173,13 @@ window.__ModuleLoader__.load({
             onClick: () => toggle(run.id),
             children: [
               jsx('div', { style: mono, children: `${run.id} [${run.status}]` }),
-              jsx('div', { children: `${run.name} · ${run.nodeCount} nodes` }),
+              jsx('div', {
+                children: [run.name, `${run.nodeCount} nodes`, formatDuration(run.durationMs), run.error?.code]
+                  .filter(Boolean).join(' · '),
+              }),
+              run.status === 'failed' && run.error?.message !== undefined
+                ? jsx('div', { style: { ...cell, fontSize: '11px', color: 'var(--red, #b00)' }, children: run.error.message })
+                : null,
               run.status === 'queued' || run.status === 'running'
                 ? jsx('button', {
                   type: 'button',

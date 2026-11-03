@@ -10,7 +10,7 @@
  */
 
 import { createHash } from 'node:crypto'
-import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 
 /** Lifecycle of one run. */
@@ -35,6 +35,10 @@ export interface RunRecord {
   parentSessionId?: string
   createdAt: number
   updatedAt: number
+  /** First time the engine began executing this run; absent while queued. */
+  startedAt?: number
+  /** When the run reached a terminal state; absent while queued or running. */
+  finishedAt?: number
   result?: unknown
   error?: { code: string; message: string }
   nodeCount: number
@@ -51,6 +55,8 @@ export interface NodeRecord {
   status: 'succeeded' | 'failed'
   output?: string
   error?: { code: string; message: string }
+  /** Provider route that produced the node, as `provider/model`; absent on replayed legacy nodes. */
+  model?: string
   startedAt: number
   endedAt: number
 }
@@ -137,6 +143,20 @@ export class FileWorkflowStore {
   /** Persist one settled node. */
   putNode(node: NodeRecord): void {
     this.writeJson(join(this.runDir(node.runId), 'nodes', `${node.nodeId}.json`), node)
+  }
+
+  /**
+   * Drop one settled node so the next execution runs it again instead of
+   * replaying the stored output. Idempotent: a missing node is not an error.
+   * @param runId - run id.
+   * @param nodeId - node id from {@link listNodes}.
+   * @returns true when a node file was removed.
+   */
+  deleteNode(runId: string, nodeId: string): boolean {
+    const path = join(this.runDir(runId), 'nodes', `${nodeId}.json`)
+    if (!existsSync(path)) return false
+    rmSync(path, { force: true })
+    return true
   }
 
   /** Persist one hole. */
