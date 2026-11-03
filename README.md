@@ -123,7 +123,7 @@
 | ZCD 设置页 | ✅ 视觉验收 | 运行环境 + 最近 runs + 用户记忆增删/整理（`/zcd/memory`，[截图](docs/assets/zcd-settings-memory.png)） |
 | 技能 | ✅ 33 个（覆盖 34/39） | superpowers 14 + dsh-guide 6 + zcd 6（office-viewer/browser-use/visualize/dynamic-workflows/skill-creator/plugin-creator）+ dsh 原生 Office 7 |
 | 浏览器 v2 | ✅ | `@zcd/browser` + 12 个 deferred 工具；headless 或经 CDP 接管你的 Chrome；`browser_act` 在 vm 沙箱跑 Node 级脚本；右侧栏实时可视面板 |
-| 外部插件接入 | ✅ doctor | `pnpm doctor` 检查依赖/engines/重复版本/bundle manifest |
+| 外部插件接入 | ✅ doctor + e2e | `pnpm doctor` 静态预检；`pnpm e2e:plugin` 用临时 profile 真装第三方插件并验证其路由 |
 | MCP 运行时 | ✅ pinned + smoke | `runtime/mcp` + `pnpm mcp:install` + `pnpm mcp:check`（stdio initialize/tools/list） |
 
 **下一步**（详见 `docs/13-implementation-status.md` §2）：

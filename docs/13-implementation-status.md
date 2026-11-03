@@ -74,6 +74,7 @@
 | `skills/zcd/skill-creator`（1） | dsh SKILL.md frontmatter、发现顺序与门禁 | 已安装 | verify-naming |
 | `skills/zcd/plugin-creator`（1） | Cordis 插件/bundle/profile 接入与故障排查 | 已安装 | verify-naming |
 | `@deepseek-ai/dsh-skill-office`（7） | office 路由 + docx/pptx/xlsx/render/recalculate/export-pdf | 已挂载 | 启动 smoke；LibreOffice kit 由 dsh 依赖提供 |
+| `e2e/fixtures/external-plugin` | 仓库外的第三方插件 fixture：只依赖 `webServer`，暴露 `GET /e2e-probe/health` 作为「真的激活了」的证据 | 跑通 | `pnpm e2e:plugin` |
 | `@zcd/bundle-base` | 基础能力行（tool-search / todo-read / deferred / offpeak / memory / workflow / documents / genui / browser …） | 已组合 | dump-config |
 | `@zcd/bundle-web-app` | 7 个 host 行 + 5 个 client bundle 行 | 已组合 | dump-config |
 | `profiles/product` | bundles = dsh-base → zcd-base → dsh-web-app → zcd-web-app | 已组合 | dump-config + smoke |
@@ -138,7 +139,7 @@ P0 已通过；P1（"ZCode 工具语义对齐"）**还没有全部验收**，巡
 | 设置页只写用户记忆 | Memory 配置、只读策略开关仍不可改 | 复用 `configForms` |
 | workflow 面板缺指标 | 无耗时/模型列与失败重试按钮 | 保存在节点上的模型与计时 |
 | policy-plan-readonly 默认关闭 | 默认行为与 dsh 一致；严格模式需显式开 | 设置页开关 |
-| 外部插件 e2e | doctor 只做静态检查 | 增加一个真实第三方插件 smoke |
+| ~~外部插件 e2e~~ | ✅ 已补：`scripts/e2e-external-plugin.mjs` 用临时 profile 真装外部插件并验证其路由；doctor 仍是静态预检 | — |
 
 ## 4. 关键设计修正（相对早期文档）
 

@@ -32,6 +32,11 @@ jobs:
       - run: node scripts/smoke-profile.mjs
         env:
           ZCD_DSH_HOME: ${{ github.workspace }}/.dsh-home
+      # Boots the profile with an out-of-workspace third-party plugin, which is
+      # the only check that proves external resolution and activation work.
+      - run: node scripts/e2e-external-plugin.mjs
+        env:
+          ZCD_DSH_HOME: ${{ github.workspace }}/.dsh-home
       - uses: actions/upload-artifact@v4
         with:
           name: zcd-product

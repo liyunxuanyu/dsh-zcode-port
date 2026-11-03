@@ -113,6 +113,17 @@ pnpm doctor
 
 它不联网、不依赖第三方库；CI 在 `link-profile` 之前运行它。发现硬冲突时退出码 1，警告只打印不阻塞。
 
+### 5.5.1 外部插件端到端（`pnpm e2e:plugin`）
+
+doctor 是静态的：它读 manifest，不启动任何东西。`scripts/e2e-external-plugin.mjs`
+补上真实链路——复制 profile 到临时 home、用 `file:` 安装仓库外的 fixture、
+写用户层 patch，然后真的启动 product profile 并请求插件自己的路由
+（`GET /e2e-probe/health`）。只有路由通了才算「外部插件可用」。
+
+这条测试专门锁一个容易踩的坑：**`cordis.patch.yml` 是按 id 覆盖已有行的**，
+裸写 `- id: x / name: y` 会在启动时被静默丢弃（`patch: entry "x" not found`），
+新增一行必须包在 `- insert:` 里。
+
 ## 5.6 MCP runtime
 
 `runtime/mcp/` pins the MCP servers this product ships or tests with.
