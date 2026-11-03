@@ -7,7 +7,7 @@
 
 ## 0. 一句话
 
-**P0 已通过，P1/P2/P4 部分落地**：product profile 在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**42 个** ZCD 工具激活，**33 个技能**可用（26 个文件技能 + 7 个 dsh 原生 Office；覆盖 34/39 项 ZCode 技能），**108 个单测（19 个文件）**、命名门禁、docs 链接、运行时 doctor 与启动 smoke 全部通过。设置页已能在真实浏览器里列出、添加、删除**用户记忆**，并写入**只读策略开关与 workflow 限额**；workflow run 面板带耗时/模型列与节点重试，文档卡已可用。
+**P0 已通过，P1/P2/P4 部分落地**：product profile 在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**42 个** ZCD 工具激活，**33 个技能**可用（26 个文件技能 + 7 个 dsh 原生 Office；覆盖 34/39 项 ZCode 技能），**123 个单测（20 个文件）**、命名门禁、docs 链接、运行时 doctor 与启动 smoke 全部通过。设置页已能在真实浏览器里列出、添加、删除**用户记忆**，并写入**只读策略开关与 workflow 限额**；workflow run 面板带耗时/模型列与节点重试，文档卡已可用。
 
 ---
 
@@ -93,7 +93,7 @@
 
 ```sh
 pnpm typecheck     # 全部 workspace 包通过
-pnpm test          # 19 个文件 / 108 个用例通过
+pnpm test          # 20 个文件 / 123 个用例通过
 pnpm verify        # verify-naming: 42 ZCD tools, 32 reserved names；docs 链接 0 问题
 pnpm mcp:check     # pinned MCP server: initialize + tools/list
 pnpm build         # 所有包 emit 到 lib/

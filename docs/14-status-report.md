@@ -14,7 +14,7 @@
 - **42 个 ZCD 工具**在 product profile 中激活
 - **33 个技能**可用（覆盖 34/39 项 ZCode 技能）
 - **33 个 workspace 包**、4 个 bundle 正确组合
-- **108 个单测 / 19 个文件**，另有 typecheck、命名/文档门禁、插件 doctor、打包、MCP smoke、启动 smoke
+- **123 个单测 / 20 个文件**，另有 typecheck、命名/文档门禁、插件 doctor、打包、MCP smoke、启动 smoke
 - 设置页、workflow 运行面板、文档卡已通过真实浏览器视觉验收
 
 当前阶段不是“全部完成”：P1 还有 `schedule_pause` 与真实模型会话验证缺口，P3 只完成浏览器 v1，CUA 受平台限制，P4 的设置写入只覆盖用户记忆。
@@ -165,7 +165,7 @@
 
 ```sh
 pnpm typecheck                 # 全部 workspace 包通过
-pnpm test                      # 19 个文件 / 108 个用例
+pnpm test                      # 20 个文件 / 123 个用例
 pnpm verify                    # 38 ZCD tools, 32 reserved names；docs 链接 0 问题
 pnpm build                     # 所有包 emit 到 lib/
 node scripts/pack-product.mjs  # dist/zcd-product-0.0.0.tgz
