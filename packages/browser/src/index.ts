@@ -17,6 +17,9 @@ import { dirname, join } from 'node:path'
 import { Service } from '@deepseek-ai/cordis'
 import type { Context } from '@deepseek-ai/cordis'
 import type { Browser, BrowserContext, Page } from 'playwright-core'
+import { BrowserCodeAct, type CodeActInput, type CodeActResult } from './code-act.js'
+
+export type { CodeActBindings, CodeActInput, CodeActResult } from './code-act.js'
 
 /** Deployment configuration. */
 export interface Config {
@@ -30,6 +33,10 @@ export interface Config {
   storageDir?: string
   /** Viewport for new pages. */
   viewport?: { width: number; height: number }
+  /** Wall-clock budget for one `browser_act` call (default 60000). */
+  codeActTimeoutMs?: number
+  /** Combined result/stdout cap for one `browser_act` call (default 60000 chars). */
+  codeActMaxChars?: number
 }
 
 declare module '@deepseek-ai/cordis' {
@@ -110,6 +117,7 @@ export class BrowserService extends Service {
   private readonly config: Required<Pick<Config, 'headless' | 'timeoutMs' | 'storageDir'>> & Config
   private launchPromise?: Promise<Browser>
   private readonly sessions = new Map<string, Promise<SessionBrowser>>()
+  private readonly codeAct: BrowserCodeAct
 
   constructor(ctx: Context, config: Config = {}) {
     super(ctx, 'browser')
@@ -120,6 +128,40 @@ export class BrowserService extends Service {
       storageDir: config.storageDir
         ?? join(process.env.DSH_HOME ?? join(homedir(), '.dsh'), 'storages', 'zcd-browser'),
     }
+    this.codeAct = new BrowserCodeAct({
+      page: async sessionId => await this.page(sessionId),
+      screenshot: async sessionId => await this.screenshot(sessionId),
+      listTabs: async sessionId => await this.listTabs(sessionId),
+      newTab: async (sessionId, url) => await this.newTab(sessionId, url),
+      switchTab: async (sessionId, tabId) => { await this.switchTab(sessionId, tabId) },
+      closeTab: async (sessionId, tabId) => { await this.closeTab(sessionId, tabId) },
+    }, {
+      ...(config.codeActTimeoutMs === undefined ? {} : { timeoutMs: config.codeActTimeoutMs }),
+      ...(config.codeActMaxChars === undefined ? {} : { maxOutputChars: config.codeActMaxChars }),
+    })
+  }
+
+  /**
+   * Run one Node-level code-act body against the session browser.
+   *
+   * This is the v2 entry point: instead of a tool per DOM operation, the model
+   * writes one small script that drives the page. The runner owns the sandbox,
+   * the output budget, and the per-session globals.
+   *
+   * @param sessionId - owning agent session.
+   * @param input - code body and a short label.
+   * @returns captured result, stdout, and timing.
+   */
+  async act(sessionId: string, input: CodeActInput): Promise<CodeActResult> {
+    return await this.codeAct.run(sessionId, input)
+  }
+
+  /**
+   * Drop the code-act globals of one session (called when the session browser closes).
+   * @param sessionId - agent session id.
+   */
+  resetAct(sessionId: string): void {
+    this.codeAct.reset(sessionId)
   }
 
   protected [Service.init](): void {
@@ -204,6 +246,7 @@ export class BrowserService extends Service {
    * @param sessionId - agent session id.
    */
   async closeSession(sessionId: string): Promise<void> {
+    this.codeAct.reset(sessionId)
     const existing = this.sessions.get(sessionId)
     if (existing === undefined) return
     this.sessions.delete(sessionId)

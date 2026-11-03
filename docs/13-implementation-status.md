@@ -7,7 +7,7 @@
 
 ## 0. 一句话
 
-**P0 已通过，P1/P2/P4 部分落地**：product profile 在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**38 个** ZCD 工具激活，**33 个技能**可用（26 个文件技能 + 7 个 dsh 原生 Office；覆盖 34/39 项 ZCode 技能），**89 个单测（17 个文件）**、命名门禁、docs 链接、运行时 doctor 与启动 smoke 全部通过。设置页已能在真实浏览器里列出、添加、删除**用户记忆**；workflow run 面板与文档卡已可用。
+**P0 已通过，P1/P2/P4 部分落地**：product profile 在 dsh 0.2.2-alpha.2 上启动 Web，四个 bundle 正确组合，**39 个** ZCD 工具激活，**33 个技能**可用（26 个文件技能 + 7 个 dsh 原生 Office；覆盖 34/39 项 ZCode 技能），**99 个单测（18 个文件）**、命名门禁、docs 链接、运行时 doctor 与启动 smoke 全部通过。设置页已能在真实浏览器里列出、添加、删除**用户记忆**；workflow run 面板与文档卡已可用。
 
 ---
 
@@ -62,8 +62,8 @@
 | `@zcd/client-ui-workflow` | 右侧栏 workflow tab：3s 轮询 + 节点展开 + journal 事件 + 取消/恢复/改脚本 | **视觉验收通过** | [截图](assets/workflow-panel-amend.png) + smoke |
 | `@zcd/client-ui-zcd` | 文档卡 Open/自动打开、workflow 卡片轮询 + 取消 | 进入 boot graph | smoke 检查 |
 | `@zcd/tool-visualize` | `visualize`：写自包含 HTML，返回沙箱 URL（deferred） | 激活成功 | 2 个单测（落盘/URL、限额/高度） |
-| `@zcd/browser` | `ctx.browser`：headless Chrome、每会话隔离 context + 多 tab、截图落盘、URL 白名单 | 激活成功 | 3 个单测（URL/Chrome 探测/真实导航） |
-| `@zcd/tool-browser` | `browser_open/snapshot/evaluate/click/type/screenshot` + tab 4 工具 + `browser_close`（deferred） | 激活成功 | 1 个真实 Chrome 工具链测试 |
+| `@zcd/browser` | `ctx.browser`：headless Chrome、每会话隔离 context + 多 tab、截图落盘、URL 白名单；`act()` 跑 Node 级 code-act（vm 沙箱、REPL 语义、`state`/`globalThis` 跨调用、输出预算） | 激活成功 | 3 个单测 + 10 个 code-act 单测 |
+| `@zcd/tool-browser` | `browser_open/snapshot/evaluate/click/type/screenshot` + tab 4 工具 + `browser_act`（Node 级 code-act）+ `browser_close`（deferred） | 激活成功 | 1 个真实 Chrome 工具链测试 |
 | `skills/superpowers`（14） | ZCode 工程方法技能，工具名已映射为 dsh | 已安装 | `install-skills.mjs` |
 | `skills/dsh-guide`（6） | dsh 自诊断：profile/bundle/patch、插件、MCP、skills | 已安装 | `install-skills.mjs` |
 | `skills/zcd/office-viewer`（1） | Word/Excel/PDF/文本的 read/search/open/show/get_view 与锚点语义 | 已安装 | `install-skills.mjs` + verify-naming |
@@ -89,8 +89,8 @@
 
 ```sh
 pnpm typecheck     # 全部 workspace 包通过
-pnpm test          # 17 个文件 / 89 个用例通过
-pnpm verify        # verify-naming: 38 ZCD tools, 32 reserved names；docs 链接 0 问题
+pnpm test          # 18 个文件 / 99 个用例通过
+pnpm verify        # verify-naming: 39 ZCD tools, 32 reserved names；docs 链接 0 问题
 pnpm mcp:check     # pinned MCP server: initialize + tools/list
 pnpm build         # 所有包 emit 到 lib/
 node scripts/pack-product.mjs   # dist/zcd-product-<version>.tgz（相对路径，Windows 也可用）
@@ -109,7 +109,7 @@ smoke 覆盖：Web 启动、无 `did not activate`、Gen UI CSP、文档视图 P
 |---|---|---|
 | 1 | Gen UI 会话内卡片验收 | 沙箱路由已渲染验收；仍需要一次真实 `visualize` 结果会话确认 iframe 卡片 |
 | 2 | CUA（WP-11） | dsh 原生 provider 仅 macOS；Windows 需另找 CUA 驱动 |
-| 3 | 浏览器 v2 | Node 级 `js` code-act、用户浏览器、可视面板 |
+| 3 | 浏览器 v2 | 🟡 部分完成：Node 级 `browser_act` code-act 已落地（vm 沙箱 + 注入 bindings + REPL 语义）；用户浏览器与可视面板未做 |
 | 4 | 设置页继续写入 | workflow 配置、只读策略开关；用户记忆已经可用 |
 | 5 | Workflow run 详情 | 耗时/模型列、失败重试入口；cancel/resume/amend 已完成 |
 | 6 | 剩余技能 | 覆盖 34/39；剩 CUA 1 + 主动丢弃 4（站点/移动端/旧会话恢复） |
@@ -133,7 +133,7 @@ P0 已通过；P1（"ZCode 工具语义对齐"）**还没有全部验收**，巡
 | 缺口 | 影响 | 计划 |
 |---|---|---|
 | 无 CUA 工具 | Windows 上无法做桌面自动化 | 等待可用驱动；macOS 可挂 dsh 原生 provider |
-| 浏览器无 Node 级脚本 | 页面级 `browser_evaluate` 可用；无 `agent.browsers`/可视面板/用户浏览器 | 浏览器 v2 |
+| ~~浏览器无 Node 级脚本~~ | ✅ 已补 `browser_act`（Node 级 code-act）；仍无用户已开浏览器与可视面板 | — |
 | 设置页只写用户记忆 | Memory 配置、只读策略开关仍不可改 | 复用 `configForms` |
 | workflow 面板缺指标 | 无耗时/模型列与失败重试按钮 | 保存在节点上的模型与计时 |
 | policy-plan-readonly 默认关闭 | 默认行为与 dsh 一致；严格模式需显式开 | 设置页开关 |
