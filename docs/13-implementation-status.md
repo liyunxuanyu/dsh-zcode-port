@@ -146,6 +146,16 @@ P0 已通过；P1（"ZCode 工具语义对齐"）**还没有全部验收**，巡
 | ~~policy-plan-readonly 默认关闭~~ | ✅ 改为「常驻但默认惰性」，由 `policy.planReadonly.enabled` 实时开关；默认仍与 dsh 一致 | 设置页开关已落地 |
 | ~~外部插件 e2e~~ | ✅ 已补：`scripts/e2e-external-plugin.mjs` 用临时 profile 真装外部插件并验证其路由；doctor 仍是静态预检 | — |
 
+### 3.1 只剩平台/环境相关的验收
+
+开发侧清单已经清空，剩下两项不需要再写代码：
+
+| 项 | 为什么本机做不了 | 怎么验收 |
+|---|---|---|
+| CUA（WP-11） | dsh 的 computer-use provider 只有 macOS 实现；本机是 Linux/proot | 在 Windows 上接一个可用驱动后，用 `computer` 相关工具跑一次桌面操作 |
+| Gen UI 会话内卡片 | 需要真实浏览器渲染 iframe；本机没有浏览器 | 在 Windows 上打开 Web UI，让模型调一次 `visualize`，确认会话里出现卡片 |
+| 浏览器集成测试 | 需要 Chrome；本机未安装 | `ZCD_CHROME_PATH` 指向 Chrome 后跑 `pnpm test`，被跳过的用例会自动启用 |
+
 ## 4. 关键设计修正（相对早期文档）
 
 1. **`tools/pre-execute` 没有“批准”语义**：`PreToolDecision` 只有 `allow/deny/cancel/ask`。命中只读时返回 `allow`（仍会跑 guards），否则 `next()`。见 `docs/00-decisions.md` ADR-07。

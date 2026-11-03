@@ -254,3 +254,26 @@ npx -y node@24 scripts/smoke-profile.mjs
 ## 10. 结论
 
 当前版本已经可以作为 **ZCD 的可运行第一版**：dsh 负责运行、沙箱、审批、插件组合；ZCD 在其上提供延迟工具、工作流、记忆、文档、Gen UI、浏览器、设置页与 workflow 面板。下一阶段的重点不是继续堆工具，而是补真实模型会话验收、设置写入、浏览器 v2 与 CUA 的平台能力。
+
+---
+
+## 9. 交接：Windows 上要做的三件事
+
+开发侧已完成。剩下三项受本机环境限制，需要在 Windows 上收尾：
+
+1. **CUA**：dsh 原生 provider 只有 macOS 实现，Windows 需要另找驱动；接好后用桌面自动化工具跑一次。
+2. **Gen UI 会话内卡片**：沙箱路由已验收，缺的是真实浏览器里 iframe 卡片的视觉确认。
+3. **浏览器集成测试**：`pnpm test` 里有 2 个用例因没有 Chrome 被跳过；装好 Chrome 或设 `ZCD_CHROME_PATH` 后会自动启用。
+
+复跑顺序：
+
+```sh
+pnpm install
+pnpm build
+pnpm test          # 123 个用例
+pnpm verify
+pnpm doctor
+node scripts/link-profile.mjs
+node scripts/smoke-profile.mjs
+node scripts/e2e-external-plugin.mjs
+```
